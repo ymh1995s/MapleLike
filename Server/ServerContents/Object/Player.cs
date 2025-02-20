@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using ServerContents.Object;
 using ServerContents.Session;
 using System;
@@ -10,20 +10,25 @@ namespace ServerContents.Object
     public class Player : GameObject
     {
         public ClientSession Session { get; set; }
+        public PlayerInfo Info { get; set; } = new PlayerInfo();
+        public PlayerStatInfo Stat { get; private set; } = new PlayerStatInfo();
+
+        public float Speed
+        {
+            get { return Stat.Speed; }
+            set { Stat.Speed = value; }
+        }
+
+        public int Hp
+        {
+            get { return Stat.Hp; }
+            set { Stat.Hp = Math.Clamp(value, 0, Stat.MaxHp); }
+        }
 
         public Player()
         {
             ObjectType = GameObjectType.Player;
-        }
-
-        public override void OnDamaged(GameObject attacker, int damage)
-        {
-            base.OnDamaged(attacker, damage);
-        }
-
-        public override void OnDead(GameObject attacker)
-        {
-            base.OnDead(attacker);
+            Info.StatInfo = Stat;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerContents.Object;
 using ServerContents.Room;
@@ -62,7 +62,7 @@ namespace ServerContents.Session
 
             MyPlayer = ObjectManager.Instance.Add<Player>();
             {
-                MyPlayer.Info.Name = $"Player_{MyPlayer.Info.ObjectId}";
+                MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
                 //MyPlayer.Info.PosInfo.CurrentPosX = 1;
                 //MyPlayer.Info.PosInfo.CurrentPosY = 2;
                 //MyPlayer.Info.PosInfo.CurrentPosZ = 3;
@@ -79,7 +79,7 @@ namespace ServerContents.Session
                 Disconnect();
                 return;
             }
-            room.Push(room.EnterGame, MyPlayer);
+            room.Push(room.PlayerEnterGame, MyPlayer);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
@@ -87,7 +87,7 @@ namespace ServerContents.Session
             Console.WriteLine($"client {endPoint} is disconnected from the server. Here is server");
 
             GameRoom room = RoomManager.Instance.Find(1); // TEMP 1번방
-            room.Push(room.LeaveGame, MyPlayer.Info.ObjectId);
+            room.Push(room.LeaveGame, MyPlayer.Info.PlayerId);
             SessionManager.Instance.Remove(this);
         }
 

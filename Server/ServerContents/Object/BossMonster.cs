@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ServerContents.Object
 {
-    class BossMonster : GameObject
+    class BossMonster : Monster
     {
         Player _target;
 
@@ -42,16 +42,6 @@ namespace ServerContents.Object
             //        UpdateDead();
             //        break;
             //}
-        }
-
-        void BroadcastMove()
-        {
-            // 다른 플레이어한테도 알려준다
-            S_Move movePacket = new S_Move();
-            movePacket.ObjectId = Id;
-            movePacket.PosX = Info.PosX;
-            movePacket.PosY = Info.PosY;
-            Room.Broadcast(movePacket);
         }
 
         protected virtual void UpdateDead()

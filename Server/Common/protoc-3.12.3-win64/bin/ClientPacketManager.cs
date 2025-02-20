@@ -26,18 +26,30 @@ class PacketManager
 	// Register()는 멀티스레드가 개입 되기 전 호출되어야함
 	public void Register()
 	{		
-		_onRecv.Add((ushort)MsgId.SEnter, MakePacket<S_Enter>);
-		_handler.Add((ushort)MsgId.SEnter, PacketHandler.S_EnterHandler);		
-		_onRecv.Add((ushort)MsgId.SLeave, MakePacket<S_Leave>);
-		_handler.Add((ushort)MsgId.SLeave, PacketHandler.S_LeaveHandler);		
-		_onRecv.Add((ushort)MsgId.SMove, MakePacket<S_Move>);
-		_handler.Add((ushort)MsgId.SMove, PacketHandler.S_MoveHandler);		
-		_onRecv.Add((ushort)MsgId.SSpawn, MakePacket<S_Spawn>);
-		_handler.Add((ushort)MsgId.SSpawn, PacketHandler.S_SpawnHandler);		
-		_onRecv.Add((ushort)MsgId.SDespawn, MakePacket<S_Despawn>);
-		_handler.Add((ushort)MsgId.SDespawn, PacketHandler.S_DespawnHandler);		
-		_onRecv.Add((ushort)MsgId.STrapexecute, MakePacket<S_Trapexecute>);
-		_handler.Add((ushort)MsgId.STrapexecute, PacketHandler.S_TrapexecuteHandler);
+		_onRecv.Add((ushort)MsgId.SEnterGame, MakePacket<S_EnterGame>);
+		_handler.Add((ushort)MsgId.SEnterGame, PacketHandler.S_EnterGameHandler);		
+		_onRecv.Add((ushort)MsgId.SPlayerSpawn, MakePacket<S_PlayerSpawn>);
+		_handler.Add((ushort)MsgId.SPlayerSpawn, PacketHandler.S_PlayerSpawnHandler);		
+		_onRecv.Add((ushort)MsgId.SMonsterSpawn, MakePacket<S_MonsterSpawn>);
+		_handler.Add((ushort)MsgId.SMonsterSpawn, PacketHandler.S_MonsterSpawnHandler);		
+		_onRecv.Add((ushort)MsgId.SPlayerMove, MakePacket<S_PlayerMove>);
+		_handler.Add((ushort)MsgId.SPlayerMove, PacketHandler.S_PlayerMoveHandler);		
+		_onRecv.Add((ushort)MsgId.SMonsterMove, MakePacket<S_MonsterMove>);
+		_handler.Add((ushort)MsgId.SMonsterMove, PacketHandler.S_MonsterMoveHandler);		
+		_onRecv.Add((ushort)MsgId.SPlayerDespawn, MakePacket<S_PlayerDespawn>);
+		_handler.Add((ushort)MsgId.SPlayerDespawn, PacketHandler.S_PlayerDespawnHandler);		
+		_onRecv.Add((ushort)MsgId.SMonsterDespawn, MakePacket<S_MonsterDespawn>);
+		_handler.Add((ushort)MsgId.SMonsterDespawn, PacketHandler.S_MonsterDespawnHandler);		
+		_onRecv.Add((ushort)MsgId.SDropItem, MakePacket<S_DropItem>);
+		_handler.Add((ushort)MsgId.SDropItem, PacketHandler.S_DropItemHandler);		
+		_onRecv.Add((ushort)MsgId.SPlayerSkill, MakePacket<S_PlayerSkill>);
+		_handler.Add((ushort)MsgId.SPlayerSkill, PacketHandler.S_PlayerSkillHandler);		
+		_onRecv.Add((ushort)MsgId.SMonsterSkill, MakePacket<S_MonsterSkill>);
+		_handler.Add((ushort)MsgId.SMonsterSkill, PacketHandler.S_MonsterSkillHandler);		
+		_onRecv.Add((ushort)MsgId.SHitMonster, MakePacket<S_HitMonster>);
+		_handler.Add((ushort)MsgId.SHitMonster, PacketHandler.S_HitMonsterHandler);		
+		_onRecv.Add((ushort)MsgId.SPlayerDamaged, MakePacket<S_PlayerDamaged>);
+		_handler.Add((ushort)MsgId.SPlayerDamaged, PacketHandler.S_PlayerDamagedHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

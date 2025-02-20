@@ -1,41 +1,6 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
 
-// ∞‘¿”ø°º≠ ID µÓ¿∏∑Œ µø±‚»≠∞° « ø‰«— ø¿∫Í¡ß∆Æ¥¬ ¿Ã Ω∫≈©∏≥∆Æ∏¶ ªÛº” πﬁ¥¬¥Ÿ∞Ì ∫∏∏È µÀ¥œ¥Ÿ.
-//public class BaseController : MonoBehaviour
-//{
-//    public int Id { get; set; }
-
-//    StatInfo _stat = new StatInfo();
-
-//    protected Vector3 destinationPos = new Vector3();
-
-//    protected virtual void Update()
-//    {
-//        SyncPos();
-//    }
-
-//    public void SyncPos()
-//    {
-//        // destinationPos : S_Move∆–≈∂¿ª ≈Î«ÿ ∞ªΩ≈µ» ∏Ò«• ¿ßƒ°
-//        float distance = Vector3.Distance(transform.position, destinationPos);
-
-
-//        // ∏Ò«•¡ˆ¡°ø° ∞≈¿« ¥Ÿø‘¿∏∏È ∏Ò«• ¿ßƒ°∑Œ º¯∞£¿Ãµø
-//        if (distance < 0.1f)
-//        {
-//            transform.position = destinationPos;
-//        }
-//        else
-//        {
-//            // Ω∫∏£∏§ ¿Ãµø
-//            transform.position = Vector3.MoveTowards(transform.position, destinationPos, 5 * Time.deltaTime);
-//        }
-//    }
-
-//    public void SetDestination(float x, float y)
-//    {
-//        destinationPos.x = x;
-//        destinationPos.y = y;
-//    }
-//}
+// Í≤åÏûÑÏóêÏÑú ID Îì±ÏúºÎ°ú ÎèôÍ∏∞ÌôîÍ∞Ä ÌïÑÏöîÌïú Ïò§Î∏åÏ†ùÌä∏Îäî Ïù¥ Ïä§ÌÅ¨Î¶ΩÌä∏Î•º ÏÉÅÏÜç Î∞õÎäîÎã§Í≥† Î≥¥Î©¥ Îê©ÎãàÎã§.
+// ÏòàÏãúÎ°ú Ï†úÍ≥µÌñàÎçò BaseControllerÏóêÏÑú ÏãúÏûëÌï¥ÎèÑ Îê©ÎãàÎã§.
+// ÌÅ¥ÎûòÏä§Î™ÖÏù¥ Í≤πÏ≥êÏÑú Ïó¨Í∏∞ÏÑ† ÏßÄÏõÄ..

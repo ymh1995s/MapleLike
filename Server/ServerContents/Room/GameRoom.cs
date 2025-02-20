@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerContents.Job;
 using ServerContents.Object;
@@ -46,7 +46,8 @@ namespace ServerContents.Room
 
             // temp 몬스터 입장 
             NormalMonster monster = ObjectManager.Instance.Add<NormalMonster>();
-            EnterGame(monster);
+            monster.Info.Name = $"Monster_{monster.Info.Name}_{monster.Info.MonsterId}";
+            MonsterEnterGame(monster);
         }
 
         void Update(int waitms)
@@ -65,7 +66,7 @@ namespace ServerContents.Room
         }
 
         object _lock = new object();
-        public void EnterGame(GameObject gameObject)
+        public void PlayerEnterGame(GameObject gameObject)
         {
             lock (_lock)
             {
@@ -74,38 +75,59 @@ namespace ServerContents.Room
 
                 GameObjectType type = ObjectManager.GetObjectTypeById(gameObject.Id);
 
-                if (type == GameObjectType.Player)
+                Player player = gameObject as Player;
+                _players.Add(gameObject.Id, player);
+                player.Room = this;
+
+                // 게임룸에 있는 모든 객체를 입장한 본인에게 전송
                 {
-                    Player player = gameObject as Player;
-                    _players.Add(gameObject.Id, player);
-                    player.Room = this;
+                    // S_Enter : 자기 자신의 캐릭터 
+                    S_EnterGame enterPacket = new S_EnterGame();
+                    enterPacket.PlayerInfo = player.Info;
+                    player.Session.Send(enterPacket);
 
-                    // 게임룸에 있는 모든 객체를 입장한 본인에게 전송
+                    // S_Spawn : 다른 사람의 캐릭터
+                    S_PlayerSpawn playersSpawnPacket = new S_PlayerSpawn();
+                    foreach (Player p in _players.Values)
                     {
-                        // S_Enter : 자기 자신의 캐릭터 
-                        S_EnterGame enterPacket = new S_EnterGame();
-                        enterPacket.Player = player.Info;
-                        player.Session.Send(enterPacket);
+                        if (player != p)
+                            playersSpawnPacket.PlayerInfos.Add(p.Info);
+                    }
 
-                        // S_Spawn : 다른 사람의 캐릭터
-                        S_Spawn spawnPacket = new S_Spawn();
-                        foreach (Player p in _players.Values)
-                        {
-                            if (player != p)
-                                spawnPacket.Objects.Add(p.Info);
-                        }
+                    // 현재 있는 map의 몬스터 동기화
+                    S_MonsterSpawn monstersSpawnPacket = new S_MonsterSpawn();
+                    foreach (NormalMonster m in _normalMonsters.Values)
+                        monstersSpawnPacket.MonsterInfos.Add(m.Info);
+                    foreach (BossMonster m in _bossMonsters.Values)
+                        monstersSpawnPacket.MonsterInfos.Add(m.Info);
 
-                        // 현재 있는 map의 몬스터 동기화
-                        foreach (NormalMonster m in _normalMonsters.Values)
-                            spawnPacket.Objects.Add(m.Info);
-                        foreach (BossMonster m in _bossMonsters.Values)
-                            spawnPacket.Objects.Add(m.Info);
+                    player.Session.Send(playersSpawnPacket);
+                    player.Session.Send(monstersSpawnPacket);
+                }
 
-
-                        player.Session.Send(spawnPacket);
+                // 게임룸에 입장한 사실을 다른 클라이언트에게 전송
+                {
+                    S_PlayerSpawn spawnPacket = new S_PlayerSpawn(); 
+                    spawnPacket.PlayerInfos.Add((gameObject as Player)?.Info);
+                    foreach (Player p in _players.Values)
+                    {
+                        if (p.Id != gameObject.Id)
+                            p.Session.Send(spawnPacket);
                     }
                 }
-                else if (type == GameObjectType.Normalmonster)
+            }
+        }
+
+        public void MonsterEnterGame(GameObject gameObject)
+        {
+            lock (_lock)
+            {
+                if (gameObject == null)
+                    return;
+
+                GameObjectType type = ObjectManager.GetObjectTypeById(gameObject.Id);
+
+                if (type == GameObjectType.Normalmonster)
                 {
                     NormalMonster monster = gameObject as NormalMonster;
                     _normalMonsters.Add(gameObject.Id, monster);
@@ -120,8 +142,8 @@ namespace ServerContents.Room
 
                 // 게임룸에 입장한 사실을 다른 클라이언트에게 전송
                 {
-                    S_Spawn spawnPacket = new S_Spawn();
-                    spawnPacket.Objects.Add(gameObject.Info);
+                    S_MonsterSpawn spawnPacket = new S_MonsterSpawn();
+                    spawnPacket.MonsterInfos.Add((gameObject as Monster)?.Info);
                     foreach (Player p in _players.Values)
                     {
                         if (p.Id != gameObject.Id)
@@ -169,13 +191,14 @@ namespace ServerContents.Room
 
             // 타인한테 정보 전송
             {
-                S_Despawn despawnPacket = new S_Despawn();
-                despawnPacket.ObjectIds.Add(objectId);
-                foreach (Player p in _players.Values)
-                {
-                    if (p.Id != objectId)
-                        p.Session.Send(despawnPacket);
-                }
+                // TODO : 디스폰 구분
+                //S_Despawn despawnPacket = new S_Despawn();
+                //despawnPacket.ObjectIds.Add(objectId);
+                //foreach (Player p in _players.Values)
+                //{
+                //    if (p.Id != objectId)
+                //        p.Session.Send(despawnPacket);
+                //}
             }
         }
 
@@ -191,25 +214,25 @@ namespace ServerContents.Room
         }
 
         // 플레이어의 위치 동기화 
-        public void HandleMove(Player player, C_Move movePacket)
+        public void HandleMove(Player player, C_PlayerMove movePacket)
         {
             if (player == null)
                 return;
 
             // 서버에서 관리하기 위해 데이터 반영
-            _players[player.Info.ObjectId].Info.PosX = movePacket.PosX;
-            _players[player.Info.ObjectId].Info.PosY = movePacket.PosY;
+            _players[player.Info.PlayerId].Info.PositionX = movePacket.PositionX;
+            _players[player.Info.PlayerId].Info.PositionY = movePacket.PositionY;
 
             // 다른 플레이어한테도 알려준다
-            S_Move resMovePacket = new S_Move();
-            resMovePacket.ObjectId = player.Info.ObjectId;
-            resMovePacket.PosX = movePacket.PosX;
-            resMovePacket.PosY = movePacket.PosY;
+            S_PlayerMove resMovePacket = new S_PlayerMove();
+            resMovePacket.PlayerId = player.Info.PlayerId;
+            resMovePacket.PositionX = movePacket.PositionX;
+            resMovePacket.PositionY = movePacket.PositionY;
             RecvPacketPlus();
             Broadcast(resMovePacket);
         }
 
-        public void HandleSkill(Player player, C_Skill skillPacket)
+        public void HandleSkill(Player player, C_PlayerSkill skillPacket)
         {
             // TODO 패킷 구조 설계 후 이어서 
 

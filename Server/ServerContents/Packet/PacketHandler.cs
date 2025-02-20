@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerContents.Object;
 using ServerContents.Room;
@@ -6,11 +6,11 @@ using ServerContents.Session;
 using ServerCore;
 using System.Numerics;
 
-class PacketHandler
+public partial class PacketHandler
 {
-    public static void C_MoveHandler(PacketSession session, IMessage packet)
+    public static void C_PlayerMoveHandler(PacketSession session, IMessage packet)
     {
-        C_Move movePacket = packet as C_Move;
+        C_PlayerMove movePacket = packet as C_PlayerMove;
         ClientSession clientSession = session as ClientSession;
 
         //Console.WriteLine($"C_Move ({movePacket.PosInfo.CurrentPosX}, {movePacket.PosInfo.CurrentPosY})");
@@ -25,24 +25,29 @@ class PacketHandler
 
         room.Push(room.HandleMove, player, movePacket);
     }
-    public static void C_SkillHandler(PacketSession session, IMessage packet)
+
+    public static void C_PlayerDieHandler(PacketSession session, IMessage packet)
     {
-        // TODO
+
     }
 
-    //public static void C_DieHandler(PacketSession session, IMessage packet)
-    //{
-    //    C_Die diePacket = packet as C_Die;
-    //    ClientSession clientSession = session as ClientSession;
+    public static void C_PlayerSkillHandler(PacketSession session, IMessage packet)
+    {
 
-    //    GameObject _object = clientSession.MyPlayer;
-    //    if (_object == null)
-    //        return;
+    }
 
-    //    GameRoom room = _object.Room;
-    //    if (room == null)
-    //        return;
+    public static void C_HitMonsterHandler(PacketSession session, IMessage packet)
+    {
 
-    //    room.Push(room.HandleDie, _object, diePacket);
-    //}
+    }
+
+    public static void C_PlayerDamagedHandler(PacketSession session, IMessage packet)
+    {
+
+    }
+
+    public static void C_ChangeMapHandler(PacketSession session, IMessage packet)
+    {
+
+    }
 }

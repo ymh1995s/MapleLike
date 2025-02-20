@@ -5,8 +5,11 @@ using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
-// ��Ÿ ��Ŷ �ڵ鷯
+// 기타 패킷 핸들러
 public partial class PacketHandler
 {
+    public static void S_DropItemHandler(PacketSession session, IMessage packet)
+    {
 
+    }
 }

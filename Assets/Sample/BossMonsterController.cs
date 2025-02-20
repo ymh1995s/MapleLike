@@ -1,5 +1,5 @@
 
-public class BossMonsterController : BaseController
+public class BossMonsterController : MonsterController
 {
 
 }

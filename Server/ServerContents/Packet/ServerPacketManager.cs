@@ -26,10 +26,18 @@ class PacketManager
 	// Register()는 멀티스레드가 개입 되기 전 호출되어야함
 	public void Register()
 	{		
-		_onRecv.Add((ushort)MsgId.CMove, MakePacket<C_Move>);
-		_handler.Add((ushort)MsgId.CMove, PacketHandler.C_MoveHandler);		
-		_onRecv.Add((ushort)MsgId.CSkill, MakePacket<C_Skill>);
-		_handler.Add((ushort)MsgId.CSkill, PacketHandler.C_SkillHandler);
+		_onRecv.Add((ushort)MsgId.CPlayerMove, MakePacket<C_PlayerMove>);
+		_handler.Add((ushort)MsgId.CPlayerMove, PacketHandler.C_PlayerMoveHandler);		
+		_onRecv.Add((ushort)MsgId.CPlayerDie, MakePacket<C_PlayerDie>);
+		_handler.Add((ushort)MsgId.CPlayerDie, PacketHandler.C_PlayerDieHandler);		
+		_onRecv.Add((ushort)MsgId.CPlayerSkill, MakePacket<C_PlayerSkill>);
+		_handler.Add((ushort)MsgId.CPlayerSkill, PacketHandler.C_PlayerSkillHandler);		
+		_onRecv.Add((ushort)MsgId.CHitMonster, MakePacket<C_HitMonster>);
+		_handler.Add((ushort)MsgId.CHitMonster, PacketHandler.C_HitMonsterHandler);		
+		_onRecv.Add((ushort)MsgId.CPlayerDamaged, MakePacket<C_PlayerDamaged>);
+		_handler.Add((ushort)MsgId.CPlayerDamaged, PacketHandler.C_PlayerDamagedHandler);		
+		_onRecv.Add((ushort)MsgId.CChangeMap, MakePacket<C_ChangeMap>);
+		_handler.Add((ushort)MsgId.CChangeMap, PacketHandler.C_ChangeMapHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

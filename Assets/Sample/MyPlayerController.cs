@@ -20,14 +20,14 @@ public class MyPlayerController : PlayerController
             transform.position = transform.position + new Vector3(0.1f, 0, 0);
         }
 
-        SendMovepacket(); // ¸Å ÇÁ·¹ÀÓ ¼Û½ÅÇÏ¸é ºÎÇÏ°¡ »ı±â¹Ç·Î Àû´çÈ÷ º¸³»¾ßÇÔ 
+        SendMovepacket(); // ë§¤ í”„ë ˆì„ ì†¡ì‹ í•˜ë©´ ë¶€í•˜ê°€ ìƒê¸°ë¯€ë¡œ ì ë‹¹íˆ ë³´ë‚´ì•¼í•¨ 
     }
 
     void SendMovepacket()
     {
-        C_Move movePacket = new C_Move();
-        movePacket.PosX = transform.position.x;
-        movePacket.PosY = transform.position.y;
+        C_PlayerMove movePacket = new C_PlayerMove();
+        movePacket.PositionX = transform.position.x;
+        movePacket.PositionY = transform.position.y;
         NetworkManager.Instance.Send(movePacket);
     }
 }

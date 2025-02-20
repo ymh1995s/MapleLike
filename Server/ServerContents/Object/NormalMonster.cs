@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ServerContents.Object
 {
-    class NormalMonster : GameObject
+    class NormalMonster : Monster
     {
         Player _target;
 
@@ -43,21 +43,6 @@ namespace ServerContents.Object
             //        UpdateDead();
             //        break;
             //}
-        }
-
-        Random random= new Random();
-        void BroadcastMove()
-        {
-            // 다른 플레이어한테도 알려준다
-            S_Move movePacket = new S_Move();
-            movePacket.ObjectId = Id;
-            movePacket.PosX = Info.PosX + (float)random.NextDouble();
-            Room.Broadcast(movePacket);
-        }
-
-        protected virtual void UpdateDead()
-        {
-
         }
     }
 }

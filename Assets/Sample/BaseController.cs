@@ -8,8 +8,6 @@ public class BaseController : MonoBehaviour
 {
     public int Id { get; set; }
 
-    StatInfo _stat = new StatInfo();
-
     protected Vector3 destinationPos = new Vector3();
 
     protected virtual void Update()
@@ -19,18 +17,18 @@ public class BaseController : MonoBehaviour
 
     public void SyncPos()
     {
-        // destinationPos : S_MoveÆĞÅ¶À» ÅëÇØ °»½ÅµÈ ¸ñÇ¥ À§Ä¡
+        // destinationPos : S_MoveíŒ¨í‚·ì„ í†µí•´ ê°±ì‹ ëœ ëª©í‘œ ìœ„ì¹˜
         float distance = Vector3.Distance(transform.position, destinationPos);
 
 
-        // ¸ñÇ¥ÁöÁ¡¿¡ °ÅÀÇ ´Ù¿ÔÀ¸¸é ¸ñÇ¥ À§Ä¡·Î ¼ø°£ÀÌµ¿
+        // ëª©í‘œì§€ì ì— ê±°ì˜ ë‹¤ì™”ìœ¼ë©´ ëª©í‘œ ìœ„ì¹˜ë¡œ ìˆœê°„ì´ë™
         if (distance < 0.1f)
         {
             transform.position = destinationPos;
         }
         else
         {
-            // ½º¸£¸¤ ÀÌµ¿
+            // ìŠ¤ë¥´ë¥µ ì´ë™
             transform.position = Vector3.MoveTowards(transform.position, destinationPos, 5 * Time.deltaTime);
         }
     }

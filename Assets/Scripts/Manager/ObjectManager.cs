@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -37,9 +37,9 @@ public class ObjectManager : MonoBehaviour
         return (GameObjectType)type;
     }
 
-    public void Add(ObjectInfo info, bool myPlayer = false)
+    public void AddPlayer(PlayerInfo info, bool myPlayer = false)
     {
-        GameObjectType objectType = GetObjectTypeById(info.ObjectId);
+        GameObjectType objectType = GetObjectTypeById(info.PlayerId);
 
         if (objectType == GameObjectType.Player)
         {
@@ -47,26 +47,32 @@ public class ObjectManager : MonoBehaviour
             {
                 GameObject go = Instantiate(tempMyPlayer);
                 go.name = info.Name;
-                _objects.Add(info.ObjectId, go);
+                _objects.Add(info.PlayerId, go);
 
                 MyPlayer = go.GetComponent<MyPlayerController>();
-                MyPlayer.Id = info.ObjectId;
+                MyPlayer.Id = info.PlayerId;
             }
             else
             {
                 GameObject go = Instantiate(tempPlayer);
                 go.name = info.Name;
-                _objects.Add(info.ObjectId, go);
+                _objects.Add(info.PlayerId, go);
 
                 PlayerController pc = go.GetComponent<PlayerController>();
-                pc.Id = info.ObjectId;
+                pc.Id = info.PlayerId;
             }
         }
-        else if (objectType == GameObjectType.Normalmonster)
+    }
+
+    public void AddMonster(MonsterInfo info)
+    {
+        GameObjectType objectType = GetObjectTypeById(info.MonsterId);
+
+        if (objectType == GameObjectType.Normalmonster)
         {
             GameObject go = Instantiate(tempNormalMonster);
             go.name = info.Name;
-            _objects.Add(info.ObjectId, go);
+            _objects.Add(info.MonsterId, go);
 
             NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
         }
@@ -74,14 +80,10 @@ public class ObjectManager : MonoBehaviour
         {
             GameObject go = Instantiate(tempBossMonster);
             go.name = info.Name;
-            _objects.Add(info.ObjectId, go);
+            _objects.Add(info.MonsterId, go);
 
-            BossMonsterController bmc = go.GetComponent<BossMonsterController>();
+            BossMonsterController nmc = go.GetComponent<BossMonsterController>();
         }
-        // TODO 후순위
-        //else if (objectType == GameObjectType.Item)
-        //{
-        //}
     }
 
     public void Remove(int id)

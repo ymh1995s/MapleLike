@@ -4,74 +4,225 @@ package Protocol;
 import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Google.Protobuf.Protocol";
 
+
 enum MsgId {
-  S_ENTER = 0;
-  S_LEAVE = 1;
-  C_MOVE = 2;
-  S_MOVE = 3;
-  S_SPAWN = 4;
-  S_DESPAWN = 5;
-  C_DIE = 6;
-  S_TRAPEXECUTE = 7;
+  S_ENTER_GAME = 0;
+  S_PLAYER_SPAWN = 1;
+  S_MONSTER_SPAWN = 2;
+  C_PLAYER_MOVE = 3;
+  S_PLAYER_MOVE = 4;
+  S_MONSTER_MOVE = 5;
+  C_PLAYER_DIE = 6;
+  S_PLAYER_DESPAWN = 7;
+  S_MONSTER_DESPAWN = 8;
+  S_DROP_ITEM = 9;
+  C_PLAYER_SKILL = 10;
+  S_PLAYER_SKILL = 11;
+  S_MONSTER_SKILL = 12;
+  C_HIT_MONSTER = 13;
+  S_HIT_MONSTER = 14;
+  C_PLAYER_DAMAGED = 15;
+  S_PLAYER_DAMAGED = 16;
+  C_CHANGE_MAP = 17;
 }
 
-message S_Enter {
-  ObjectInfo objectInfo = 1;
+message S_EnterGame {
+  int32 mapid = 1;
+  float spawnPointX = 2;
+  float spawnPointY = 3;
+  PlayerInfo playerInfo = 4;
 }
 
-message S_Leave {
+message S_PlayerSpawn {
+  repeated PlayerInfo playerInfos = 1;
 }
 
-message C_Move {
-  PositionInfo posInfo = 1;  
-  AnimInfo animInfo = 2;  
+message S_MonsterSpawn {
+  repeated MonsterInfo monsterInfos = 1;
 }
 
-message S_Move {
-  int32 objectId = 1;
-  PositionInfo posInfo = 2;
-  AnimInfo animInfo = 3;  
+message C_PlayerMove {
+  PlayerState state = 1;
+  float positionX = 2;
+  float positionY = 3;
+  bool isRight = 4; //바라보는 방향 
 }
 
-message S_Spawn {
-  repeated ObjectInfo objects = 1;
+message S_PlayerMove {
+  PlayerState state = 1;
+  int32 playerId = 2;
+  float positionX = 3;
+  float positionY = 4;
+  bool isRight = 5; //바라보는 방향 
 }
 
-message S_Despawn {
-  repeated int32 objectIds = 1;
+message S_MonsterMove {
+  MonsterState state = 1;
+  int32 monsterId = 2;
+  float destinationX = 3;
+  float destinationY = 4;
+  bool isRight = 5; //바라보는 방향 
 }
 
-message C_Die {
-  int32 objectId = 1;
+message C_PlayerDie { }
+
+message S_LeaveGame { }
+
+message S_PlayerDespawn {
+  repeated int32 playerIds = 1;
 }
 
-message S_Trapexecute {
-  repeated int32 trapNo = 1;
+message S_MonsterDespawn {
+  repeated int32 monsterIds = 1;
 }
 
-message ObjectInfo {
-  int32 objectId = 1;
+message S_DropItem{
+  ItemType itemType = 1;
+}
+
+message C_PlayerSkill{
+	PlayerSkillType skillType = 1;
+}
+
+message S_PlayerSkill{
+	PlayerSkillType skillType = 1;
+	int32 skillid = 2;
+}
+
+message S_MonsterSkill{
+	int32 monsterId = 1;
+	BossMonsterSkillType skillType = 2;
+}
+
+message C_HitMonster {
+	int32 monsterId = 1;
+}
+
+message S_HitMonster {
+	int32 playerId = 1;
+	int32 monsterId = 2;
+	// 여기서 죽었다면 공격한 플레이어에게 S_DropItem을 같이 보내준다.
+}
+
+message C_PlayerDamaged { }
+
+message S_PlayerDamaged { 
+	int32 playerId = 1;
+}
+
+message C_ChangeMap {
+	int32 mapId = 1;
+}
+
+message PlayerInfo {
+  int32 playerId = 1;
   string name = 2;
-  PositionInfo posInfo = 3;
-  StatInfo statInfo = 4;
+  float positionX = 3;
+  float positionY = 4;
+  PlayerStatInfo statInfo = 5;
+  PlayerState CreatureState = 6;
 }
 
-message PositionInfo {
-  float currentPosX = 1;
-  float currentPosY = 2;
-  float currentPosZ = 3;
-  float destinationPosX = 4;
-  float destinationPosY = 5;
-  float destinationPosZ = 6;
-  float rotateY = 7;
+message MonsterInfo {
+  int32 monsterId = 1;
+  string name = 2;
+  float destinationX = 3;
+  float destinationY = 4;
+  MonsterStatInfo statInfo = 5;
+  MonsterState CreatureState = 6;
 }
 
-message StatInfo {
+message PlayerStatInfo {
   int32 level = 1;
-  int32 life = 2;
-  float speed = 3;
+  string class = 2; // 직업명
+  int32 hp = 3;
+  int32 maxHp = 4;
+  int32 mp = 5;
+  int32 maxMp = 6;
+  int32 attackPower = 7;
+  int32 magicPower = 8;
+  int32 defense = 9;
+  float speed = 10;
+  float jump = 11;
+  int32 currentExp = 12;
+  int32 totalExp = 13;
 }
 
-message AnimInfo {
-  int32 state = 1;
+message MonsterStatInfo {
+  int32 id = 1;
+  int32 level = 2;
+  int32 hp = 3;
+  int32 attackPower = 4;
+  int32 defense = 5;
+  float speed = 6;
+  int32 exp = 7;
+}
+
+message ItemInfo {
+  // 사용 여부와 여기서 관리하는지는 불분명하나 개략적으로 정의한다.
+}
+
+
+enum GameObjectType {
+  NONE = 0;
+  PLAYER = 1;
+  NORMALMONSTER = 2;
+  BOSSMONSTER = 3;
+  ITEM = 4;				// 후순위
+  PROJECTILE = 5;		// 후순위 
+}
+
+// 늘어나면 구분하면 됨
+enum PlayerSkillType {
+  SKILL_WARRIOR = 0;
+  SKILL_MAGE = 1;
+  SKILL_ARCHER = 2;
+}
+
+// 늘어나면 구분하면 됨
+enum BossMonsterSkillType {
+  BOSSSKILL1 = 0;
+  BOSSSKILL2 = 1;
+  BOSSSKILL3 = 2;
+  BOSSSKILL4 = 3;
+  BOSSSKILL5 = 4;
+}
+
+// 늘어나면 구분하면 됨
+enum ItemType {
+  GOLD = 0;
+  HELMET = 1;
+  ARMOR = 2;
+  BOOTS = 3;
+  SWORD = 4;
+  STAFF = 5;
+  ARROW = 6;
+  HPPOTION = 7;
+  MPPOTION = 8;
+}
+
+// 플레이어와 작동방식 ex. FSM? 을 보고 한번 맞추긴 해야겠다.
+enum PlayerState {
+  P_IDLE = 0;
+  P_MOVING = 1;
+  P_JUMP = 2;
+  P_STUN = 3;
+  P_ATTACKSKILL = 4;
+  P_BUFFSKILL = 5;
+  P_DEBUFFSKILL = 6;
+  P_HANGING = 7;
+  P_DEAD = 8;
+}
+
+// 몬스터의 작동방식 ex. FSM? 을 보고 한번 맞추긴 해야겠다.
+enum MonsterState {
+  M_IDLE = 0;
+  M_MOVING = 1;
+  M_STUN = 2;
+  M_SKILL = 3;
+  M_DEAD = 4;
+}
+
+message SkillInfo {
+  int32 skillId = 1;
 }
