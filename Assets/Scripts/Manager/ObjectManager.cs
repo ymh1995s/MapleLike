@@ -75,6 +75,7 @@ public class ObjectManager : MonoBehaviour
             _objects.Add(info.MonsterId, go);
 
             NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
+            nmc.Id = info.MonsterId;
         }
         else if (objectType == GameObjectType.Bossmonster)
         {
@@ -82,7 +83,8 @@ public class ObjectManager : MonoBehaviour
             go.name = info.Name;
             _objects.Add(info.MonsterId, go);
 
-            BossMonsterController nmc = go.GetComponent<BossMonsterController>();
+            BossMonsterController bmc = go.GetComponent<BossMonsterController>();
+            bmc.Id = info.MonsterId;
         }
     }
 

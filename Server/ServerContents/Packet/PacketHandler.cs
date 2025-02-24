@@ -36,10 +36,6 @@ public partial class PacketHandler
 
     }
 
-    public static void C_HitMonsterHandler(PacketSession session, IMessage packet)
-    {
-
-    }
 
     public static void C_PlayerDamagedHandler(PacketSession session, IMessage packet)
     {

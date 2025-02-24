@@ -153,8 +153,8 @@ namespace ServerContents.Room
             }
         }
 
-        // 관리 대상에서(딕셔너리) 삭제
-        public void LeaveGame(int objectId)
+        // 플레이어를 관리 대상에서(딕셔너리) 삭제
+        public void LeavePlayer(int objectId)
         {
             GameObjectType type = ObjectManager.GetObjectTypeById(objectId);
 
@@ -172,7 +172,25 @@ namespace ServerContents.Room
                     player.Session.Send(leavePacket);
                 }
             }
-            else if (type == GameObjectType.Normalmonster)
+
+            // 타인한테 정보 전송
+            {
+                S_PlayerDespawn despawnPacket = new S_PlayerDespawn();
+                despawnPacket.PlayerIds.Add(objectId);
+                foreach (Player p in _players.Values)
+                {
+                    if (p.Id != objectId)
+                        p.Session.Send(despawnPacket);
+                }
+            }
+        }
+
+        // 몬스터를 관리 대상에서(딕셔너리) 삭제
+        public void LeaveMonster(int objectId)
+        {
+            GameObjectType type = ObjectManager.GetObjectTypeById(objectId);
+
+            if (type == GameObjectType.Normalmonster)
             {
                 NormalMonster monster = null;
                 if (_normalMonsters.Remove(objectId, out monster) == false)
@@ -192,13 +210,13 @@ namespace ServerContents.Room
             // 타인한테 정보 전송
             {
                 // TODO : 디스폰 구분
-                //S_Despawn despawnPacket = new S_Despawn();
-                //despawnPacket.ObjectIds.Add(objectId);
-                //foreach (Player p in _players.Values)
-                //{
-                //    if (p.Id != objectId)
-                //        p.Session.Send(despawnPacket);
-                //}
+                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
+                despawnPacket.MonsterIds.Add(objectId);
+                foreach (Player p in _players.Values)
+                {
+                    if (p.Id != objectId)
+                        p.Session.Send(despawnPacket);
+                }
             }
         }
 
@@ -303,16 +321,34 @@ namespace ServerContents.Room
         //    EnterGame(go);
         //}
 
-        // 관리 대상에서(딕셔너리) 플레이어 찾기
-        public GameObject FindPlayer(Func<GameObject, bool> condition)
+        /// <summary>
+        /// 몬스터가 플레이러를 타게팅한다.
+        /// 재사용성에 대해서는 검토가 필요할 듯
+        /// </summary>
+        /// <param name="타게팅할 플레이어 객체입니다."></param>
+        /// <param name="타게팅할 몬스터의 ID입니다. 이 ID로 딕셔너리에서 찾아줄겁니다."></param>
+        public void MonsterSetTargetToPlayer(Player player, int monsterId)
         {
-            foreach (Player player in _players.Values)
+            Monster monster = null;
+
+            if (_normalMonsters.TryGetValue(monsterId, out var normalMonster))
             {
-                if (condition.Invoke(player))
-                    return player;
+                monster = normalMonster;
+            }
+            else if (_bossMonsters.TryGetValue(monsterId, out var bossMonster))
+            {
+                monster = bossMonster; 
             }
 
-            return null;
+            if (monster != null)
+            {
+                // TO 기환. 이거좀 프로퍼티 같은걸로 뚫어주세요.
+                // monster._target = player;
+            }
+            else
+            {
+                Console.WriteLine("YMH : 몬스터 타게팅 실패. 해당 몬스터를 찾지 못했습니다(서버 로직 오류)");
+            }
         }
 
         // 게임룸에 있는 다른 클라이언트에게 알림

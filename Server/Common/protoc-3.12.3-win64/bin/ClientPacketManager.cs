@@ -36,6 +36,8 @@ class PacketManager
 		_handler.Add((ushort)MsgId.SPlayerMove, PacketHandler.S_PlayerMoveHandler);		
 		_onRecv.Add((ushort)MsgId.SMonsterMove, MakePacket<S_MonsterMove>);
 		_handler.Add((ushort)MsgId.SMonsterMove, PacketHandler.S_MonsterMoveHandler);		
+		_onRecv.Add((ushort)MsgId.SLeaveGame, MakePacket<S_LeaveGame>);
+		_handler.Add((ushort)MsgId.SLeaveGame, PacketHandler.S_LeaveGameHandler);		
 		_onRecv.Add((ushort)MsgId.SPlayerDespawn, MakePacket<S_PlayerDespawn>);
 		_handler.Add((ushort)MsgId.SPlayerDespawn, PacketHandler.S_PlayerDespawnHandler);		
 		_onRecv.Add((ushort)MsgId.SMonsterDespawn, MakePacket<S_MonsterDespawn>);

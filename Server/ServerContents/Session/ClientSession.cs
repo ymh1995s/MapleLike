@@ -87,7 +87,7 @@ namespace ServerContents.Session
             Console.WriteLine($"client {endPoint} is disconnected from the server. Here is server");
 
             GameRoom room = RoomManager.Instance.Find(1); // TEMP 1번방
-            room.Push(room.LeaveGame, MyPlayer.Info.PlayerId);
+            room.Push(room.LeavePlayer, MyPlayer.Info.PlayerId);
             SessionManager.Instance.Remove(this);
         }
 
