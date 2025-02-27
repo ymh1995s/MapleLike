@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +25,7 @@ namespace ServerContents.Session
                 session.SessionId = sessionId;
                 _sessions.Add(sessionId, session);
 
-                Console.WriteLine($"Client ID {sessionId} is Connecte To ###. Here is Server");
+                Console.WriteLine($"Client ID {sessionId} is Connecte To Server. Here is Server");
 
                 return session;
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,10 +17,10 @@ namespace ServerContents.Room
         int _roomId = 1;
 
         // 생성된 방에 아이디를 부여하고 관리 대상 딕셔너리에 넣음
-        public GameRoom Add(int mapId)
+        public GameRoom Add()
         {
             GameRoom gameRoom = new GameRoom();
-            gameRoom.Init();
+            gameRoom.Push(gameRoom.Init);
 
             lock (_lock)
             {

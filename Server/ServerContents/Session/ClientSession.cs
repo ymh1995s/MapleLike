@@ -63,10 +63,6 @@ namespace ServerContents.Session
             MyPlayer = ObjectManager.Instance.Add<Player>();
             {
                 MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
-                //MyPlayer.Info.PosInfo.CurrentPosX = 1;
-                //MyPlayer.Info.PosInfo.CurrentPosY = 2;
-                //MyPlayer.Info.PosInfo.CurrentPosZ = 3;
-
                 MyPlayer.Session = this;
             }
 
@@ -79,7 +75,8 @@ namespace ServerContents.Session
                 Disconnect();
                 return;
             }
-            room.Push(room.PlayerEnterGame, MyPlayer);
+
+            room.Push(room.PlayerEnterGame, MyPlayer, 0);
         }
 
         public override void OnDisconnected(EndPoint endPoint)

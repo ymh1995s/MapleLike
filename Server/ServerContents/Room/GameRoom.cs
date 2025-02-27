@@ -11,13 +11,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 // 메이플스토리의 1개의 맵이라고 보면 됩니다.
 namespace ServerContents.Room
 {
-    // 컨텐츠 로직을 게임에서 관리한다.
-    public class GameRoom : JobSerializer
+    // 컨텐츠 로직과 플레이어와 대한 로직을 관리한다.
+    public partial class GameRoom : JobSerializer
     {
         public int RoomId { get; set; }
-
-        public int recvPacketCount = 0;
-        public int sendPacketCount = 0;
 
         // 게임룸과 연결된 모든 오브젝트를 딕셔너리로 관리 (ObjectManager에서 생성된 객체 중 이 GameRoom에 있는 객체 관리)
         Dictionary<int, Player> _players = new Dictionary<int, Player>();
@@ -29,7 +26,8 @@ namespace ServerContents.Room
         // 패킷 모아보내기용 List
         List<IMessage> _pendingList = new List<IMessage>();
 
-        Random random = new Random();
+        // TODO : 락 삭제
+        object _lock = new object();
 
         public GameRoom()
         {
@@ -45,28 +43,24 @@ namespace ServerContents.Room
             Update(100);
 
             // temp 몬스터 입장 
+            // TODO 몬스터 삭제
             NormalMonster monster = ObjectManager.Instance.Add<NormalMonster>();
             monster.Info.Name = $"Monster_{monster.Info.Name}_{monster.Info.MonsterId}";
             MonsterEnterGame(monster);
+
+            // temp 룸의 데이터 설정
+            SetRoomData(RoomId);
         }
 
         void Update(int waitms)
         {
-            foreach (NormalMonster nomralMonster in _normalMonsters.Values)
-            {
-                nomralMonster.Update();
-            }
-
-            foreach (BossMonster bossMonster in _bossMonsters.Values)
-            {
-                bossMonster.Update();
-            }
+            MonsterUpdate();
 
             PushAfter(waitms, Update, waitms);
         }
 
-        object _lock = new object();
-        public void PlayerEnterGame(GameObject gameObject)
+        
+        public void PlayerEnterGame(GameObject gameObject, int spawnPoint = 0)
         {
             lock (_lock)
             {
@@ -83,7 +77,10 @@ namespace ServerContents.Room
                 {
                     // S_Enter : 자기 자신의 캐릭터 
                     S_EnterGame enterPacket = new S_EnterGame();
+                    enterPacket.Mapid = RoomId;
                     enterPacket.PlayerInfo = player.Info;
+                    enterPacket.PlayerInfo.PositionX = enterPacket.SpawnPointX = playerSpawnPoints[spawnPoint].x;
+                    enterPacket.PlayerInfo.PositionY = enterPacket.SpawnPointY = playerSpawnPoints[spawnPoint].y;
                     player.Session.Send(enterPacket);
 
                     // S_Spawn : 다른 사람의 캐릭터
@@ -109,41 +106,6 @@ namespace ServerContents.Room
                 {
                     S_PlayerSpawn spawnPacket = new S_PlayerSpawn(); 
                     spawnPacket.PlayerInfos.Add((gameObject as Player)?.Info);
-                    foreach (Player p in _players.Values)
-                    {
-                        if (p.Id != gameObject.Id)
-                            p.Session.Send(spawnPacket);
-                    }
-                }
-            }
-        }
-
-        public void MonsterEnterGame(GameObject gameObject)
-        {
-            lock (_lock)
-            {
-                if (gameObject == null)
-                    return;
-
-                GameObjectType type = ObjectManager.GetObjectTypeById(gameObject.Id);
-
-                if (type == GameObjectType.Normalmonster)
-                {
-                    NormalMonster monster = gameObject as NormalMonster;
-                    _normalMonsters.Add(gameObject.Id, monster);
-                    monster.Room = this;
-                }
-                else if (type == GameObjectType.Bossmonster)
-                {
-                    BossMonster monster = gameObject as BossMonster;
-                    _bossMonsters.Add(gameObject.Id, monster);
-                    monster.Room = this;
-                }
-
-                // 게임룸에 입장한 사실을 다른 클라이언트에게 전송
-                {
-                    S_MonsterSpawn spawnPacket = new S_MonsterSpawn();
-                    spawnPacket.MonsterInfos.Add((gameObject as Monster)?.Info);
                     foreach (Player p in _players.Values)
                     {
                         if (p.Id != gameObject.Id)
@@ -185,41 +147,6 @@ namespace ServerContents.Room
             }
         }
 
-        // 몬스터를 관리 대상에서(딕셔너리) 삭제
-        public void LeaveMonster(int objectId)
-        {
-            GameObjectType type = ObjectManager.GetObjectTypeById(objectId);
-
-            if (type == GameObjectType.Normalmonster)
-            {
-                NormalMonster monster = null;
-                if (_normalMonsters.Remove(objectId, out monster) == false)
-                    return;
-
-                monster.Room = null;
-            }
-            else if (type == GameObjectType.Bossmonster)
-            {
-                BossMonster projectile = null;
-                if (_bossMonsters.Remove(objectId, out projectile) == false)
-                    return;
-
-                projectile.Room = null;
-            }
-
-            // 타인한테 정보 전송
-            {
-                // TODO : 디스폰 구분
-                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
-                despawnPacket.MonsterIds.Add(objectId);
-                foreach (Player p in _players.Values)
-                {
-                    if (p.Id != objectId)
-                        p.Session.Send(despawnPacket);
-                }
-            }
-        }
-
         public void Flush()
         {
             if (_pendingList.Count == 0) return;
@@ -237,118 +164,104 @@ namespace ServerContents.Room
             if (player == null)
                 return;
 
+            // 맵 이동 따위로 딕셔너리에서 유효하지 않은 플레이어라면 리턴.
+            if (!_players.ContainsKey(player.Info.PlayerId))
+                return;
+
             // 서버에서 관리하기 위해 데이터 반영
             _players[player.Info.PlayerId].Info.PositionX = movePacket.PositionX;
             _players[player.Info.PlayerId].Info.PositionY = movePacket.PositionY;
 
             // 다른 플레이어한테도 알려준다
             S_PlayerMove resMovePacket = new S_PlayerMove();
+            resMovePacket.State = movePacket.State;
             resMovePacket.PlayerId = player.Info.PlayerId;
             resMovePacket.PositionX = movePacket.PositionX;
             resMovePacket.PositionY = movePacket.PositionY;
+            resMovePacket.IsRight = movePacket.IsRight;
             RecvPacketPlus();
             Broadcast(resMovePacket);
         }
 
+        /// <summary>
+        /// 이 플레이어가 스킬을 사용했다고 '알리기만' 한다.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="skillPacket"></param>
         public void HandleSkill(Player player, C_PlayerSkill skillPacket)
         {
-            // TODO 패킷 구조 설계 후 이어서 
+            if (player == null)
+                return;
 
-            //if (player == null)
-            //    return;
-
-            //ObjectInfo info = player.Info;
-            //if (info.PosInfo.State != CreatureState.Idle)
-            //    return;
-
-            //// TODO : 스킬 사용 가능 여부 체크
-            //info.PosInfo.State = CreatureState.Skill;
-            //S_Skill skill = new S_Skill() { Info = new SkillInfo() };
-            //skill.ObjectId = info.ObjectId;
-            //skill.Info.SkillId = skillPacket.Info.SkillId;
-            //Broadcast(skill);
-
-            //Data.Skill skillData = null;
-            //if (DataManager.SkillDict.TryGetValue(skillPacket.Info.SkillId, out skillData) == false)
-            //    return;
-
-            //switch (skillData.skillType)
-            //{
-            //    case SkillType.SkillAuto:
-            //        {
-            //            Vector2Int skillPos = player.GetFrontCellPos(info.PosInfo.MoveDir);
-            //            GameObject target = Map.Find(skillPos);
-            //            if (target != null)
-            //            {
-            //                Console.WriteLine("Hit GameObject !");
-            //            }
-            //        }
-            //        break;
-            //    case SkillType.SkillProjectile:
-            //        {
-            //            Arrow arrow = ObjectManager.Instance.Add<Arrow>();
-            //            if (arrow == null)
-            //                return;
-
-            //            arrow.Owner = player;
-            //            arrow.Data = skillData;
-            //            arrow.PosInfo.State = CreatureState.Moving;
-            //            arrow.PosInfo.MoveDir = player.PosInfo.MoveDir;
-            //            arrow.PosInfo.PosX = player.PosInfo.PosX;
-            //            arrow.PosInfo.PosY = player.PosInfo.PosY;
-            //            arrow.Speed = skillData.projectile.speed;
-            //            Push(EnterGame, arrow);
-            //        }
-            //        break;
-            //}
+            // TODO 실제로 플레이어가 스킬 사용이 가능한 상태인지 검증
+            S_PlayerSkill resPkt = new S_PlayerSkill();
+            resPkt.Skillid = player.Id;
+            resPkt.SkillType = skillPacket.SkillType;
+            Broadcast(resPkt);
         }
 
-        // 얘는 필요한가? 보류
-        //public void HandleDie(GameObject go, C_Die diePacket)
-        //{
-        //    if (go == null)
-        //        return;
+        /// <summary>
+        /// 이 플레이어가 공격 받았다고 '알리기만' 한다.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="skillPacket"></param>
+        public void HandleDamaged(Player player, C_PlayerDamaged damagePacket)
+        {
+            if (player == null)
+                return;
 
-        //    LeaveGame(go.Info.ObjectId);
-
-        //    go.Info.PosInfo.CurrentPosX = 0;
-        //    go.Info.PosInfo.CurrentPosY = 0;
-        //    go.Info.PosInfo.CurrentPosZ = 0;
-        //    go.Info.PosInfo.DestinationPosX = 0;
-        //    go.Info.PosInfo.DestinationPosY = 0;
-        //    go.Info.PosInfo.DestinationPosZ = 0;
-
-        //    EnterGame(go);
-        //}
+            S_PlayerDamaged resPkt = new S_PlayerDamaged();
+            resPkt.PlayerId = player.Id;
+            Broadcast(resPkt);
+        }
 
         /// <summary>
-        /// 몬스터가 플레이러를 타게팅한다.
-        /// 재사용성에 대해서는 검토가 필요할 듯
+        /// 이 플레이어가 죽었다고 '알리기만' 한다.
         /// </summary>
-        /// <param name="타게팅할 플레이어 객체입니다."></param>
-        /// <param name="타게팅할 몬스터의 ID입니다. 이 ID로 딕셔너리에서 찾아줄겁니다."></param>
-        public void MonsterSetTargetToPlayer(Player player, int monsterId)
+        /// <param name="player"></param>
+        /// <param name="diePacket"></param>
+        public void HandleDie(Player player, C_PlayerDie diePacket)
         {
-            Monster monster = null;
+            if (player == null)
+                return;
 
-            if (_normalMonsters.TryGetValue(monsterId, out var normalMonster))
+            // TODO 패킷 만들고
+            //S_PlayerDie resPkt = new S_PlayerDie();
+            //resPkt.PlayerId = player.Id;
+            //Broadcast(resPkt);
+        }
+
+        /// <summary>
+        /// 플레이어의 맵 이동 요청을 처리한다.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="diePacket"></param>
+        public void HandleChangeMap(Player player, C_ChangeMap changeMapPacket)
+        {
+            if (player == null)
+                return;
+
+            // 1. 나가려는 플레이어 데이터를 날려준다.
+            LeavePlayer(player.Id);
+
+            // 2. 요청한 맵으로 입장시킨다.
+            GameRoom room = RoomManager.Instance.Find(changeMapPacket.MapId);
+            if (room == null)
             {
-                monster = normalMonster;
-            }
-            else if (_bossMonsters.TryGetValue(monsterId, out var bossMonster))
-            {
-                monster = bossMonster; 
+                Console.WriteLine($"N번 방이 존재하지 않습니다. 서버 오류");
+                return;
             }
 
-            if (monster != null)
-            {
-                // TO 기환. 이거좀 프로퍼티 같은걸로 뚫어주세요.
-                // monster._target = player;
-            }
-            else
-            {
-                Console.WriteLine("YMH : 몬스터 타게팅 실패. 해당 몬스터를 찾지 못했습니다(서버 로직 오류)");
-            }
+            S_EnterGame enterPkt = new S_EnterGame();
+            enterPkt.Mapid = changeMapPacket.MapId;
+            // TODO => 스폰포인트로 입장시킨다.
+            enterPkt.SpawnPointX = room.playerSpawnPoints[0].x;
+            enterPkt.SpawnPointY = room.playerSpawnPoints[0].y;
+            //enterPkt.SpawnPointX = room.playerSpawnPoints[changeMapPacket.spawnPoint].x;
+            //enterPkt.SpawnPointY = room.playerSpawnPoints[changeMapPacket.spawnPoint].y;
+
+            room.Push(room.PlayerEnterGame, player, 0);
+            //room.Push(room.PlayerEnterGame, player, changeMapPacket.spawnPoint);
         }
 
         // 게임룸에 있는 다른 클라이언트에게 알림
@@ -356,35 +269,5 @@ namespace ServerContents.Room
         {
             _pendingList.Add(packet);
         }
-
-        #region 패킷 송수신 개수 개략적 확인용
-        public void RecvPacketPlus()
-        {
-            Interlocked.Increment(ref recvPacketCount);
-            //recvPacketCount++;
-        }
-
-        public void SendPacketPlus()
-        {
-            Interlocked.Increment(ref sendPacketCount);
-            //sendPacketCount++;
-        }
-
-        private async void PrintProceecPacket()
-        {
-            while (true)
-            {
-                Console.WriteLine($"{RoomId}번 방에서 총{recvPacketCount + sendPacketCount}, recv : {recvPacketCount}개 / send : {sendPacketCount}개을 1초에 처리");
-
-                Interlocked.Exchange(ref recvPacketCount, 0);
-                Interlocked.Exchange(ref sendPacketCount, 0);
-                //recvPacketCount = 0;
-                //sendPacketCount = 0;
-
-                await Task.Delay(1000); // 1초 대기 (비동기적으로 실행)
-            }
-        }
-
-        #endregion 패킷 송수신 개수 개략적 확인용
     }
 }

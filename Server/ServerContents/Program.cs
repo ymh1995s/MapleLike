@@ -1,4 +1,4 @@
-﻿using ServerContents.Room;
+using ServerContents.Room;
 using ServerContents.Session;
 using ServerCore;
 using System.Net;
@@ -11,7 +11,10 @@ namespace ServerContents
 
         static void Main(string[] args)
         {
-            GameRoom room = RoomManager.Instance.Add(1);
+            // TEMP. 순서대로 튜토리얼, 사냥터, 보스
+            GameRoom room1 = RoomManager.Instance.Add(); 
+            GameRoom room2 = RoomManager.Instance.Add();
+            GameRoom room3 = RoomManager.Instance.Add();
 
             Console.WriteLine("Server Start!");
             string host = Dns.GetHostName();
@@ -32,7 +35,9 @@ namespace ServerContents
             while (true)
             {
                 // TODO. 방을 나누고 각각의 스레드로 배분한다.
-                room.Push(room.Flush);
+                room1.Push(room1.Flush);
+                room2.Push(room2.Flush);
+                room3.Push(room3.Flush);
 
                 Thread.Sleep(1);
             }
