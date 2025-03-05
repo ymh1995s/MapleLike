@@ -1,0 +1,65 @@
+{
+  "monsterDatabase": [
+    {
+      "name": "리본돼지",
+      "type": "Normal",
+      "level": 10,
+      "hp": 125,
+      "attackPower": 38,
+      "defense": 10,
+      "speed": 5,
+      "exp": 17
+    },
+    {
+      "name": "슬라임",
+      "type": "Normal",
+      "level": 7,
+      "hp": 80,
+      "attackPower": 25,
+      "defense": 5,
+      "speed": 1,
+      "exp": 12
+    },
+    {
+      "name": "달팽이",
+      "type": "Normal",
+      "level": 1,
+      "hp": 15,
+      "attackPower": 2,
+      "defense": 0,
+      "speed": 1,
+      "exp": 3
+    },
+    {
+      "name": "주황버섯",
+      "type": "Normal",
+      "level": 10,
+      "hp": 125,
+      "attackPower": 41,
+      "defense": 0,
+      "speed": 5,
+      "exp": 17
+    },
+    {
+      "name": "스텀프",
+      "type": "Normal",
+      "level": 8,
+      "hp": 95,
+      "attackPower": 30,
+      "defense": 0,
+      "speed": 1,
+      "exp": 13
+    },
+    {
+      "name": "시그너스",
+      "type": "Boss",
+      "level": 140,
+      "hp": 2100000000,
+      "attackPower": 20000,
+      "defense": 100,
+      "speed": 1,
+      "exp": 2040000
+    }
+  ]
+}
+

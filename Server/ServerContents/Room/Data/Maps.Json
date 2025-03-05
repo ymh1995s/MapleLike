@@ -1,0 +1,133 @@
+{
+  "mapDatabase": [
+    {
+      "_comment": "1_SnailPark",
+      "id": 1,
+      "mapType": "Normal",
+      "mapMaxMonsterCount": 5,
+      "zoneCount": 1,
+      "zones": [
+        {
+          "id": 1,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -3.1,
+            "maxX": 8.1,
+            "Y": 0.3
+          },
+          "levelRange": {
+            "minLevel": 1,
+            "maxLevel": 1
+          },
+          "zoneMaxMonsterCount": 5
+        }
+      ]
+    },
+    {
+      "_comment": "2_Amherst",
+      "id": 2,
+      "mapType": "Normal",
+      "mapMaxMonsterCount": 0,
+      "zoneCount": 0,
+      "zones": [
+      ]
+    },
+    {
+      "_comment": "3.1_HenesysHungtingGround1",
+      "id": 3,
+      "mapType": "Normal",
+      "mapMaxMonsterCount": 28,
+      "zoneCount": 4,
+      "zones": [
+        {
+          "id": 1,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -10.0,
+            "maxX": 15.0,
+            "Y": -3.75
+          },
+          "levelRange": {
+            "minLevel": 1,
+            "maxLevel": 1
+          },
+          "zoneMaxMonsterCount": 10
+        },
+        {
+          "id": 2,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -10.0,
+            "maxX": 10.5,
+            "Y": 0.1
+          },
+          "levelRange": {
+            "minLevel": 1,
+            "maxLevel": 7
+          },
+          "zoneMaxMonsterCount": 10
+        },
+        {
+          "id": 3,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -7.5,
+            "maxX": 8.5,
+            "Y": 3.6
+          },
+          "levelRange": {
+            "minLevel": 7,
+            "maxLevel": 8
+          },
+          "zoneMaxMonsterCount": 5
+        },
+        {
+          "id": 4,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -5.5,
+            "maxX": 6.5,
+            "Y": 7.0
+          },
+          "levelRange": {
+            "minLevel": 8,
+            "maxLevel": 10
+          },
+          "zoneMaxMonsterCount": 3
+        }
+      ]
+    },
+    {
+      "_comment": "3.2_Cygnus Garden",
+      "id": 4,
+      "mapType": "Normal",
+      "mapMaxMonsterCount": 0,
+      "zoneCount": 0,
+      "zones": [
+      ]
+    },
+    {
+      "_comment": "4_Cygnus Garden_Boss",
+      "id": 5,
+      "mapType": "Boss",
+      "mapMaxMonsterCount": 1,
+      "zoneCount": 1,
+      "zones": [
+        {
+          "id": 1,
+          "monsterType": "Boss",
+          "range": {
+            "minX": -16.5,
+            "maxX": 11,
+            "Y": -2
+          },
+          "levelRange": {
+            "minLevel": 1,
+            "maxLevel": 9999
+          },
+          "zoneMaxMonsterCount": 1
+        }
+      ]
+    }
+  ]
+}

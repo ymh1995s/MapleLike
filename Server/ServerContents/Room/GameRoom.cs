@@ -44,9 +44,9 @@ namespace ServerContents.Room
 
             // temp 몬스터 입장 
             // TODO 몬스터 삭제
-            NormalMonster monster = ObjectManager.Instance.Add<NormalMonster>();
-            monster.Info.Name = $"Monster_{monster.Info.Name}_{monster.Info.MonsterId}";
-            MonsterEnterGame(monster);
+            //NormalMonster monster = ObjectManager.Instance.Add<NormalMonster>();
+            //monster.Info.Name = $"Monster_{monster.Info.Name}_{monster.Info.MonsterId}";
+            //MonsterEnterGame(monster);
 
             // temp 룸의 데이터 설정
             SetRoomData(RoomId);
@@ -59,7 +59,7 @@ namespace ServerContents.Room
             PushAfter(waitms, Update, waitms);
         }
 
-        
+
         public void PlayerEnterGame(GameObject gameObject, int spawnPoint = 0)
         {
             lock (_lock)
@@ -104,7 +104,7 @@ namespace ServerContents.Room
 
                 // 게임룸에 입장한 사실을 다른 클라이언트에게 전송
                 {
-                    S_PlayerSpawn spawnPacket = new S_PlayerSpawn(); 
+                    S_PlayerSpawn spawnPacket = new S_PlayerSpawn();
                     spawnPacket.PlayerInfos.Add((gameObject as Player)?.Info);
                     foreach (Player p in _players.Values)
                     {

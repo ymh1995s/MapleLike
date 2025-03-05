@@ -595,9 +595,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tempPlayer: {fileID: 3177344545670252124, guid: bd610d77a67d9e14b80ca7d0f8e39cf2, type: 3}
-  tempMyPlayer: {fileID: 7525474380564717484, guid: 536c89ce362af854993d1664e1e3c7de, type: 3}
-  tempNormalMonster: {fileID: 2705061021650114071, guid: fe1c6a302e7c14d40887f5a1804049f0, type: 3}
-  tempBossMonster: {fileID: 2705061021650114071, guid: fe1c6a302e7c14d40887f5a1804049f0, type: 3}
+  tempMyPlayer: {fileID: 2211686253778451999, guid: 2eaa93808afebc648a2303d07bbc43f1, type: 3}
+  worriorPrefab: {fileID: 2211686253778451999, guid: 2eaa93808afebc648a2303d07bbc43f1, type: 3}
+  magicianPrefab: {fileID: 2717394071901402387, guid: 44252bc15bdf3754b849f8c8ccaeefe5, type: 3}
+  archerPrefab: {fileID: 2436950978789811647, guid: 3ba8a576cb7af6d46940629773728ef1, type: 3}
+  ripPrefab: {fileID: 5704777337265226574, guid: ff9ba410beeda0d41a39e358e86c8901, type: 3}
+  myplayerTest: {fileID: 0}
 --- !u!4 &826788256
 Transform:
   m_ObjectHideFlags: 0
@@ -759,9 +762,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "\uC774\uACF3\uC740 1\uBC88 \uB9F5\nA D \uC88C\uC6B0 \uC774\uB3D9\nB :
-    1\uBC88\uB9F5 \uC785\uC7A5(\uD604\uC7AC \uB9F5)\nN : 2\uBC88\uB9F5 \uC785\uC7A5\nM
-    : 3\uBC88\uB9F5 \uC785\uC7A5"
+  m_Text: "\uC774\uACF3\uC740 1\uBC88 \uB9F5\nA D \uC88C\uC6B0 \uC774\uB3D9\nB : 1\uBC88\uB9F5
+    \uC785\uC7A5(\uD604\uC7AC \uB9F5)\nN : 2\uBC88\uB9F5 \uC785\uC7A5\nM : 3\uBC88\uB9F5
+    \uC785\uC7A5"
 --- !u!222 &1244374018
 CanvasRenderer:
   m_ObjectHideFlags: 0

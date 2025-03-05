@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8785008499730038761
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7389067988876051393}
+  - component: {fileID: 8617675053904663968}
+  m_Layer: 0
+  m_Name: Damage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7389067988876051393
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8785008499730038761}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8617675053904663968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8785008499730038761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68027f0893124eb4db584d750070785f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerDamageSkin:
+  - {fileID: -9138277032224069241, guid: cacd29590fe89d1478f58dddbab4b880, type: 3}
+  - {fileID: 442563404486517442, guid: c5256d008d7e76b4f8ab208bf5781823, type: 3}
+  - {fileID: 8435443277112907326, guid: 260b2e20ceeb1b748941840581bdfbf5, type: 3}
+  - {fileID: 6883811443881514810, guid: 2d8001bc5351bb24589ee42095a1aaaa, type: 3}
+  - {fileID: 699976921052751785, guid: bdf1fbef522487840a803bb66d5db801, type: 3}
+  - {fileID: 9020211625540623066, guid: a1f5bf7e640b3554a9ed28366ffd2819, type: 3}
+  - {fileID: -871896600253902302, guid: f0d150c79965b804d9bda00a97206931, type: 3}
+  - {fileID: 3747056862545861862, guid: 623147c48ff835249b13aa8b355141ce, type: 3}
+  - {fileID: 7168823530002625775, guid: d5602fc26c6d8d44a8ab4c23470f9466, type: 3}
+  - {fileID: 6273132570574060059, guid: 5103a33435557f24bbdde3ce4cb60b43, type: 3}
+  - {fileID: -3173818824642850917, guid: 53300ef678e4eaa4fa1959bf88508c05, type: 3}
+  monsterDamageSkin:
+  - {fileID: 3680606880686499120, guid: 13f42ee298c425b4896bd2b94b6ec9e9, type: 3}
+  - {fileID: -7797230173984134332, guid: dfff6be78d7a411419a6d0cfd53d294b, type: 3}
+  - {fileID: 1520376168044010167, guid: aaa0125a799698b43a9b34d4b6d81eca, type: 3}
+  - {fileID: 7724504294863101589, guid: 0164b572681969b47a934dbaa9a32d32, type: 3}
+  - {fileID: -3117855365601550154, guid: dc7efee3cb56f4949b29ab6d017d1506, type: 3}
+  - {fileID: -508447857912515702, guid: 74c55c276371bc340a5c5c789a72a213, type: 3}
+  - {fileID: -5024719486125417070, guid: d882ed8704104a549a431748aee398e3, type: 3}
+  - {fileID: -2626269089380781417, guid: 2e720b8edb242bf47b6017ee2307181e, type: 3}
+  - {fileID: -6961991885917788207, guid: cfd26878c4bddbb498e2bc8d07014572, type: 3}
+  - {fileID: -5451550459006579161, guid: 38ca090e78d89a54aa6f451688afe2f9, type: 3}
+  - {fileID: 6555570971336574927, guid: 3cc8aea2694d22540a69468eeb63cacc, type: 3}
+  damageNumberPrefab: {fileID: 7432526554317934202, guid: 7cd643ddd11423b42b5061896bcfc0b9, type: 3}
+  damageList: 0c00000059010000851a000074fe340100000000

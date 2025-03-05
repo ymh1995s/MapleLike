@@ -13,7 +13,19 @@ public partial class PacketHandler
     public static void S_EnterGameHandler(PacketSession session, IMessage packet)
     {
         S_EnterGame enterPacket = packet as S_EnterGame;
-        ObjectManager.Instance.AddPlayer(enterPacket.PlayerInfo, myPlayer: true);
+
+        // 씬 로드
+        //string temp = $"1_SnailPark";
+        //SceneLoadManager.Instance.LoadScene(temp);
+
+        // 임시
+        enterPacket.PlayerInfo.PositionX = 0f;
+        enterPacket.PlayerInfo.PositionY = 0f;
+
+        SceneLoadManager.Instance.ExecuteOrQueue(() =>
+        {
+            ObjectManager.Instance.AddPlayer(enterPacket.PlayerInfo, myPlayer: true);
+        });
     }
 
     public static void S_PlayerSpawnHandler(PacketSession session, IMessage packet)
@@ -25,6 +37,11 @@ public partial class PacketHandler
         }
     }
 
+    /// <summary>
+    /// 나를 제외한 타 플레이어 이동 동기화 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_PlayerMoveHandler(PacketSession session, IMessage packet)
     {
         S_PlayerMove movePacket = packet as S_PlayerMove;
@@ -33,11 +50,18 @@ public partial class PacketHandler
         if (go == null)
             return;
 
-        BaseController bc = go.GetComponent<BaseController>();
-        if (bc == null)
+        // 내 플레이어는 클라이언트에서 자체 처리하므로 동기화 제외
+        YHSMyPlayerController mpc = go.GetComponent<YHSMyPlayerController>();
+        if (mpc != null)
             return;
 
-        bc.SetDestination(movePacket.PositionX, movePacket.PositionY);
+        PlayerController pc = go.GetComponent<PlayerController>();
+        if (pc == null)
+            return;
+
+        pc.SetDestination(movePacket.PositionX, movePacket.PositionY);
+        pc.SetPlayerDirection(movePacket.IsRight);
+        pc.SetPlayerState(movePacket.State);
     }
 
     public static void S_PlayerDespawnHandler(PacketSession session, IMessage packet)
@@ -56,12 +80,16 @@ public partial class PacketHandler
 
     public static void S_PlayerDamagedHandler(PacketSession session, IMessage packet)
     {
-
+        // 플레이어의 Hit(Stun) 상태로의 전환은 S_PlayerMoveHandler()에서 처리한다.
+        // 타 플레이어의 체력 동기화 부분으로 활용으로는 활용 가능할 듯.
     }
 
     public static void S_LeaveGameHandler(PacketSession session, IMessage packet)
     {
-        S_LeaveGame LeavePacket = packet as S_LeaveGame;
+        S_LeaveGame leavePacket = packet as S_LeaveGame;
         ObjectManager.Instance.Clear();
+
+        // C_Die, C_ChangeMap를 서버가 수신 시, 자신이 사라지는 경우
+        // C_ChangeMap을 다시 송신하거나 메인 화면으로 넘어가도록 해야?
     }
 }
