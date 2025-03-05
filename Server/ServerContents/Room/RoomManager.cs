@@ -14,19 +14,17 @@ namespace ServerContents.Room
         object _lock = new object();
         // 모든 생성된 방을 딕셔너리로 관리
         Dictionary<int, GameRoom> _rooms = new Dictionary<int, GameRoom>();
-        int _roomId = 1;
 
         // 생성된 방에 아이디를 부여하고 관리 대상 딕셔너리에 넣음
-        public GameRoom Add()
+        public GameRoom Add(int roomId)
         {
             GameRoom gameRoom = new GameRoom();
             gameRoom.Push(gameRoom.Init);
 
             lock (_lock)
             {
-                gameRoom.RoomId = _roomId;
-                _rooms.Add(_roomId, gameRoom);
-                _roomId++;
+                gameRoom.RoomId = roomId;
+                _rooms.Add(roomId, gameRoom);
             }
 
             return gameRoom;

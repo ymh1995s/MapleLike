@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using ServerContents.Room;
 using ServerContents.Session;
 using ServerCore;
@@ -8,13 +9,14 @@ namespace ServerContents
     class Program
     {
         static Listener _listener = new Listener();
+        static List<GameRoom> rooms = new List<GameRoom>();
 
         static void Main(string[] args)
         {
-            // TEMP. 순서대로 튜토리얼, 사냥터, 보스
-            GameRoom room1 = RoomManager.Instance.Add(); 
-            GameRoom room2 = RoomManager.Instance.Add();
-            GameRoom room3 = RoomManager.Instance.Add();
+            foreach (MapName map in Enum.GetValues(typeof(MapName)))
+            {
+                rooms.Add(RoomManager.Instance.Add((int)map));
+            }
 
             Console.WriteLine("Server Start!");
             string host = Dns.GetHostName();
@@ -35,9 +37,10 @@ namespace ServerContents
             while (true)
             {
                 // TODO. 방을 나누고 각각의 스레드로 배분한다.
-                room1.Push(room1.Flush);
-                room2.Push(room2.Flush);
-                room3.Push(room3.Flush);
+                foreach (var room in rooms)
+                {
+                    room.Push(room.Flush);
+                }
 
                 Thread.Sleep(1);
             }

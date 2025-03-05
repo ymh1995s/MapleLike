@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using ServerContents.Job;
 using System;
 using System.Collections.Generic;
@@ -29,8 +30,7 @@ namespace ServerContents.Room
         {
             while (true)
             {
-                Console.WriteLine($"{RoomId}번 방에서 총{recvPacketCount + sendPacketCount}, recv : {recvPacketCount}개 / send : {sendPacketCount}개을 1초에 처리");
-
+                Console.WriteLine($"# {Enum.GetName(typeof(MapName), RoomId),-15} | 총 {recvPacketCount + sendPacketCount,5}개 | recv : {recvPacketCount,5}개 | send : {sendPacketCount,5}개 처리 (1초)");
                 recvPacketCount = 0;
                 sendPacketCount = 0;
 

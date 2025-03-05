@@ -27,4 +27,13 @@ public partial class PacketHandler
         // TODO: 추후, C_HitMonster에 playerAttackPower가 들어오면 이를 기반으로
         // room.Push(room.MonsterHitAndSetTarget, player, hitPacket.MonsterId, hitPacket.playerAttackPower);
     }
+    public static void C_BossRegisterHandler(PacketSession session, IMessage packet)
+    {
+
+    }
+
+    public static void C_BossCancleHandler(PacketSession session, IMessage packet)
+    {
+
+    }
 }

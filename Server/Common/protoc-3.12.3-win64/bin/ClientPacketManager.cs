@@ -42,8 +42,8 @@ class PacketManager
 		_handler.Add((ushort)MsgId.SPlayerDespawn, PacketHandler.S_PlayerDespawnHandler);		
 		_onRecv.Add((ushort)MsgId.SMonsterDespawn, MakePacket<S_MonsterDespawn>);
 		_handler.Add((ushort)MsgId.SMonsterDespawn, PacketHandler.S_MonsterDespawnHandler);		
-		_onRecv.Add((ushort)MsgId.SDropItem, MakePacket<S_DropItem>);
-		_handler.Add((ushort)MsgId.SDropItem, PacketHandler.S_DropItemHandler);		
+		_onRecv.Add((ushort)MsgId.SItemSpawn, MakePacket<S_ItemSpawn>);
+		_handler.Add((ushort)MsgId.SItemSpawn, PacketHandler.S_ItemSpawnHandler);		
 		_onRecv.Add((ushort)MsgId.SPlayerSkill, MakePacket<S_PlayerSkill>);
 		_handler.Add((ushort)MsgId.SPlayerSkill, PacketHandler.S_PlayerSkillHandler);		
 		_onRecv.Add((ushort)MsgId.SMonsterSkill, MakePacket<S_MonsterSkill>);
@@ -51,7 +51,19 @@ class PacketManager
 		_onRecv.Add((ushort)MsgId.SHitMonster, MakePacket<S_HitMonster>);
 		_handler.Add((ushort)MsgId.SHitMonster, PacketHandler.S_HitMonsterHandler);		
 		_onRecv.Add((ushort)MsgId.SPlayerDamaged, MakePacket<S_PlayerDamaged>);
-		_handler.Add((ushort)MsgId.SPlayerDamaged, PacketHandler.S_PlayerDamagedHandler);
+		_handler.Add((ushort)MsgId.SPlayerDamaged, PacketHandler.S_PlayerDamagedHandler);		
+		_onRecv.Add((ushort)MsgId.SBossRegisterDeny, MakePacket<S_BossRegisterDeny>);
+		_handler.Add((ushort)MsgId.SBossRegisterDeny, PacketHandler.S_BossRegisterDenyHandler);		
+		_onRecv.Add((ushort)MsgId.SBossWaiting, MakePacket<S_BossWaiting>);
+		_handler.Add((ushort)MsgId.SBossWaiting, PacketHandler.S_BossWaitingHandler);		
+		_onRecv.Add((ushort)MsgId.SGameClear, MakePacket<S_GameClear>);
+		_handler.Add((ushort)MsgId.SGameClear, PacketHandler.S_GameClearHandler);		
+		_onRecv.Add((ushort)MsgId.SGetExp, MakePacket<S_GetExp>);
+		_handler.Add((ushort)MsgId.SGetExp, PacketHandler.S_GetExpHandler);		
+		_onRecv.Add((ushort)MsgId.SLootItem, MakePacket<S_LootItem>);
+		_handler.Add((ushort)MsgId.SLootItem, PacketHandler.S_LootItemHandler);		
+		_onRecv.Add((ushort)MsgId.SItemDespawn, MakePacket<S_ItemDespawn>);
+		_handler.Add((ushort)MsgId.SItemDespawn, PacketHandler.S_ItemDespawnHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

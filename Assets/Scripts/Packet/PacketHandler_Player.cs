@@ -92,4 +92,9 @@ public partial class PacketHandler
         // C_Die, C_ChangeMap를 서버가 수신 시, 자신이 사라지는 경우
         // C_ChangeMap을 다시 송신하거나 메인 화면으로 넘어가도록 해야?
     }
+
+    public static void S_GetExpHandler(PacketSession session, IMessage packet)
+    {
+        S_LootItem leavePacket = packet as S_LootItem;
+    }
 }

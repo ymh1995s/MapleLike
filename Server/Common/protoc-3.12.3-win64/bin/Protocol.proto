@@ -16,7 +16,7 @@ enum MsgId {
   S_LEAVE_GAME = 7;
   S_PLAYER_DESPAWN = 8;
   S_MONSTER_DESPAWN = 9;
-  S_DROP_ITEM = 10;
+  S_ITEM_SPAWN = 10;
   C_PLAYER_SKILL = 11;
   S_PLAYER_SKILL = 12;
   S_MONSTER_SKILL = 13;
@@ -25,10 +25,19 @@ enum MsgId {
   C_PLAYER_DAMAGED = 16;
   S_PLAYER_DAMAGED = 17;
   C_CHANGE_MAP = 18;
+  C_BOSS_REGISTER = 19;
+  S_BOSS_REGISTER_DENY = 20;
+  S_BOSS_WAITING = 21;
+  C_BOSS_CANCLE = 22;
+  S_GAME_CLEAR = 23;
+  S_GET_EXP = 24;
+  C_LOOT_ITEM = 25;
+  S_LOOT_ITEM = 26;
+  S_ITEM_DESPAWN = 27;
 }
 
 message S_EnterGame {
-  int32 mapid = 1;
+  int32 mapId = 1;
   float spawnPointX = 2;
   float spawnPointY = 3;
   PlayerInfo playerInfo = 4;
@@ -67,6 +76,10 @@ message S_MonsterMove {
 
 message C_PlayerDie { }
 
+message S_PlayerDie {
+  int32 playerId = 2;
+}
+
 message S_LeaveGame { }
 
 message S_PlayerDespawn {
@@ -77,8 +90,11 @@ message S_MonsterDespawn {
   repeated int32 monsterIds = 1;
 }
 
-message S_DropItem{
+message S_ItemSpawn{
   ItemType itemType = 1;
+  int32 playerId = 2;
+  int32 canOnlyOwnerLootTime = 3;
+  int32 lifeTime  = 4;
 }
 
 message C_PlayerSkill{
@@ -97,22 +113,62 @@ message S_MonsterSkill{
 
 message C_HitMonster {
 	int32 monsterId = 1;
+	int32 playerAttackPower = 2;
 }
 
 message S_HitMonster {
 	int32 playerId = 1;
 	int32 monsterId = 2;
-	// 여기서 죽었다면 공격한 플레이어에게 S_DropItem을 같이 보내준다.
+	int32 monsterMaxHp = 3;
+	int32 monsterCurrentHp = 4;
 }
 
-message C_PlayerDamaged { }
+message C_PlayerDamaged {
+  int32 damage = 1; // 클라이언트에서 계산을 마친 받은 데미지
+}
 
 message S_PlayerDamaged { 
 	int32 playerId = 1;
+	int32 damage = 2; // 클라이언트에서 계산을 마친 받은 데미지
 }
 
 message C_ChangeMap {
 	int32 mapId = 1;
+	int32 spawnPoint = 2;
+}
+
+message C_BossRegister {
+	BossEnterType bossEnterType = 1;
+}
+
+message S_BossRegisterDeny { }
+
+message S_BossWaiting {
+	int32 waitingCount = 1;
+}
+
+message C_BossCancle { }
+
+message S_GameClear {
+  repeated int32 playerIds = 1;
+}
+
+message S_GetExp {
+  int32 playerIds = 1;
+  int32 exp = 2;
+}
+
+message C_LootItem {
+  int32 ItemId = 1;
+}
+
+message S_LootItem {
+  int32 playerIds = 1;
+  int32 ItemId = 2;
+}
+
+message S_ItemDespawn {
+  int32 ItemId = 1;
 }
 
 message PlayerInfo {
@@ -226,4 +282,21 @@ enum MonsterState {
 
 message SkillInfo {
   int32 skillId = 1;
+}
+
+enum MapName {
+  Tutorial = 0;
+  Village = 1; // 마을
+  Field1 = 10; // 사냥터
+  Field2 = 11;
+  Field3 = 12;
+  Field4 = 13;
+  Field5 = 14;
+  BossWaitRoom = 21;
+  BossRoom = 22;
+}
+
+enum BossEnterType{
+  Single = 0;
+  Multi = 1;
 }

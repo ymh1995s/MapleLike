@@ -37,7 +37,13 @@ class PacketManager
 		_onRecv.Add((ushort)MsgId.CPlayerDamaged, MakePacket<C_PlayerDamaged>);
 		_handler.Add((ushort)MsgId.CPlayerDamaged, PacketHandler.C_PlayerDamagedHandler);		
 		_onRecv.Add((ushort)MsgId.CChangeMap, MakePacket<C_ChangeMap>);
-		_handler.Add((ushort)MsgId.CChangeMap, PacketHandler.C_ChangeMapHandler);
+		_handler.Add((ushort)MsgId.CChangeMap, PacketHandler.C_ChangeMapHandler);		
+		_onRecv.Add((ushort)MsgId.CBossRegister, MakePacket<C_BossRegister>);
+		_handler.Add((ushort)MsgId.CBossRegister, PacketHandler.C_BossRegisterHandler);		
+		_onRecv.Add((ushort)MsgId.CBossCancle, MakePacket<C_BossCancle>);
+		_handler.Add((ushort)MsgId.CBossCancle, PacketHandler.C_BossCancleHandler);		
+		_onRecv.Add((ushort)MsgId.CLootItem, MakePacket<C_LootItem>);
+		_handler.Add((ushort)MsgId.CLootItem, PacketHandler.C_LootItemHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

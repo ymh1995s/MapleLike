@@ -38,6 +38,7 @@ namespace ServerContents.Room
 
         public void Init()
         {
+            // MonsterManager.Instance.LoadAllData();
             // Nms초당 에 한 번 서버에 귀속적인 로직을 실행한다.
             // ex. 몬스터의 업데이트
             Update(100);
@@ -77,7 +78,7 @@ namespace ServerContents.Room
                 {
                     // S_Enter : 자기 자신의 캐릭터 
                     S_EnterGame enterPacket = new S_EnterGame();
-                    enterPacket.Mapid = RoomId;
+                    enterPacket.MapId = RoomId;
                     enterPacket.PlayerInfo = player.Info;
                     enterPacket.PlayerInfo.PositionX = enterPacket.SpawnPointX = playerSpawnPoints[spawnPoint].x;
                     enterPacket.PlayerInfo.PositionY = enterPacket.SpawnPointY = playerSpawnPoints[spawnPoint].y;
@@ -253,7 +254,7 @@ namespace ServerContents.Room
             }
 
             S_EnterGame enterPkt = new S_EnterGame();
-            enterPkt.Mapid = changeMapPacket.MapId;
+            enterPkt.MapId = changeMapPacket.MapId;
             // TODO => 스폰포인트로 입장시킨다.
             enterPkt.SpawnPointX = room.playerSpawnPoints[0].x;
             enterPkt.SpawnPointY = room.playerSpawnPoints[0].y;

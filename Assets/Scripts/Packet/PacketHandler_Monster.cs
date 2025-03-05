@@ -103,4 +103,19 @@ public partial class PacketHandler
         if (bmc != null)
             bmc.SetState(MonsterState.MStun);
     }
+
+    public static void S_BossRegisterDenyHandler(PacketSession session, IMessage packet)
+    {
+        S_BossRegisterDeny bossRegisterDenyPacket = packet as S_BossRegisterDeny;
+    }
+
+    public static void S_BossWaitingHandler(PacketSession session, IMessage packet)
+    {
+        S_BossWaiting bossWatingPacket = packet as S_BossWaiting;
+    }
+
+    public static void S_GameClearHandler(PacketSession session, IMessage packet)
+    {
+        S_GameClear gameClearPacket = packet as S_GameClear;
+    }
 }
