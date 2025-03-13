@@ -51,6 +51,96 @@
       "exp": 13
     },
     {
+      "name": "페어리",
+      "type": "Normal",
+      "level": 13,
+      "hp": 200,
+      "attackPower": 53,
+      "defense": 85,
+      "speed": 3,
+      "exp": 27
+    },
+    {
+      "name": "초록버섯",
+      "type": "Normal",
+      "level": 15,
+      "hp": 250,
+      "attackPower": 58,
+      "defense": 12,
+      "speed": 1,
+      "exp": 21
+    },
+    {
+      "name": "아이언호그",
+      "type": "Normal",
+      "level": 16,
+      "hp": 250,
+      "attackPower": 58,
+      "defense": 12,
+      "speed": 1,
+      "exp": 21
+    },
+    {
+      "name": "머쉬맘",
+      "type": "Normal",
+      "level": 19,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
+      "name": "정식기사A",
+      "type": "Normal",
+      "level": 20,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
+      "name": "정식기사B",
+      "type": "Normal",
+      "level": 20,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
+      "name": "정식기사C",
+      "type": "Normal",
+      "level": 20,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
+      "name": "정식기사D",
+      "type": "Normal",
+      "level": 20,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
+      "name": "정식기사E",
+      "type": "Normal",
+      "level": 20,
+      "hp": 17500,
+      "attackPower": 126,
+      "defense": 320,
+      "speed": 1,
+      "exp": 1650
+    },
+    {
       "name": "시그너스",
       "type": "Boss",
       "level": 140,

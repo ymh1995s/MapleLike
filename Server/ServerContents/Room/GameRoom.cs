@@ -5,6 +5,7 @@ using ServerContents.Object;
 using ServerContents.Session;
 using ServerCore;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -20,8 +21,8 @@ namespace ServerContents.Room
         Dictionary<int, Player> _players = new Dictionary<int, Player>();
         Dictionary<int, NormalMonster> _normalMonsters = new Dictionary<int, NormalMonster>();
         Dictionary<int, BossMonster> _bossMonsters = new Dictionary<int, BossMonster>();
+        Dictionary<int, Item> _items = new Dictionary<int, Item>();
         // Dictionary<int, Projectile> _projectiles = new Dictionary<int, Projectile>(); 후순위
-        // Dictionary<int, Item> _projectiles = new Dictionary<int, Item>(); 후순위
 
         // 패킷 모아보내기용 List
         List<IMessage> _pendingList = new List<IMessage>();
@@ -38,30 +39,24 @@ namespace ServerContents.Room
 
         public void Init()
         {
-            // MonsterManager.Instance.LoadAllData();
+            MonsterManager.Instance.LoadAllData();
+            PlayerSpawnPositionManager.Instance.LoadAllData();
+
             // Nms초당 에 한 번 서버에 귀속적인 로직을 실행한다.
             // ex. 몬스터의 업데이트
             Update(100);
-
-            // temp 몬스터 입장 
-            // TODO 몬스터 삭제
-            //NormalMonster monster = ObjectManager.Instance.Add<NormalMonster>();
-            //monster.Info.Name = $"Monster_{monster.Info.Name}_{monster.Info.MonsterId}";
-            //MonsterEnterGame(monster);
-
-            // temp 룸의 데이터 설정
-            SetRoomData(RoomId);
         }
 
         void Update(int waitms)
         {
             MonsterUpdate();
+            UpdateBossWaitingCount();
 
             PushAfter(waitms, Update, waitms);
         }
 
 
-        public void PlayerEnterGame(GameObject gameObject, int spawnPoint = 0)
+        public void PlayerEnterGame(GameObject gameObject, int prevMapId = 0)
         {
             lock (_lock)
             {
@@ -80,8 +75,8 @@ namespace ServerContents.Room
                     S_EnterGame enterPacket = new S_EnterGame();
                     enterPacket.MapId = RoomId;
                     enterPacket.PlayerInfo = player.Info;
-                    enterPacket.PlayerInfo.PositionX = enterPacket.SpawnPointX = playerSpawnPoints[spawnPoint].x;
-                    enterPacket.PlayerInfo.PositionY = enterPacket.SpawnPointY = playerSpawnPoints[spawnPoint].y;
+                    enterPacket.PlayerInfo.PositionX = enterPacket.SpawnPointX = PlayerSpawnPositionManager.Instance.GetPlayerSpawnPosition(prevMapId, RoomId).X;
+                    enterPacket.PlayerInfo.PositionY = enterPacket.SpawnPointY = PlayerSpawnPositionManager.Instance.GetPlayerSpawnPosition(prevMapId, RoomId).Y;
                     player.Session.Send(enterPacket);
 
                     // S_Spawn : 다른 사람의 캐릭터
@@ -112,7 +107,11 @@ namespace ServerContents.Room
                         if (p.Id != gameObject.Id)
                             p.Session.Send(spawnPacket);
                     }
+                    
                 }
+                //죽인사람을 알기 위해  테스트용 신경 x 
+                //나온 위치 
+                ItemEnterGame(player,0,0);
             }
         }
 
@@ -172,6 +171,7 @@ namespace ServerContents.Room
             // 서버에서 관리하기 위해 데이터 반영
             _players[player.Info.PlayerId].Info.PositionX = movePacket.PositionX;
             _players[player.Info.PlayerId].Info.PositionY = movePacket.PositionY;
+            _players[player.Info.PlayerId].Info.CreatureState = movePacket.State;
 
             // 다른 플레이어한테도 알려준다
             S_PlayerMove resMovePacket = new S_PlayerMove();
@@ -242,27 +242,25 @@ namespace ServerContents.Room
             if (player == null)
                 return;
 
-            // 1. 나가려는 플레이어 데이터를 날려준다.
-            LeavePlayer(player.Id);
-
-            // 2. 요청한 맵으로 입장시킨다.
+            // 1. 해당하는 맵이 실존하는지 검색
             GameRoom room = RoomManager.Instance.Find(changeMapPacket.MapId);
             if (room == null)
             {
-                Console.WriteLine($"N번 방이 존재하지 않습니다. 서버 오류");
+                Console.WriteLine($"{changeMapPacket.MapId}번 방이 존재하지 않습니다. 서버 오류");
                 return;
             }
 
-            S_EnterGame enterPkt = new S_EnterGame();
-            enterPkt.MapId = changeMapPacket.MapId;
-            // TODO => 스폰포인트로 입장시킨다.
-            enterPkt.SpawnPointX = room.playerSpawnPoints[0].x;
-            enterPkt.SpawnPointY = room.playerSpawnPoints[0].y;
-            //enterPkt.SpawnPointX = room.playerSpawnPoints[changeMapPacket.spawnPoint].x;
-            //enterPkt.SpawnPointY = room.playerSpawnPoints[changeMapPacket.spawnPoint].y;
+            // 2. 이미 유저가 해당 맵에 있으면 리턴
+            if (room._players.ContainsKey(player.Info.PlayerId))
+            {
+                Console.WriteLine($"{player.Info.PlayerId}유저는 이미 {changeMapPacket.MapId}맵에 존재합니다.");
+                return;
+            }
 
-            room.Push(room.PlayerEnterGame, player, 0);
-            //room.Push(room.PlayerEnterGame, player, changeMapPacket.spawnPoint);
+            // 3. 나가려는 플레이어 데이터를 날려준다.
+            LeavePlayer(player.Id);
+
+            room.Push(room.PlayerEnterGame, player, RoomId);
         }
 
         // 게임룸에 있는 다른 클라이언트에게 알림

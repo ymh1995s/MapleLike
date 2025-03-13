@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Storage.Json;
 using ServerContents.Object;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -131,16 +133,20 @@ namespace ServerContents.Room
 
         public void MonsterSpawn(int currentRoomId)
         {
+            if (RoomManager.Instance.Find(currentRoomId) == null)
+                return;
+
             if (!maps.TryGetValue(currentRoomId, out Map currentMap))
                 return;
             
             if (monsterDatabase == null || monsterDatabase.monsterDatabase == null)
                 return;
 
-            // TODO: 보스맵의 경우, 해당 맵에 사람이 없을 때만 스폰이 되도록 처리해야함.
+            // 보스맵의 경우, 해당 맵에 사람이 있을 때만 스폰이 되도록 처리해야함.
             if (currentMap.mapType == "Boss")
             {
-
+                if (RoomManager.Instance.Find(currentRoomId).GetPlayerCountInRoom() <= 0)
+                    return;
             }
 
             foreach (var zone in currentMap.zones)
@@ -168,13 +174,25 @@ namespace ServerContents.Room
 
                         Monster monster = null;
                         if (spawnableMonsterType == "Normal")
+                        {
                             monster = ObjectManager.Instance.Add<NormalMonster>();
-                       else if(spawnableMonsterType == "Boss")
-                            monster = ObjectManager.Instance.Add<BossMonster>();
 
+                            // 일반 몬스터인 경우, 이동 가능한 범위 내에서 랜덤한 위치에 스폰
+                            monster.Info.DestinationX = spawnPosX;
+                            monster.Info.DestinationY = spawnPosY;
+                        }
+                       
+                        else if(spawnableMonsterType == "Boss")
+                        {
+                            monster = ObjectManager.Instance.Add<BossMonster>();
+                            
+                            // 보스 몬스터인 경우, 이동 가능한 범위의 중앙의 위치에서 스폰
+                            spawnPosX = (MathF.Abs(zone.Value.range.Item1.Item1) + MathF.Abs(zone.Value.range.Item1.Item2)) / 2; // 중앙 위치 계산
+                            monster.Info.DestinationX = spawnPosX;
+                            monster.Info.DestinationY = spawnPosY;
+                        }
+                            
                         monster.Info.Name = $"{selectedMonster.name}_{monster.Info.MonsterId}";
-                        monster.Info.DestinationX = spawnPosX;
-                        monster.Info.DestinationY = spawnPosY;
                         monster.Info.StatInfo = GetMonsterStatInfo(selectedMonster);
                         monster.Stat = monster.Info.StatInfo;
                         monster.Info.CreatureState = MonsterState.MIdle;
@@ -263,10 +281,11 @@ namespace ServerContents.Room
 
         private void LoadMonsterData()
         {
-            // 프로젝트의 루트 폴더를 기준으로 경로 설정.
-            // TODO: Json 파일을 불러들일 더 정확한 방법을 고안해 수정 필요.
             string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
             string path = Path.Combine(projectRoot, "Room", "Data", "Monsters.Json");
+
+            // AWS 
+            // string path = AppDomain.CurrentDomain.BaseDirectory + "Monsters.Json";
 
             if (File.Exists(path))
             {
@@ -276,15 +295,18 @@ namespace ServerContents.Room
             else
             {
                 Console.WriteLine("Monsters.Json 파일이 존재하지 않습니다.");
+                Environment.Exit(0);
+                return;
             }
         }
 
         private void LoadMapData()
         {
-            // 프로젝트의 루트 폴더를 기준으로 경로 설정.
-            // TODO: Json 파일을 불러들일 더 정확한 방법을 고안해 수정 필요.
             string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
             string path = Path.Combine(projectRoot, "Room", "Data", "Maps.Json");
+
+            // AWS
+            // string path = AppDomain.CurrentDomain.BaseDirectory + "Maps.Json";
 
             if (File.Exists(path))
             {
@@ -295,6 +317,8 @@ namespace ServerContents.Room
             else
             {
                 Console.WriteLine("Maps.Json 파일이 존재하지 않습니다.");
+                Environment.Exit(0);
+                return;
             }
         }
     }

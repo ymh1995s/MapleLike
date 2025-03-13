@@ -47,7 +47,8 @@
       "icon": "Sword",
       "limitLevel": "5",
       "limitJob": "Warrier",
-      "attackPower": 10,
+      "attackPower": 40,
+      "magicPower": 0,
       "defensePower": 0,
       "iconAddress" :"Sword"
     },
@@ -59,11 +60,11 @@
       "buyprice": 350,
       "itemType" : "Arrow",
       "itemCategory": "Equipment",
-      "itemType": "Arrow",
       "icon": "Arrow",
       "limitLevel": "5",
       "limitJob": "Ranger",
-      "attackPower": 10,
+      "attackPower": 30,
+      "magicPower": 0,
       "defensePower": 0,
       "iconAddress" :"Arrow"
     },
@@ -78,7 +79,8 @@
       "icon": "staff",
       "limitLevel": "5",
       "limitJob": "Wizard",
-      "attackPower": 10,
+      "attackPower": 0,
+      "magicPower": 20,
       "defensePower": 0,
       "iconAddress" :"staff"
     },

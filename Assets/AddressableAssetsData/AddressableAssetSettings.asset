@@ -59,6 +59,7 @@ MonoBehaviour:
   m_BuildAddressablesWithPlayerBuild: 0
   m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
   m_GroupAssets:
+  - {fileID: 11400000, guid: c9b580bb2603b9447b01b1d6f775f316, type: 2}
   - {fileID: 11400000, guid: 01efc1c99168ed44caf65eee818c31b8, type: 2}
   - {fileID: 11400000, guid: 00259fc830659b844b73c9bf5ae17ecb, type: 2}
   m_BuildSettings:
@@ -101,6 +102,7 @@ MonoBehaviour:
     m_LabelNames:
     - default
     - ItemObj
+    - PropObj
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 92b8bac3aad52de4fb54611d561f527e, type: 2}

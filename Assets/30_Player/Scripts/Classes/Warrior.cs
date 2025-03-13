@@ -1,13 +1,15 @@
 using Google.Protobuf.Protocol;
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Warrior : BaseClass
 {
-    protected void Start()
+    protected override void Start()
     {
         base.Start();
         InitializeSkill();
-        //ClassStat();
+        ClassStat();
     }
 
     /// <summary>
@@ -15,12 +17,12 @@ public class Warrior : BaseClass
     /// </summary>
     protected override void ClassStat()
     {
-        info.stats.maxHp = (int)(info.stats.maxHp * 1.5f);
-        info.stats.maxMp = (int)(info.stats.maxMp * 0.75f);
-        info.stats.className = "Warrior";
+        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 1.5f);
+        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 0.75f);
+        playerStatInfo.ClassType = ClassType.Warrior;
 
-        info.stats.hp = info.stats.maxHp;
-        info.stats.mp = info.stats.maxMp;
+        playerStatInfo.Hp = playerStatInfo.MaxHp;
+        playerStatInfo.Mp = playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
@@ -45,20 +47,29 @@ public class Warrior : BaseClass
             Hitbox.enabled = false;
         }
         controller.isAttacking = false;
+        controller.isDamaged = true;
     }
 
     public override void CreateHitEffect()
     {
         target = Hitbox.GetComponent<TriggerScript>().GetTarget();
-
-        if (target == null)
-            return;
-
-        SendHitMonsterPacket();
+        if (target == null) return;
 
         /// Todo
         /// 대상을 찾았기 때문에 클라이언트에서 몬스터에 데미지 처리를 한다.
         /// 또한 데미지 숫자 텍스트도 출력한다.
+
+        // 플레이어가 공격했을 때 데미지를 화면에 띄운다.
+        int totalDamage = 0;
+        List<int> damageList = CalculatePlayerToMonsterDamage(
+            target,
+            playerStatInfo.AttackPower,
+            "Power Strike",
+            out totalDamage
+            );
+        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
+        
+        SendHitMonsterPacket(totalDamage);
 
         GameObject hitGo = Instantiate(HitObject, target.transform.position, Quaternion.identity);
         hitGo.GetComponent<Animator>().SetTrigger("Hit");
@@ -70,19 +81,18 @@ public class Warrior : BaseClass
     /// <summary>
     /// 파워 스트라이크
     /// </summary>
-    public override bool UseSkill(MonsterStatInfo monster)
+    public override bool UseSkill()
     {
         int cost = skillList["Power Strike"].GetManaCost();
-        if (info.stats.mp >= cost)
-        {
-            info.SetPlayerMp(cost);
-            monster.Hp -= skillList["Power Strike"].GetDamage();
-            return true;
-        }
-        else
+        if (!CheckMana(cost))
         {
             Debug.Log("MP 부족");
             return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            return true;
         }
     }
     #endregion

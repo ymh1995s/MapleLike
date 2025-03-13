@@ -15,12 +15,14 @@ namespace ServerContents.Object
             {
                 if (this is Player player) return player.Info.PlayerId;
                 if (this is Monster monster) return monster.Info.MonsterId;
+                if (this is Item item) return item.Info.ItemId;
                 return 0;
             }
             set
             {
                 if (this is Player player) player.Info.PlayerId = value;
                 else if (this is Monster monster) monster.Info.MonsterId = value;
+                else if (this is Item item) item.Info.ItemId = value;
             }
         }
 

@@ -22,13 +22,13 @@ MonoBehaviour:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3c43c579607a4cb4ba2f33819c47bb7a
-    m_Address: 7_HpPotionParent
+    m_Address: 7_HppotionParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 52633a06a660260419f188e381992b71
-    m_Address: 8_MpPotionParent
+    m_Address: 8_MppotionParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj

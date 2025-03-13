@@ -8,10 +8,13 @@ public class InitItem : MonoBehaviour
     [SerializeField] ItemType itemType;
     [SerializeField] string itemName;
     public Item Property;
+    public int Serverid;
+    public int Ownerid; // 누가 죽였는지 
     
     
     void Start()
     {
+        Ownerid = ObjectManager.Instance.MyPlayer.Id;
         itemName = gameObject.name;
 
         if (Enum.TryParse(itemName, out ItemType parsedType))

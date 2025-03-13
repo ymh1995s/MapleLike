@@ -45,11 +45,13 @@ namespace ServerContents.Object
 
         public virtual void SetTarget(Player newTarget) { }
 
-        public virtual void TakeDamage(int attackPower) { Stat.Hp -= attackPower; }
+        public virtual void TakeDamage(int playerId, int attackPower) { Stat.Hp -= attackPower; }
 
         protected virtual void BroadcastMove() { }
 
         protected virtual void BroadcastSkill() { }
+
+        protected virtual void UpdateInfo() { }
 
         protected virtual void UpdateThink() { }
 
@@ -79,8 +81,7 @@ namespace ServerContents.Object
         // 타겟으로 지정된 플레이어가 맵에서 사라진 경우, 타겟을 null로 변화시키기 위해 Update에서 지속적으로 호출되는 함수
         protected void UpdateTarget() 
         {
-            // TODO: 현재 로직은 서버 전체에서 사라진 경우를 의미. 몬스터가 있는 해당 룸에서 사라진 경우를 확인하도록 로직을 변경해야함.
-            if (_target != null && ObjectManager.Instance.Find(_target.Id) == null)
+            if (_target != null && Room.IsPlayerInRoom(_target.Id) == false)
             {
                 _target = null;
                 return;

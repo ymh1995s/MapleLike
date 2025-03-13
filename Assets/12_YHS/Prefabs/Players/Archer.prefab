@@ -130,6 +130,7 @@ MonoBehaviour:
   Hitbox: {fileID: 1296932659322843596}
   Effect: {fileID: 8190681211295182707}
   HitObject: {fileID: 5870738929601746322, guid: 9629f6a458edacf4fb58759aad412512, type: 3}
+  arrowPrefab: {fileID: 437514642266565105, guid: ca2d2ea27245bcc4683549b192062902, type: 3}
 --- !u!1 &6908967292022525692
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,7 +144,7 @@ GameObject:
   - component: {fileID: 3814091526976167271}
   m_Layer: 0
   m_Name: ArcherAttackHitbox
-  m_TagString: Untagged
+  m_TagString: PlayerSkill
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

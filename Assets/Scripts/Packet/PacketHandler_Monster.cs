@@ -2,6 +2,7 @@ using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerCore;
 using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -12,10 +13,14 @@ public partial class PacketHandler
     public static void S_MonsterSpawnHandler(PacketSession session, IMessage packet)
     {
         S_MonsterSpawn spawnPacket = packet as S_MonsterSpawn;
-        foreach (MonsterInfo obj in spawnPacket.MonsterInfos)
+
+        SceneLoadManager.Instance.ExecuteOrQueue(() =>
         {
-            ObjectManager.Instance.AddMonster(obj);
-        }
+            foreach (MonsterInfo obj in spawnPacket.MonsterInfos)
+            {
+                ObjectManager.Instance.AddMonster(obj);
+            }
+        });
     }
 
     public static void S_MonsterMoveHandler(PacketSession session, IMessage packet)
@@ -72,7 +77,7 @@ public partial class PacketHandler
         NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
         if (nmc != null)
         {
-            nmc.SetNormonsterSkillType(skillPacket.SkillType);
+            nmc.SetNormalMonsterSkillType(skillPacket.SkillType);
             nmc.SetState(MonsterState.MSkill);
         }
 
@@ -93,25 +98,43 @@ public partial class PacketHandler
         if (go == null)
             return;
 
+        MonsterController mc = go.GetComponent<MonsterController>();
+        if (mc != null)        
+            mc.SetCurrentHp(hitPacket.MonsterCurrentHp);
+
         // 일반몬스터의 경우
         NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
         if (nmc != null)
+        {
             nmc.SetState(MonsterState.MStun);
-
+            nmc.UpdateHPBarGauge();
+        }
+            
         // 보스몬스터의 경우
+        // TODO: 보스몬스터 체력바
         BossMonsterController bmc = go.GetComponent<BossMonsterController>();
         if (bmc != null)
+        {
             bmc.SetState(MonsterState.MStun);
+            bmc.UpdateHPBarGauge();
+        }
     }
 
     public static void S_BossRegisterDenyHandler(PacketSession session, IMessage packet)
     {
         S_BossRegisterDeny bossRegisterDenyPacket = packet as S_BossRegisterDeny;
+
+        // 플레이어 하위에 부착된 보스 UI 오브젝트의 EnterFailedUI active
+        BossRoomEnterUI.Instance.ActiveEnterFaileUIdPanel();
     }
 
     public static void S_BossWaitingHandler(PacketSession session, IMessage packet)
     {
         S_BossWaiting bossWatingPacket = packet as S_BossWaiting;
+        int currentWaitingCount = bossWatingPacket.WaitingCount;
+
+        // 플레이어 하위에 부착된 보스 UI 오브젝트의 PartyMatchingUI Update
+        BossRoomEnterUI.Instance.UpdatePartyMatchingUIPanel(currentWaitingCount);
     }
 
     public static void S_GameClearHandler(PacketSession session, IMessage packet)

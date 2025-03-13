@@ -15,12 +15,10 @@ public partial class PacketHandler
         S_EnterGame enterPacket = packet as S_EnterGame;
 
         // 씬 로드
-        //string temp = $"1_SnailPark";
+        //string temp = $"12_YHS/1_SnailPark";
         //SceneLoadManager.Instance.LoadScene(temp);
-
-        // 임시
-        enterPacket.PlayerInfo.PositionX = 0f;
-        enterPacket.PlayerInfo.PositionY = 0f;
+        string sceneName = ((MapName)enterPacket.MapId).ToString();
+        SceneLoadManager.Instance.LoadScene(sceneName);
 
         SceneLoadManager.Instance.ExecuteOrQueue(() =>
         {
@@ -28,17 +26,25 @@ public partial class PacketHandler
         });
     }
 
+    /// <summary>
+    /// 내가 위치한 맵에 다른 플레이어가 생성될 때 처리하는 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_PlayerSpawnHandler(PacketSession session, IMessage packet)
     {
         S_PlayerSpawn spawnPacket = packet as S_PlayerSpawn;
         foreach (PlayerInfo obj in spawnPacket.PlayerInfos)
         {
-            ObjectManager.Instance.AddPlayer(obj, myPlayer: false);
+            SceneLoadManager.Instance.ExecuteOrQueue(() =>
+            {
+                ObjectManager.Instance.AddPlayer(obj, myPlayer: false);
+            });
         }
     }
 
     /// <summary>
-    /// 나를 제외한 타 플레이어 이동 동기화 메서드
+    /// 나를 제외한 다른 플레이어 이동 및 애니메이션 동기화 메서드
     /// </summary>
     /// <param name="session"></param>
     /// <param name="packet"></param>
@@ -64,37 +70,67 @@ public partial class PacketHandler
         pc.SetPlayerState(movePacket.State);
     }
 
+    /// <summary>
+    /// 내가 위치한 맵에서 다른 플레이어가 사라졌을 때 처리하는 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_PlayerDespawnHandler(PacketSession session, IMessage packet)
     {
         S_PlayerDespawn despawnPacket = packet as S_PlayerDespawn;
         foreach (int id in despawnPacket.PlayerIds)
         {
             ObjectManager.Instance.Remove(id);
+            GameObject.Destroy(GameObject.Find(id.ToString()));     // 생성할 때 오브젝트명이 플레이어ID이기 때문에 가능한 로직이다.
         }
     }
 
     public static void S_PlayerSkillHandler(PacketSession session, IMessage packet)
     {
-
+        // 현재 S_PlayerMoveHandler()와 기능 통합
     }
 
     public static void S_PlayerDamagedHandler(PacketSession session, IMessage packet)
     {
-        // 플레이어의 Hit(Stun) 상태로의 전환은 S_PlayerMoveHandler()에서 처리한다.
-        // 타 플레이어의 체력 동기화 부분으로 활용으로는 활용 가능할 듯.
+        // 플레이어의 Hit(Stun) 상태로의 전환은 S_PlayerMoveHandler()와 기능 통합
+        // 패킷에서 damage를 수신하므로 체력 반영이 가능하다.
     }
 
+    public static void S_PlayerDieHandler(PacketSession session, IMessage packet)
+    {
+        // 현재 S_PlayerMoveHandler()와 기능 통합
+    }
+
+    /// <summary>
+    /// 자신이 위치한 맵에서 자신이 나갔을 때 처리하는 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_LeaveGameHandler(PacketSession session, IMessage packet)
     {
         S_LeaveGame leavePacket = packet as S_LeaveGame;
         ObjectManager.Instance.Clear();
 
-        // C_Die, C_ChangeMap를 서버가 수신 시, 자신이 사라지는 경우
         // C_ChangeMap을 다시 송신하거나 메인 화면으로 넘어가도록 해야?
     }
 
+    /// <summary>
+    /// 자신이 몬스터를 처치하고 경험치를 획득했을 때 처리하는 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_GetExpHandler(PacketSession session, IMessage packet)
     {
-        S_LootItem leavePacket = packet as S_LootItem;
+        S_GetExp getExpPacket = packet as S_GetExp;
+
+        if (getExpPacket.PlayerIds != ObjectManager.Instance.MyPlayer.Id)
+        {
+            return;
+        }
+
+        GameObject go = ObjectManager.Instance.FindById(getExpPacket.PlayerIds);
+
+        PlayerInformation playerInformation = go.GetComponent<PlayerInformation>();
+        playerInformation.SetPlayerExp(getExpPacket.Exp);
     }
 }

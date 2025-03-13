@@ -1,13 +1,14 @@
 using Google.Protobuf.Protocol;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Magician : BaseClass
 {
-    protected void Start()
+    protected override void Start()
     {
         base.Start();
         InitializeSkill();
-        //ClassStat();
+        ClassStat();
     }
 
     /// <summary>
@@ -15,12 +16,12 @@ public class Magician : BaseClass
     /// </summary>
     protected override void ClassStat()
     {
-        info.stats.maxHp = (int)(info.stats.maxHp * 0.75f);
-        info.stats.maxMp = (int)(info.stats.maxMp * 1.5f);
-        info.stats.className = "Magician";
-
-        info.stats.hp = info.stats.maxHp;
-        info.stats.mp = info.stats.maxMp;
+        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 0.75f);
+        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 1.5f);
+        playerStatInfo.ClassType = ClassType.Magician;
+        
+        playerStatInfo.Hp = playerStatInfo.MaxHp;
+        playerStatInfo.Mp = playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
@@ -45,20 +46,30 @@ public class Magician : BaseClass
             Hitbox.enabled = false;
         }
         controller.isAttacking = false;
+        controller.isDamaged = true;
     }
 
     public override void CreateHitEffect()
     {
         target = Hitbox.GetComponent<TriggerScript>().GetTarget();
-
         if (target == null)
-            return; 
-        
-        SendHitMonsterPacket();
+            return;
 
         /// Todo
         /// 대상을 찾았기 때문에 클라이언트에서 몬스터에 데미지 처리를 한다.
         /// 또한 데미지 숫자 텍스트도 출력한다.
+
+        // 플레이어가 공격했을 때 데미지를 화면에 띄운다.
+        int totalDamage = 0;
+        List<int> damageList = CalculatePlayerToMonsterDamage(
+            target,
+            playerStatInfo.MagicPower,    // 마법사는 마력을 사용한다.
+            "Magic Clow",
+            out totalDamage
+            );
+        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
+
+        SendHitMonsterPacket(totalDamage);
 
         GameObject hitGo = Instantiate(HitObject, target.transform.position, Quaternion.identity);
         hitGo.GetComponent<Animator>().SetTrigger("Hit");
@@ -70,19 +81,18 @@ public class Magician : BaseClass
     /// <summary>
     /// 매직 클로
     /// </summary>
-    public override bool UseSkill(MonsterStatInfo monster)
+    public override bool UseSkill()
     {
         int cost = skillList["Magic Clow"].GetManaCost();
-        if (info.stats.mp >= cost)
-        {
-            info.SetPlayerMp(cost);
-            monster.Hp -= skillList["Magic Clow"].GetDamage();
-            return true;
-        }
-        else
+        if (!CheckMana(cost))
         {
             Debug.Log("MP 부족");
             return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            return true;
         }
     }
     #endregion

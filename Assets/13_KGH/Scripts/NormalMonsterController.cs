@@ -1,6 +1,8 @@
 using Google.Protobuf.Protocol;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 enum NormalMonsterState
 {
@@ -22,6 +24,11 @@ enum NormalMonsterSkill
 
 public class NormalMonsterController : MonsterController
 {
+    [SerializeField] GameObject hpBar;
+    [SerializeField] Image hpBarGauge;
+
+    private Coroutine inactiveHPBarCoroutine = null;
+
     // 패킷 수신 시 세팅되는 값
     NormalMonsterState currentState;
     NormalMonsterSkill currentSkill = NormalMonsterSkill.Skill0;    // TODO: 아직 일반 몬스터 스킬 구현 계획 없음.
@@ -95,6 +102,11 @@ public class NormalMonsterController : MonsterController
         if (!animatorStateInfo.IsName("die"))
         {
             monsterAnimator.SetTrigger("die");
+
+            if (inactiveHPBarCoroutine != null)
+                StopCoroutine(inactiveHPBarCoroutine);
+            hpBar.SetActive(false);
+
             isAlreadyDie = true;
         }
     }
@@ -130,8 +142,27 @@ public class NormalMonsterController : MonsterController
 
 
     // TODO: 아직 일반 몬스터 스킬 구현 계획 없음.
-    public void SetNormonsterSkillType(BossMonsterSkillType newSkill)
+    public void SetNormalMonsterSkillType(BossMonsterSkillType newSkill)
     {
         currentSkill = (NormalMonsterSkill)newSkill;
+    }
+
+    public void UpdateHPBarGauge()
+    {
+        hpBar.SetActive(true);
+
+        if (inactiveHPBarCoroutine != null)
+            StopCoroutine(inactiveHPBarCoroutine);
+
+        hpBarGauge.fillAmount = Mathf.Clamp(info.StatInfo.Hp / maxHp, 0.0f, 1.0f);
+
+        inactiveHPBarCoroutine = StartCoroutine(InActiveHPBar());
+    }
+
+    private IEnumerator InActiveHPBar()
+    {
+        yield return new WaitForSeconds(5.0f);
+        hpBar.SetActive(false);
+        inactiveHPBarCoroutine = null;
     }
 }

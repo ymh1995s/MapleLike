@@ -32,12 +32,14 @@ public class PlayerHitState : IPlayerState
         if (!isPlaying)
         {
             isPlaying = true;
+            //playerController.coroutine = DurationDamaged();
             playerController.StartCoroutine(DurationDamaged());
         }
     }
 
     public void Exit()
     {
+        //playerController.StopCoroutine(playerController.coroutine);
     }
 
     /// <summary>
@@ -46,6 +48,7 @@ public class PlayerHitState : IPlayerState
     /// </summary>
     IEnumerator DurationDamaged()
     {
+        Debug.Log("코루틴 호출됨");
         yield return new WaitForSeconds(duration);
         playerController.isDamaged = false;
         isPlaying = false;

@@ -60,31 +60,42 @@ namespace ServerContents.Session
         {
             Console.WriteLine( $"client {endPoint} is connected to the server. Here is server" );
 
-            MyPlayer = ObjectManager.Instance.Add<Player>();
-            {
-                MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
-                MyPlayer.Session = this;
-            }
+            S_Connected connectedPkt = new S_Connected();
+            Send(connectedPkt);
 
-            Console.WriteLine($"{endPoint} Object Added in Dic, Send Enter packet To Server...");
+            //MyPlayer = ObjectManager.Instance.Add<Player>();
+            //{
+            //    MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
+            //    MyPlayer.Session = this;
+            //}
 
-            GameRoom room = RoomManager.Instance.Find(1);
-            if(room ==null)
-            {
-                Console.WriteLine( $"N번 방이 존재하지 않습니다. 클라이언트 접속 종료" );
-                Disconnect();
-                return;
-            }
+            //Console.WriteLine($"{endPoint} Object Added in Dic, Send Enter packet To Server...");
 
-            room.Push(room.PlayerEnterGame, MyPlayer, 0);
+            //GameRoom room = RoomManager.Instance.Find(1);
+            //if(room ==null)
+            //{
+            //    Console.WriteLine( $"N번 방이 존재하지 않습니다. 클라이언트 접속 종료" );
+            //    Disconnect();
+            //    return;
+            //}
+
+            //room.Push(room.PlayerEnterGame, MyPlayer, 0);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
         {
             Console.WriteLine($"client {endPoint} is disconnected from the server. Here is server");
 
-            GameRoom room = RoomManager.Instance.Find(1); // TEMP 1번방
-            room.Push(room.LeavePlayer, MyPlayer.Info.PlayerId);
+            if(MyPlayer != null)
+            {                
+                GameRoom room = RoomManager.Instance.Find(MyPlayer.Room.RoomId);
+                if (room == null)
+                {
+                    Console.WriteLine( $"\"{MyPlayer.Room.RoomId}\"룸을 찾지 못했습니다. 로직 에러 (고의적 크래쉬..)" );
+                }
+                room.Push(room.LeavePlayer, MyPlayer.Info.PlayerId);
+            }
+
             SessionManager.Instance.Remove(this);
         }
 

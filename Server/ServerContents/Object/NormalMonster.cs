@@ -56,6 +56,7 @@ namespace ServerContents.Object
                     break;
             }
 
+            UpdateInfo();
             BroadcastMove();
         }
 
@@ -75,6 +76,16 @@ namespace ServerContents.Object
         protected override void BroadcastSkill()
         {
             // TODO: 일반 몬스터는 아직 스킬 구현 계획 없음. 추후 확장성을 위함
+        }
+
+        protected override void UpdateInfo()
+        {
+            // Update Info and Stat
+            Info.DestinationX = Math.Clamp(_destinationPos.X, _minX, _maxX);
+            Info.DestinationY = _destinationPos.Y;
+            Info.CreatureState = (MonsterState)_currentState;
+            Info.MonsterId = Id;
+            Info.StatInfo = Stat;
         }
 
         protected override void UpdateThink()
@@ -180,7 +191,6 @@ namespace ServerContents.Object
                 _skillStartTime = DateTime.Now; // 스킬 상태로 전환할 때 시작 시간 기록.
                 BroadcastSkill();
             }
-                
 
             _currentState = NormalMonsterState.Skill;
 
@@ -194,9 +204,9 @@ namespace ServerContents.Object
             // 위치 변동 없음
         }
 
-        public override void TakeDamage(int attackPower)
+        public override void TakeDamage(int playerId, int attackPower)
         {
-            base.TakeDamage(attackPower);
+            base.TakeDamage(playerId, attackPower);
 
             if (Stat.Hp > 0)
             {
@@ -205,11 +215,20 @@ namespace ServerContents.Object
                 // 다른 플레이어에게도 알린다.
                 S_HitMonster hitPacket = new S_HitMonster();
                 hitPacket.MonsterId = Id;
+                hitPacket.MonsterCurrentHp = Stat.Hp;
                 Room.Broadcast(hitPacket);
             }
             else if (Stat.Hp <= 0)
             {
                 UpdateDead();
+
+                Room.ItemEnterGame(ObjectManager.Instance.Find(playerId), _destinationPos.X, _destinationPos.Y + 0.2f);
+
+                // 경험치 패킷 전송
+                S_GetExp expPacket = new S_GetExp();
+                expPacket.PlayerIds = playerId;
+                expPacket.Exp = Stat.Exp;
+                Room.Broadcast(expPacket);
 
                 // 다른 플레이어에게도 알린다.
                 S_MonsterDespawn despawnPacket = new S_MonsterDespawn();

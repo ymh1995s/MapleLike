@@ -15,7 +15,8 @@ public class Equipment  : Item
     public int limitLevel;
     public Job limitJob;
     //보너스 스텟
-    public int attackPower; // 공격력 증가
+    public int attackPower;
+    public int magicPower;
     public int defensePower; // 방어력 증가
     
     

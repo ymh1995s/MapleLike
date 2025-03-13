@@ -1,10 +1,11 @@
-using System;
+
 using System.Linq;
 using Google.Protobuf.Protocol;
 using TMPro;
-using Unity.VisualScripting;
+
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
 {
@@ -17,6 +18,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
     //쓸데없는 곳 Raycast를 막기 위한 함수,툴팁을 위한것
     public CanvasGroup tooltipCanvas;
     public Info.OwnerType ownerType;
+    public Image PlayerIcon;
     
     void Start()
     {
@@ -85,23 +87,27 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                     continue;
                 var newItemUI = Instantiate(UIPrefab, transform); 
                 newItemUI.SetInfo(itemData, ownerType);
+                
             }
         }
        
         if (ownerType == Info.OwnerType.Player)
         {
-            ClientInventroy = ObjectManager.Instance.myplayerTest.GetComponent<YHSMyPlayerController>().playerInventory;
-            //아이디 이름을 어떻게 찾아오나 ?
-            var Testobj = ObjectManager.Instance.FindById(0);
-         
+            var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
+            //게임 오브젝트 가져오기
+            ClientInventroy = Player.GetComponent<YHSMyPlayerController>().playerInventory;
+            
+            //아이콘 보이게하기
+            
+            
             if (TxtCurrentMeso != null)
             {
                  TxtCurrentMeso.text = ClientInventroy.Income.ToString();
             }
-            foreach (var itemData in ClientInventroy.items)
+            foreach (var itemData in ClientInventroy.Slots)
             { 
                 var newItemUI = Instantiate(UIPrefab, transform); 
-                newItemUI.SetInfo(itemData, ownerType);
+                newItemUI.SetInfo(itemData.CurrentItem, ownerType,ClientInventroy);
             }
           
         }
@@ -115,8 +121,8 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
     /// </summary>
     public void BuyItem()
     {
-        
-        ClientInventroy = ObjectManager.Instance.myplayerTest.GetComponent<YHSMyPlayerController>().playerInventory;
+        //인벤토리 가져오기 수정
+        ClientInventroy=  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
         
         var a = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
         Debug.Log("Player"+ a);
@@ -161,7 +167,8 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                 return;
             }
             ClientInventroy.Income -= itemToAdd.buyprice;
-            ClientInventroy.items.Add(itemToAdd);
+            ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
+            ClientInventroy.UpdateIncome();
         }
         else
         {
@@ -172,7 +179,8 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
         // 🔥 OnItemsLoaded 이벤트 강제 트리거
         Debug.Log("OnItemsLoaded 강제 트리거");
         ItemManager.Instance.TriggerOnItemsLoaded();
-        
+        ClientInventroy.ShowInventory();
+
     }
     #endregion
 
@@ -210,24 +218,47 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             return;
         }
 
-        var itemToAdd = ItemManager.Instance.ItemList.Find(item => item.id == itemId);
-        if (itemToAdd != null)
+        // 현재 인벤토리에서 해당 아이템을 보유한 슬롯 찾기
+        Slot existingSlot = ClientInventroy.Slots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == itemId);
+
+
+        if (existingSlot != null)
         {
-            ClientInventroy.items.Remove(itemToAdd);
-            ClientInventroy.Income += itemToAdd.sellprice;
-            Debug.Log("판매 완료");
+            // ✅ 아이템 개수 감소
+            existingSlot.Count--;
+            // 골드 증가
+            ClientInventroy.Income += existingSlot.CurrentItem.sellprice;
+
+            if (existingSlot.Count <= 0)
+            {
+                // ✅ 개수가 0이면 슬롯 초기화 (이미지도 원래대로)
+                Debug.Log($"🗑 {existingSlot.CurrentItem.itemName} 개수 0개 -> 슬롯 초기화");
+                existingSlot.ClearSlot();
+            }
+            else
+            {
+                // ✅ 개수가 남아 있으면 UI 업데이트
+                existingSlot.UpdateUI();
+                Debug.Log($"📉 {existingSlot.CurrentItem.itemName} 판매 완료, 남은 개수: {existingSlot.Count}");
+            }
+
+            
+            ClientInventroy.UpdateIncome();
         }
         else
         {
-            Debug.LogWarning("⚠ 아이템을 찾을 수 없습니다.");
+            Debug.LogWarning("⚠ 판매할 아이템이 없습니다.");
             return;
         }
+
+        // 🔥 인벤토리 UI 업데이트
+        ClientInventroy.UpdateInventoryUI(itemId);
 
         // 🔥 OnItemsLoaded 이벤트 강제 트리거
         Debug.Log("OnItemsLoaded 강제 트리거");
         ItemManager.Instance.TriggerOnItemsLoaded();
-        
     }
+
     #endregion
 
     

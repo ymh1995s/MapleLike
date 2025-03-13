@@ -1,5 +1,6 @@
 using Google.Protobuf.Protocol;
 using System.Collections;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,8 +10,18 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(SpriteRenderer))]
 public class MonsterController : BaseController
 {
-    protected MonsterInfo info = new MonsterInfo();
-    public void UpdateInfo(MonsterInfo newInfo) => info = newInfo;
+    public MonsterInfo info = new MonsterInfo();
+    public int maxHp { get; set; }
+
+    public void UpdateInfo(MonsterInfo newInfo)
+    {
+        info = newInfo;
+        info.Name = newInfo.Name;  
+        info.DestinationX = newInfo.DestinationX;
+        info.DestinationY = newInfo.DestinationY;
+        info.StatInfo = newInfo.StatInfo;
+        info.CreatureState = newInfo.CreatureState;
+    }
 
     protected Rigidbody2D monsterRigidbody;
     protected Collider2D monsterCollider;
@@ -47,9 +58,13 @@ public class MonsterController : BaseController
     // 자식클래스에서 구조 변경이 필요없음. 공통적으로 사용되는 함수. 재정의 필요없음
     //====================================================================================================== 
 
+    public void SetCurrentHp(int newHp) => info.StatInfo.Hp = newHp;
+
     // 몬스터의 Die 애니메이션의 끝에서 호출되는 이벤트 함수
     private void Despawn()
     {
+        monsterCollider.enabled = false;
+
         StartCoroutine(DespawnCoroutine());
     }
 

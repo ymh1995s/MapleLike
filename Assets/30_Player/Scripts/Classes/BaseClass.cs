@@ -11,6 +11,8 @@ using UnityEngine;
 public abstract class BaseClass : MonoBehaviour
 {
     protected PlayerInformation info;
+    protected PlayerInfo playerInfo;
+    protected PlayerStatInfo playerStatInfo;
     //protected Controller controller;
     protected YHSMyPlayerController controller;
 
@@ -21,18 +23,13 @@ public abstract class BaseClass : MonoBehaviour
     public GameObject Effect;
     public GameObject HitObject;
 
-    protected GameObject target;
+    protected MonsterController target;
 
-    protected void Awake()
+    protected virtual void Start()
     {
-        info = GetComponent<PlayerInformation>();
-        //controller = GetComponentInParent<Controller>();
-        controller = GetComponentInParent<YHSMyPlayerController>();
-    }
-
-    protected void Start()
-    {
-        info = GetComponent<PlayerInformation>();
+        info = GetComponentInParent<PlayerInformation>();
+        playerInfo = PlayerInformation.playerInfo;
+        playerStatInfo = PlayerInformation.playerStatInfo;
         controller = GetComponentInParent<YHSMyPlayerController>();
     }
 
@@ -44,7 +41,35 @@ public abstract class BaseClass : MonoBehaviour
     /// <summary>
     /// 스킬을 사용할 때 사용한다. Bool타입으로 스킬 사용에 성공했는지 여부를 리턴한다.
     /// </summary>
-    public abstract bool UseSkill(MonsterStatInfo monster);
+    public virtual bool UseSkill()
+    {
+        int cost = skillList["string"].GetManaCost();
+        if (!CheckMana(cost))
+        {
+            Debug.Log("MP 부족");
+            return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            return true;
+        }
+    }
+
+    public virtual bool UseSkill(string skillName)
+    {
+        int cost = skillList[skillName].GetManaCost();
+        if (!CheckMana(cost))
+        {
+            Debug.Log("MP 부족");
+            return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            return true;
+        }
+    }
 
     /// <summary>
     /// 해당 직업의 스킬을 초기화한다.
@@ -55,6 +80,21 @@ public abstract class BaseClass : MonoBehaviour
         for (int i = 0; i < classSkill.Length; i++)
         {
             skillList[classSkill[i].skillName] = new SkillData(classSkill[i], 1);
+        }
+    }
+
+    /// <summary>
+    /// 어떤 스킬을 사용할 때 마나가 충분한지를 확인하는 함수
+    /// </summary>
+    protected bool CheckMana(int cost)
+    {
+        if (info.GetPlayerMp() >= cost)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
@@ -80,13 +120,47 @@ public abstract class BaseClass : MonoBehaviour
     /// </summary>
     public abstract void CreateHitEffect();
 
-    protected void SendHitMonsterPacket()
+    protected void SendHitMonsterPacket(int totalDamage)
     {
         C_HitMonster HitMonster = new C_HitMonster();
-        HitMonster.MonsterId = target.GetComponent<MonsterStatInfo>().Id;
-        // 몬스터에 입힌 데미지량도 추가한다.
+        HitMonster.MonsterId = target.Id;
+        HitMonster.PlayerAttackPower = totalDamage;
         NetworkManager.Instance.Send(HitMonster);
     }
 
     public abstract void DeactiveHitbox();
+
+    /// <summary>
+    /// 플레이어가 몬스터를 공격했을 때의 데미지를 계산하는 메서드
+    /// </summary>
+    /// <param name="target">공격한 몬스터</param>
+    /// <param name="power">플레이어 공격력 또는 마력</param>
+    /// <param name="skillKey">플레이어가 발동한 스킬</param>
+    /// <param name="totalDamage">플레이어가 가한 총 데미지</param>
+    /// <returns></returns>
+    protected List<int> CalculatePlayerToMonsterDamage(MonsterController target, int power, string skillKey, out int totalDamage)
+    {
+        List<int> damageList = new List<int>();
+        totalDamage = 0;
+
+        // 1레벨 스킬 데이터 가져오기
+        float skillDamage = skillList[skillKey].skill.damage / 100f;
+        int skillHitCount = skillList[skillKey].skill.hitCount;
+
+        // 몬스터 방어력 가져오기
+        float monsterDefense = 1 - target.info.StatInfo.Defense / 100f;
+
+        for (int i = 0; i < skillHitCount; i++)
+        {
+            // 데미지 무작위 편차 부여
+            float randomOffset = Random.Range(-0.5f, 0.5f);   // 0.5f 값을 추후에 "숙련도" 스탯으로 대체
+
+            // 공식에 따라 데미지 계산
+            int finalDamage = (int)((power * (1f + randomOffset)) * skillDamage * monsterDefense);
+            damageList.Add(finalDamage);
+            totalDamage += finalDamage;
+        }
+
+        return damageList;
+    }
 }

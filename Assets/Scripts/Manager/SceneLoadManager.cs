@@ -21,14 +21,6 @@ public class SceneLoadManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        // 씬 로드 완료 시 실행될 이벤트 등록
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     // 씬이 로드될 때 이곳을 실행한다.
@@ -44,19 +36,6 @@ public class SceneLoadManager : MonoBehaviour
         // 여기서 씬이 로드가 될때까지 대기한다.
         AsyncOperation asyncOp = SceneManager.LoadSceneAsync(sceneName);
         yield return new WaitUntil(() => asyncOp.isDone);
-        IsSceneLoading = false;
-
-        // 씬 로드가 완료 됐다면, 대기중이던 Action들을 처리한다.
-        // ex) AddPlayer(), AddMonster()
-        while (pendingActions.Count > 0)
-        {
-            pendingActions.Dequeue().Invoke();
-        }
-    }
-
-    // 료직상 여기 함수는 필요 없는데 보험으로 넣어둠
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
         IsSceneLoading = false;
 
         // 씬 로드가 완료 됐다면, 대기중이던 Action들을 처리한다.

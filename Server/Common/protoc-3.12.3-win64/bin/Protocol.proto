@@ -6,34 +6,42 @@ option csharp_namespace = "Google.Protobuf.Protocol";
 
 
 enum MsgId {
-  S_ENTER_GAME = 0;
-  S_PLAYER_SPAWN = 1;
-  S_MONSTER_SPAWN = 2;
-  C_PLAYER_MOVE = 3;
-  S_PLAYER_MOVE = 4;
-  S_MONSTER_MOVE = 5;
-  C_PLAYER_DIE = 6;
-  S_LEAVE_GAME = 7;
-  S_PLAYER_DESPAWN = 8;
-  S_MONSTER_DESPAWN = 9;
-  S_ITEM_SPAWN = 10;
-  C_PLAYER_SKILL = 11;
-  S_PLAYER_SKILL = 12;
-  S_MONSTER_SKILL = 13;
-  C_HIT_MONSTER = 14;
-  S_HIT_MONSTER = 15;
-  C_PLAYER_DAMAGED = 16;
-  S_PLAYER_DAMAGED = 17;
-  C_CHANGE_MAP = 18;
-  C_BOSS_REGISTER = 19;
-  S_BOSS_REGISTER_DENY = 20;
-  S_BOSS_WAITING = 21;
-  C_BOSS_CANCLE = 22;
-  S_GAME_CLEAR = 23;
-  S_GET_EXP = 24;
-  C_LOOT_ITEM = 25;
-  S_LOOT_ITEM = 26;
-  S_ITEM_DESPAWN = 27;
+  S_CONNECTED = 0;
+  C_CLASS_CHOICE = 1;
+  S_ENTER_GAME = 2;
+  S_PLAYER_SPAWN = 3;
+  S_MONSTER_SPAWN = 4;
+  C_PLAYER_MOVE = 5;
+  S_PLAYER_MOVE = 6;
+  S_MONSTER_MOVE = 7;
+  C_PLAYER_DIE = 8;
+  S_LEAVE_GAME = 9;
+  S_PLAYER_DESPAWN = 10;
+  S_MONSTER_DESPAWN = 11;
+  S_ITEM_SPAWN = 12;
+  C_PLAYER_SKILL = 13;
+  S_PLAYER_SKILL = 14;
+  S_MONSTER_SKILL = 15;
+  C_HIT_MONSTER = 16;
+  S_HIT_MONSTER = 17;
+  C_PLAYER_DAMAGED = 18;
+  S_PLAYER_DAMAGED = 19;
+  C_CHANGE_MAP = 20;
+  C_BOSS_REGISTER = 21;
+  S_BOSS_REGISTER_DENY = 22;
+  S_BOSS_WAITING = 23;
+  C_BOSS_CANCLE = 24;
+  S_GAME_CLEAR = 25;
+  S_GET_EXP = 26;
+  C_LOOT_ITEM = 27;
+  S_LOOT_ITEM = 28;
+  S_ITEM_DESPAWN = 29;
+}
+
+message S_Connected {}
+
+message C_ClassChoice {
+  ClassType classType = 1;
 }
 
 message S_EnterGame {
@@ -91,10 +99,11 @@ message S_MonsterDespawn {
 }
 
 message S_ItemSpawn{
-  ItemType itemType = 1;
-  int32 playerId = 2;
-  int32 canOnlyOwnerLootTime = 3;
-  int32 lifeTime  = 4;
+  ItemInfo itemInfo = 1;
+  ItemType itemType = 2;
+  int32 playerId = 3;
+  int32 canOnlyOwnerLootTime = 4;
+  int32 lifeTime  = 5;
 }
 
 message C_PlayerSkill{
@@ -163,7 +172,7 @@ message C_LootItem {
 }
 
 message S_LootItem {
-  int32 playerIds = 1;
+  int32 playerId = 1;
   int32 ItemId = 2;
 }
 
@@ -191,7 +200,7 @@ message MonsterInfo {
 
 message PlayerStatInfo {
   int32 level = 1;
-  string class = 2; // 직업명
+  int32 classType = 2; // 직업명
   int32 hp = 3;
   int32 maxHp = 4;
   int32 mp = 5;
@@ -216,9 +225,11 @@ message MonsterStatInfo {
 }
 
 message ItemInfo {
-  // 사용 여부와 여기서 관리하는지는 불분명하나 개략적으로 정의한다.
+  int32 itemId = 1;
+  float positionX = 2;
+  float positionY = 3;
+  // TODO : 여기서 세부 아이템 정보를 관리한다.
 }
-
 
 enum GameObjectType {
   NONE = 0;
@@ -227,6 +238,13 @@ enum GameObjectType {
   BOSSMONSTER = 3;
   ITEM = 4;				// 후순위
   PROJECTILE = 5;		// 후순위 
+}
+
+enum ClassType{
+  CNONE = 0;
+  WARRIOR = 1;
+  MAGICIAN = 2;
+  ARCHER = 3;
 }
 
 // 늘어나면 구분하면 됨

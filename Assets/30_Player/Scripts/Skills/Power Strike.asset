@@ -16,6 +16,6 @@ MonoBehaviour:
   maxLevel: 5
   damage: 200
   addDamage: 15
-  manaCost: 5
+  manaCost: 0
   addManaCost: 3
   hitCount: 1

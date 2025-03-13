@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,8 @@ public class Info : MonoBehaviour
     {
         Player,  // 플레이어 소유
         Shop,    // 상점 소유
-        NPC      // NPC가 소유 (예: 퀘스트 보상 아이템)
+        NPC,      // NPC가 소유 (예: 퀘스트 보상 아이템)
+        None
     }
     
 
@@ -21,6 +23,7 @@ public class Info : MonoBehaviour
     public Image iconImage;
     public TextMeshProUGUI Name;
     public TextMeshProUGUI Price;
+    public TextMeshProUGUI TxtCount;
     
     
     
@@ -32,7 +35,12 @@ public class Info : MonoBehaviour
     /// <param name="ownerType">OwnerType</param>
     public void SetInfo(Item item, OwnerType ownerType)
     {
-    
+
+        if (item == null)
+        {
+            Debug.Log("Item is null");
+            return;
+        }
         iconImage.sprite = item.IconSprite;
         Name.text = item.itemName;
         ID = item.id;
@@ -41,6 +49,7 @@ public class Info : MonoBehaviour
         {
             case OwnerType.Player:
                 Price.text = $"판매 가격: {item.sellprice} G";
+                
                 break;
             case OwnerType.Shop:
                 Price.text = $"구매 가격: {item.buyprice} G";
@@ -50,12 +59,40 @@ public class Info : MonoBehaviour
                 break;
         }
     }
-
-    public void SetInfo(Item item)
+    
+    public void SetInfo(Item item, OwnerType ownerType,PlayerInventory inventory)
     {
+        if (item == null)
+        {
+            Debug.Log("Item is null");
+            return;
+        }
         iconImage.sprite = item.IconSprite;
         Name.text = item.itemName;
         ID = item.id;
+        // 소유 주체에 따라 다른 가격 적용
+        switch (ownerType)
+        {
+            case OwnerType.Player:
+                Price.text = $"판매 가격: {item.sellprice} G";
+                // 기존에 있는 아이템인지 확인
+                Slot existingSlot = inventory.Slots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == item.id);
+                if (existingSlot == null)
+                {
+                    Debug.Log("없어요");
+                    return;
+                }
+                TxtCount.text = existingSlot.Count.ToString();
+                break;
+            case OwnerType.Shop:
+                Price.text = $"구매 가격: {item.buyprice} G";
+                break;
+            case OwnerType.NPC:
+                Price.text = "획득 불가"; // NPC가 주는 퀘스트 보상 등
+                break;
+        }
     }
+    
+   
 
 }

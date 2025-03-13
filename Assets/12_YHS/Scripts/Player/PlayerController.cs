@@ -7,19 +7,30 @@ public class PlayerController : BaseController
     // 플레이어 데이터 컴포넌트
     protected PlayerStateMachine playerSM;
     public Animator animator;
-    //private PlayerStatInfo _stat = new PlayerStatInfo();
+    GameObject character;
+    BaseClass playerClass;
 
     public bool isRight = true;          // 플레이어가 바라보는 방향
     public bool isAttacking = false;     // 플레이어가 공격 중인지
     public bool isDamaged = false;       // 플레이어가 피격 되었는지
     public bool isDead = false;          // 플레이어가 사망했는지
 
-    protected virtual void Start()
+    protected virtual void Awake()
     {
-        GameObject character = transform.GetChild(0).gameObject;
-        animator = character.GetComponent<Animator>();
+        character = transform.GetChild(0).gameObject;
 
         // FSM 초기화
+        InitPlayerStateMachine();
+        animator = character.GetComponent<Animator>();
+    }
+
+    protected virtual void Start()
+    {
+        playerClass = character.GetComponent<BaseClass>();
+    }
+
+    private void InitPlayerStateMachine()
+    {
         playerSM = new PlayerStateMachine(this);
         playerSM.Initialize(playerSM.idleState);
         playerSM.Initialize(playerSM.attackState);
@@ -45,6 +56,11 @@ public class PlayerController : BaseController
     public void SetPlayerState(PlayerState currentState)
     {
         // 플레이어의 FSM 상태 설정
+        if (playerSM == null)
+        {
+            InitPlayerStateMachine();
+        }
+
         playerSM.TransitionByEnum(currentState);
     }
 
@@ -60,7 +76,7 @@ public class PlayerController : BaseController
 
     public void OnAttack()
     {
-        if (playerSM.CurrentState != playerSM.attackState)
+        if (playerSM.CurrentState != playerSM.attackState && playerClass.UseSkill())
         {
             isAttacking = true;
             playerSM.TransitionTo(playerSM.attackState);
@@ -77,7 +93,7 @@ public class PlayerController : BaseController
 
     public void OnHit()
     {
-        if (playerSM.CurrentState != playerSM.hitState)
+        if (playerSM.CurrentState != playerSM.hitState && !isAttacking)
         {
             isDamaged = true;
             playerSM.TransitionTo(playerSM.hitState);

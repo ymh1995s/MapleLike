@@ -1,13 +1,14 @@
 using UnityEngine;
-using Google.Protobuf.Protocol;
-using TMPro;
+using UnityEngine.AddressableAssets;
+using System.Collections.Generic;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class SpawnManager : MonoBehaviour
 {
     private static SpawnManager instance;
     public static SpawnManager Instance { get { return instance; } }
 
-    public TMP_Text jsonFilePath;
+    public GameObject damagePrefab;
 
     private void Awake()
     {
@@ -22,34 +23,47 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
-    void Start()
+    /// <summary>
+    /// Addressable Group에서 key로 asset을 탐색해 Instantiate하는 메서드
+    /// </summary>
+    /// <param name="assetKey"></param>
+    /// <returns></returns>
+    public void SpawnAsset(string assetKey, Transform transform)
     {
-        
+        AsyncOperationHandle<GameObject> loadHandler;
+        //loadHandler = Addressables.LoadAssetAsync<GameObject>(some asset);
+        loadHandler = Addressables.LoadAssetAsync<GameObject>(assetKey);
+
+        loadHandler.Completed += handle =>
+        {
+            if (loadHandler.Status == AsyncOperationStatus.Succeeded)
+            {
+                //Addressables.InstantiateAsync(loadHandler.Result);
+                Instantiate(loadHandler.Result, transform);
+            }
+            else
+            {
+                Debug.LogError("Addressable Load Failed: " + assetKey);
+            }
+        };
     }
 
-    void Update()
+
+    /// <summary>
+    /// 데미지를 화면에 띄우는 메서드
+    /// </summary>
+    /// <param name="damageList">연산이 끝난 데미지 리스트</param>
+    /// <param name="target">공격 대상의 Transform</param>
+    public void SpawnDamage(List<int> damageList, Transform target, bool isPlayerDamaged = false)
     {
-        
-    }
+        // 이거 SpawnManager의 SpawnAsset이랑 겹치는데;
+        Vector3 spawnPosition = target.transform.position;
 
-    public void SpawnPlayer(PlayerInfo info, bool myPlayer = false)
-    {
-        // 플레이어의 직업에 맞는 캐릭터 프리팹을 생성해야 한다.
-        // addressable을 사용하도록 하자.
+        float y = target.GetComponent<Collider2D>().bounds.max.y + 0.5f;
+        spawnPosition.y = y;
 
-        GameObject go = ObjectManager.Instance.FindById(info.PlayerId);
-
-        go.transform.position = new Vector3(info.PositionX, info.PositionY, 0);
-
-        if (myPlayer)
-        {
-            go.AddComponent<YHSMyPlayerController>();   // 조작을 위한 컴포넌트 부착
-
-        }
-        else
-        {
-            go.AddComponent<PlayerController>();        // 동기화를 위한 컴포넌트 부착
-
-        }
+        // TODO: 데미지 프리팹을 어디에 저장해둘지 (UI Manager로 예상)
+        GameObject damage = Instantiate(damagePrefab, spawnPosition, Quaternion.identity);
+        damage.GetComponentInChildren<DamageSpawner>().InitAndSpawnDamage(damageList, isPlayerDamaged);
     }
 }

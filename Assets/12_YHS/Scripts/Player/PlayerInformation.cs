@@ -1,44 +1,12 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
-using System.IO;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
-#region 삭제 예정 구조체
-public struct PlayerStatInformation
-{
-    // 나를 제외한 다른 플레이어는 이것을 가지고 있을 필요가 없을 것 같으므로
-    // Protobuf 측 PlayerStatInfo로 대체
-    public int level;           // 레벨
-    public string className;    // 직업
-    public int hp;              // 현재 체력
-    public int maxHp;           // 최대 체력
-    public int mp;              // 현재 마나
-    public int maxMp;           // 최대 마나
-    public int attackPower;     // 공격력
-    public int magicPower;      // 마력
-    public int defense;         // 방어력
-    public float speed;         // 이동속도
-    public float jump;          // 점프력
-    public int currentExp;      // 현재 경험치
-    public int totalExp;        // 목표 경험치
-};
-#endregion
+using System;
 
 public class PlayerInformation : MonoBehaviour
 {
-    #region 삭제 예정 멤버
-    // Protobuf 측 PlayerInfo로 대체
-    public int objectId;
-    public string playerName;
-    public float posX;
-    public float posY;
-    public PlayerStatInformation stats;
-    #endregion
-
-    // 아래 멤버만 남길 것이다.
     public PlayerController playerController;
-    public PlayerInfo playerInfo;
+    public static PlayerInfo playerInfo;            // 게임 실행 동안 유지되는 player info
+    public static PlayerStatInfo playerStatInfo;    // 게임 실행 동안 유지되는 player stat info
     #region PlayerInfo 자료형 상세
     /*
     Google.Protobuf.Protocol.PlayerInfo
@@ -73,8 +41,32 @@ public class PlayerInformation : MonoBehaviour
     */
     #endregion
 
-    private PlayerStatInfo statInfoTemp;
-    private int playerLevel = 1;
+    public static AbilityPoint playerAp = new AbilityPoint();           // 플레이어가 직접 투자한 AP
+    public static AbilityPoint equipmentAp = new AbilityPoint();        // 장비 착용으로 상승하는 AP(임시)
+    public static AbilityPoint finalAp = new AbilityPoint();            // 최종 AP
+
+    private PlayerStatInfo initStatInfo = new PlayerStatInfo()
+    {
+        // 임시 (확정일 수도 있는) 스탯 데이터
+        // 아무것도 설정되지 않은 플레이어의 기본 스탯이다.
+        Level = 1,
+        ClassType = ClassType.Cnone,
+        Hp = 100,
+        MaxHp = 100,
+        Mp = 100,
+        MaxMp = 100,
+        AttackPower = 10,
+        MagicPower = 10,
+        Defense = 10,
+        Speed = 3,
+        Jump = 10,
+        CurrentExp = 0,
+        TotalExp = 100,
+    };
+
+    public Action<float, float> UpdateHpAction;     // UI 동기화를 위한 Action
+    public Action<float, float> UpdateMpAction;
+    public Action<float, float> UpdateExpAction;
 
     private void Start()
     {
@@ -86,118 +78,130 @@ public class PlayerInformation : MonoBehaviour
     /// </summary>
     public void InitPlayerInfo(PlayerInfo info)
     {
-        #region 삭제 예정 코드
-        stats = new PlayerStatInformation()
-        {
-            // TODO: 직업별 스탯이 저장된 json으로부터 불러오도록 추후 변경
-            level = 1,
-            className = info.StatInfo.Class,
-            hp = 50,    
-            maxHp = 50,
-            mp = 25,
-            maxMp = 25,
-            attackPower = 10,
-            magicPower = 10,
-            defense = 10,
-            speed = 3,
-            jump = 10,
-            currentExp = 0,
-            totalExp = 100,
-        };
-        #endregion
-
-        // 아래 코드만 남길 것이다.
-        PlayerStatInfo statInfo = new PlayerStatInfo();
-        statInfoTemp = new PlayerStatInfo()
-        {
-            // JSON 파일 읽기에 실패하면 들어갈 임시 스탯 데이터
-            Level = 0,
-            Class = "Beginner",
-            Hp = 10,
-            MaxHp = 10,
-            Mp = 10,
-            MaxMp = 10,
-            AttackPower = 1,
-            MagicPower = 1,
-            Defense = 100,
-            Speed = 3,
-            Jump = 10,
-            CurrentExp = 0,
-            TotalExp = 99999999,
-        };
-
-        //SetPlayerStat(ref statInfo);
-
         playerInfo = new PlayerInfo()
         {
             PlayerId = info.PlayerId,
             Name = info.Name,
             PositionX = info.PositionX,
             PositionY = info.PositionY,
-            StatInfo = statInfoTemp,    // 패킷으로 받는 값: info.StatInfo,
-            CreatureState = info.CreatureState, // fsm은 이미 관리주체가 있는데...
+            StatInfo = playerStatInfo,              // 패킷으로 받는 값: info.StatInfo,
+            CreatureState = info.CreatureState,     // fsm은 이미 관리주체가 있는데...
         };
+
+        if (playerInfo.StatInfo == null)
+        {
+            // static 선언된 playerStatInfo는 최초 실행 시 한 번만 초기화한다.
+            playerInfo.StatInfo = playerStatInfo = initStatInfo;
+        }
+
+        CalculateAp();
+        CalculateAttackPower();
+        CalculateMagicPower();
+        CalculateDefense();
+        CalculateHpMp();
     }
 
     #region 스탯 관련 메서드
-    /// <summary>
-    /// 기 설정된 스탯 값들이 담긴 JSON 파일로부터 스탯을 불러오는 메서드
-    /// </summary>
-    /// <param name="statInfo"></param>
-    public void SetPlayerStat(ref PlayerStatInfo statInfo)
+    private void CalculateAp()
     {
-        List<PlayerStatInfo> statInfoList;
+        finalAp.Ap[(int)ApName.STR] = playerAp.Ap[(int)ApName.STR] + equipmentAp.Ap[(int)ApName.STR];
+        finalAp.Ap[(int)ApName.DEX] = playerAp.Ap[(int)ApName.DEX] + equipmentAp.Ap[(int)ApName.DEX];
+        finalAp.Ap[(int)ApName.INT] = playerAp.Ap[(int)ApName.INT] + equipmentAp.Ap[(int)ApName.INT];
+        finalAp.Ap[(int)ApName.LUK] = playerAp.Ap[(int)ApName.LUK] + equipmentAp.Ap[(int)ApName.LUK];
+    }
 
-        string filePath = Application.streamingAssetsPath + "/stats.json";  // 임시 경로
+    private void CalculateAttackPower()
+    {
+        ClassType classType = playerStatInfo.ClassType;
+        int mainAp = 1, subAp = 1;
 
-        SpawnManager.Instance.jsonFilePath.text = filePath;
-
-        if (File.Exists(filePath))
+        switch (classType)
         {
-            string json = File.ReadAllText(filePath);
-            statInfoList = JsonConvert.DeserializeObject<List<PlayerStatInfo>>(json);
+            case ClassType.Warrior:
+                mainAp = playerAp.Ap[(int)ApName.STR];
+                subAp = playerAp.Ap[(int)ApName.DEX];
+                break;
+            case ClassType.Magician:
+                break;
+            case ClassType.Archer:
+                mainAp = playerAp.Ap[(int)ApName.DEX];
+                subAp = playerAp.Ap[(int)ApName.STR];
+                break;
+            default:
+                break;
+        }
 
-            foreach (var statInfoJson in statInfoList)
-            {
-                if (statInfoJson.Level == playerLevel)
-                {
-                    statInfo = statInfoJson;
-                    return;
-                }
-            }
-        }
-        else
+        float finalAttackPower = (mainAp * 4 + subAp) * 0.05f;
+        //tempAttackPower *= 장비 공격력;
+
+        playerStatInfo.AttackPower = initStatInfo.AttackPower + (int)finalAttackPower;
+    }
+
+    private void CalculateMagicPower()
+    {
+        ClassType classType = playerStatInfo.ClassType;
+        int mainAp = 1, subAp = 1;
+
+        switch (classType)
         {
-            Debug.Log("Fail to open file");
-            statInfo = statInfoTemp;
+            case ClassType.Warrior:
+                break;
+            case ClassType.Magician:
+                mainAp = playerAp.Ap[(int)ApName.INT];
+                subAp = playerAp.Ap[(int)ApName.LUK];
+                break;
+            case ClassType.Archer:
+                break;
+            default:
+                break;
         }
+
+        playerStatInfo.MagicPower = initStatInfo.MagicPower + (int)((mainAp * 4 + subAp) * 0.05f);
+    }
+
+    private void CalculateDefense()
+    {
+        float defense = finalAp.Ap[(int)ApName.STR] * 4
+                    + finalAp.Ap[(int)ApName.DEX] * 2
+                    + finalAp.Ap[(int)ApName.INT] * 1;
+
+        //defense += 장비 방어력;
+
+        playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)(defense * 0.1f);
+    }
+
+    private void CalculateHpMp()
+    {
+        // TODO:
     }
     #endregion
 
     #region 체력 관련 메서드
     public int GetPlayerHp()
     {
-        return playerInfo.StatInfo.Hp;
+        return playerStatInfo.Hp;
     }
 
     public void SetPlayerHp(int changeAmount)
     {
 
-        playerInfo.StatInfo.Hp += changeAmount;
+        playerStatInfo.Hp += changeAmount;
 
         Debug.Log(changeAmount);
-        int hp = playerInfo.StatInfo.Hp;
-        int maxHp = playerInfo.StatInfo.MaxHp;
+        int hp = playerStatInfo.Hp;
+        int maxHp = playerStatInfo.MaxHp;
 
         if (hp > maxHp)
         {
-            playerInfo.StatInfo.Hp = maxHp;
+            playerStatInfo.Hp = maxHp;
         }
         if (hp <= 0)
         {
-            playerInfo.StatInfo.Hp = 0;
-            playerController.SetPlayerState(PlayerState.PDead);
+            playerStatInfo.Hp = 0;
+            hp = -1;
+            playerController.OnDead();
         }
+        UpdateHpAction.Invoke(hp, maxHp);      // UI 동기화
         Debug.Log("HP: " + hp + " / " + maxHp);
     }
     #endregion
@@ -205,26 +209,111 @@ public class PlayerInformation : MonoBehaviour
     #region 마나 관련 메서드
     public int GetPlayerMp()
     {
-        return playerInfo.StatInfo.Mp;
+        return playerStatInfo.Mp;
     }
 
     public void SetPlayerMp(int changeAmount)
     {
-        playerInfo.StatInfo.Mp += changeAmount;
+        playerStatInfo.Mp += changeAmount;
 
         Debug.Log(changeAmount);
-        int mp = playerInfo.StatInfo.Mp;
-        int maxMp = playerInfo.StatInfo.MaxMp;
+        int mp = playerStatInfo.Mp;
+        int maxMp = playerStatInfo.MaxMp;
 
         if (mp > maxMp)
         {
-            playerInfo.StatInfo.Mp = maxMp;
+            playerStatInfo.Mp = maxMp;
         }
         if (mp < 0)
         {
-            playerInfo.StatInfo.Mp = 0;
+            playerStatInfo.Mp = 0;
+            mp = -1;
         }
+        UpdateMpAction.Invoke(mp, maxMp);      // UI 동기화
         Debug.Log("MP: " + mp + " / " + maxMp);
     }
+    #endregion
+
+    #region 경험치 관련 메서드
+    public int GetPlayerExp()
+    {
+        return playerStatInfo.CurrentExp;
+    }
+
+    public void SetPlayerExp(int changeAmount)
+    {
+        playerStatInfo.CurrentExp += changeAmount;
+
+        Debug.Log(changeAmount);
+        int exp = playerStatInfo.CurrentExp;
+        int totalExp = playerStatInfo.TotalExp;
+
+        if (exp >= totalExp)
+        {
+            playerStatInfo.CurrentExp = exp - totalExp;
+            playerStatInfo.TotalExp = (int)(totalExp * 1.25f);     // 다음 레벨업에 필요한 경험치량 상승      
+            exp -= totalExp;
+
+            if (exp == 0)
+            {
+                exp = 1;
+            }
+
+            playerStatInfo.Level += 1;
+            LevelUp();
+
+            // 레벨업 애니메이션
+            SpawnManager.Instance.SpawnAsset(ConstList.LevelUp, transform);
+        }
+
+        UpdateExpAction.Invoke(exp, totalExp);     // UI 동기화
+        Debug.Log("EXP: " + exp + " / " + totalExp);
+    }
+
+    /// <summary>
+    /// 레벨업에 따른 주스탯 자동 투자 메서드
+    /// </summary>
+    private void LevelUp()
+    {
+        ClassType classType = playerStatInfo.ClassType;
+
+        switch (classType)
+        {
+            case ClassType.Warrior:
+                playerAp.Ap[(int)ApName.STR] += 5;
+                break;
+            case ClassType.Magician:
+                playerAp.Ap[(int)ApName.INT] += 5;
+                break;
+            case ClassType.Archer:
+                playerAp.Ap[(int)ApName.DEX] += 5;
+                break;
+        }
+
+        CalculateAp();
+        CalculateAttackPower();
+        CalculateMagicPower();
+        CalculateDefense();
+    }
+    #endregion
+
+    #region 테스트용 메서드
+    public void PrintStatInfo()
+    {
+        Debug.Log("Level: " + playerStatInfo.Level);
+        Debug.Log("Class: " + playerStatInfo.ClassType);
+        Debug.Log("Hp: " + playerStatInfo.Hp);
+        Debug.Log("MaxHp: " + playerStatInfo.MaxHp);
+        Debug.Log("Mp: " + playerStatInfo.Mp);
+        Debug.Log("MaxMp: " + playerStatInfo.MaxMp);
+        Debug.Log("AttackPower: " + playerStatInfo.AttackPower);
+        Debug.Log("MagicPower: " + playerStatInfo.MagicPower);
+        Debug.Log("Defense: " + playerStatInfo.Defense);
+        Debug.Log("Speed: " + playerStatInfo.Speed);
+        Debug.Log("Jump: " + playerStatInfo.Jump);
+        Debug.Log("CurExp: " + playerStatInfo.CurrentExp);
+        Debug.Log("TotalExp: " + playerStatInfo.TotalExp);
+    }
+
     #endregion
 }

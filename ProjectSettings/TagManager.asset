@@ -8,6 +8,9 @@ TagManager:
   - Monster
   - MonsterSkill
   - Portal
+  - PlayerSkill
+  - Arrow
+  - BossRoomEnterPortal
   layers:
   - Default
   - TransparentFX
@@ -24,7 +27,7 @@ TagManager:
   - MyPlayer
   - Portal
   - Props2
-  - 
+  - Item
   - 
   - 
   - 

@@ -17,7 +17,8 @@ public class ItemData
     //Equipment
     public int limitLevel;
     public string limitJob;
-    public int attackPower; // 공격력 증가
+    public int magicPower;
+    public int attackPower;// 공격력 증가
     public int defensePower; // 방어력 증가
     
     //Consumable

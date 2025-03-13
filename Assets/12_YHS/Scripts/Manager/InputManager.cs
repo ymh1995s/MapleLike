@@ -5,11 +5,22 @@ using UnityEngine.SceneManagement;
 public class InputManager : MonoBehaviour
 {
     PlayerInformation playerInfo;
+    public float pickupRange = 3f;  // 줍기 범위
+    public LayerMask itemLayer;
 
     // InputManager에서 이동/공격 조작까지 관리할지???
+    
+    
+    private GameObject player;
+  
+    
+    
     private void Start()
     {
+        itemLayer = 1 << LayerMask.NameToLayer("Item");
         playerInfo = GetComponent<PlayerInformation>();
+   
+        player =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
     }
 
     private void FixedUpdate()
@@ -18,16 +29,15 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.S))
         {
-            Debug.Log("ObjectId: " + playerInfo.playerInfo.PlayerId);
-            Debug.Log("PlayerName: " + playerInfo.playerInfo.Name);
-            Debug.Log("Level: " + playerInfo.playerInfo.StatInfo.Level);
-            Debug.Log("Class: " + playerInfo.playerInfo.StatInfo.Class);
+            playerInfo.PrintStatInfo();
         }
         if (Input.GetKey(KeyCode.Z))
         {
             //Debug.Log("Key Pressed: Z"); 
             Debug.Log("GetItem");
+            ObjectManager.Instance.PickupNearbyItems2();
         }
+        
         if (Input.GetKey(KeyCode.PageUp))
         {
             //Debug.Log("Key Pressed: PgUp");
@@ -38,7 +48,7 @@ public class InputManager : MonoBehaviour
             //Debug.Log("Key Pressed: PgDn");
             Debug.Log("UseItem MP");
         }
-
+ 
         // 테스트를 위한 임시 단축키들
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -70,6 +80,18 @@ public class InputManager : MonoBehaviour
             changeMapPkt.MapId = 3;
             //changeMapPkt.spawnPoint = 0
             NetworkManager.Instance.Send(changeMapPkt);
+        }
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            playerInfo.SetPlayerExp(12);
+        }
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            player.GetComponent<YHSMyPlayerController>().Equipment.gameObject.SetActive(true);
         }
     }
 }

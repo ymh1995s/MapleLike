@@ -35,14 +35,7 @@ public class ItemManager : MonoBehaviour
         LoadItems();
         
     }
-
-    private void Update()
-    {
-        if (!shop.activeInHierarchy)        
-        {
-            
-        }
-    }
+    
 
     void LoadItems()
     {
@@ -69,6 +62,7 @@ public class ItemManager : MonoBehaviour
                     newItem = ScriptableObject.CreateInstance<Equipment>();
                     Equipment newEquipment = newItem as Equipment;
                     newEquipment.attackPower = itemData.attackPower;
+                    newEquipment.magicPower = itemData.magicPower;
                     newEquipment.defensePower = itemData.defensePower;
                     newEquipment.limitLevel = itemData.limitLevel;
                     newEquipment.limitJob = (Equipment.Job)Enum.Parse(typeof(Equipment.Job), itemData.limitJob);

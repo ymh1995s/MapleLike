@@ -26,6 +26,8 @@ class PacketManager
 	// Register()는 멀티스레드가 개입 되기 전 호출되어야함
 	public void Register()
 	{		
+		_onRecv.Add((ushort)MsgId.CClassChoice, MakePacket<C_ClassChoice>);
+		_handler.Add((ushort)MsgId.CClassChoice, PacketHandler.C_ClassChoiceHandler);		
 		_onRecv.Add((ushort)MsgId.CPlayerMove, MakePacket<C_PlayerMove>);
 		_handler.Add((ushort)MsgId.CPlayerMove, PacketHandler.C_PlayerMoveHandler);		
 		_onRecv.Add((ushort)MsgId.CPlayerDie, MakePacket<C_PlayerDie>);

@@ -54,6 +54,7 @@ namespace ServerContents.Object
                     break;
             }
 
+            UpdateInfo();
             BroadcastMove();
         }
 
@@ -77,6 +78,16 @@ namespace ServerContents.Object
             monsterSkillPacket.SkillType = (BossMonsterSkillType)(rnd.Next(0, 2));  // 현재 구현은 2개의 스킬이므로 둘 중에 하나 랜덤 선택
 
             Room.Broadcast(monsterSkillPacket);
+        }
+
+        protected override void UpdateInfo()
+        {
+            // Update Info and Stat
+            Info.DestinationX = Math.Clamp(_destinationPos.X, _minX, _maxX);
+            Info.DestinationY = _destinationPos.Y;
+            Info.CreatureState = (MonsterState)_currentState;
+            Info.MonsterId = Id;
+            Info.StatInfo = Stat;
         }
 
         protected override void UpdateThink()
@@ -180,11 +191,18 @@ namespace ServerContents.Object
             // 위치 변동 없음
         }
 
-        public override void TakeDamage(int attackPower)
+        public override void TakeDamage(int playerId, int attackPower)
         {
-            base.TakeDamage(attackPower);
+            base.TakeDamage(playerId, attackPower);
 
-            if (Stat.Hp <= 0)
+            if (Stat.Hp > 0)
+            {
+                S_HitMonster hitPacket = new S_HitMonster();
+                hitPacket.MonsterId = Id;
+                hitPacket.MonsterCurrentHp = Stat.Hp;
+                Room.Broadcast(hitPacket);
+            }
+            else if (Stat.Hp <= 0)
             {
                 UpdateDead();
 
@@ -192,6 +210,10 @@ namespace ServerContents.Object
                 S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
                 despawnPacket.MonsterIds.Add(Id);
                 Room.Broadcast(despawnPacket);
+
+
+                // TODO: 보스 클리어 패킷 전송
+
 
                 Room.LeaveMonster(Id);
                 MonsterManager.Instance.MonsterDespawn(Id);

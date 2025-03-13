@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -20,8 +20,8 @@ namespace ServerContents.Object
         Dictionary<int, Player> _players = new Dictionary<int, Player>();
         Dictionary<int, NormalMonster> _normalMonsters = new Dictionary<int, NormalMonster>();
         Dictionary<int, BossMonster> _bossMonsters = new Dictionary<int, BossMonster>();
+        Dictionary<int, Item> _items = new Dictionary<int, Item>(); 
         // Dictionary<int, Projectile> _projectiles = new Dictionary<int, Projectile>(); 후순위
-        // Dictionary<int, Item> _projectiles = new Dictionary<int, Item>(); 후순위
 
         // 생성된 오브젝트에 아이디를 부여하고 관리 대상 딕셔너리에 넣음
         public T Add<T>() where T : GameObject, new()
@@ -43,6 +43,10 @@ namespace ServerContents.Object
                 else if (gameObject.ObjectType == GameObjectType.Bossmonster)
                 {
                     _bossMonsters.Add(gameObject.Id, gameObject as BossMonster);
+                }
+                else if (gameObject.ObjectType == GameObjectType.Item)
+                {
+                    _items.Add(gameObject.Id, gameObject as Item);
                 }
             }
 

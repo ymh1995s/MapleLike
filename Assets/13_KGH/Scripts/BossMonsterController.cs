@@ -1,8 +1,12 @@
+/*
+ * 현재 구현은 시그너스 기준. 추후 보스가 추가되면 상속을 통해 확장 가능   
+*/
 
 using Google.Protobuf.Protocol;
 using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 enum BossMonsterState
 {
@@ -21,6 +25,10 @@ enum BossMonsterSkill
 
 public class BossMonsterController : MonsterController
 {
+    // TODO: 보스 체력바 구현
+    [SerializeField] GameObject hpBar;
+    [SerializeField] Image hpBarGauge;
+
     // 패킷 수신 시 세팅되는 값
     BossMonsterState currentState = BossMonsterState.Idle;
     BossMonsterSkill currentSkill = BossMonsterSkill.DarkGenesis;
@@ -156,6 +164,13 @@ public class BossMonsterController : MonsterController
         currentSkill = (BossMonsterSkill)newSkill;
     }
 
+    public void UpdateHPBarGauge()
+    {
+        // TODO: 보스 체력바 구현
+
+        hpBar.SetActive(true);
+        hpBarGauge.fillAmount = Mathf.Clamp(info.StatInfo.Hp / maxHp, 0.0f, 1.0f);
+    }
 
     #region 스킬
 
