@@ -252,6 +252,9 @@ namespace Google.Protobuf.Protocol {
     [pbr::OriginalName("ARROW")] Arrow = 6,
     [pbr::OriginalName("HPPOTION")] Hppotion = 7,
     [pbr::OriginalName("MPPOTION")] Mppotion = 8,
+    [pbr::OriginalName("MPPOTION")] DefaultSword = 9,
+    [pbr::OriginalName("MPPOTION")] DefaultStaff = 10,
+    [pbr::OriginalName("MPPOTION")] DefaultArrow = 11,
   }
 
   /// <summary>

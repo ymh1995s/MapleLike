@@ -212,7 +212,7 @@ namespace ServerContents.Object
             {
                 UpdateStun();
 
-                // 다른 플레이어에게도 알린다.
+                // 현재 룸에 존재하는 모든 클라이언트에게 알림
                 S_HitMonster hitPacket = new S_HitMonster();
                 hitPacket.MonsterId = Id;
                 hitPacket.MonsterCurrentHp = Stat.Hp;
@@ -230,12 +230,9 @@ namespace ServerContents.Object
                 expPacket.Exp = Stat.Exp;
                 Room.Broadcast(expPacket);
 
-                // 다른 플레이어에게도 알린다.
-                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
-                despawnPacket.MonsterIds.Add(Id);
-                Room.Broadcast(despawnPacket);
-
+                // 현재 룸에 존재하는 모든 클라이언트에게 알림
                 Room.LeaveMonster(Id);
+
                 MonsterManager.Instance.MonsterDespawn(Id);
             }
         }

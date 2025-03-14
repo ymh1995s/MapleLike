@@ -62,7 +62,6 @@ public class ObjectManager : MonoBehaviour
             foreach (var location in locations)
             {
                 string itemTypeString = itemSpawn.ItemType.ToString();
-                Debug.Log("매칭해야될 이름 "+itemTypeString);
                 if (location.PrimaryKey.Contains(itemSpawn.ItemType.ToString())) // 아이템 이름 포함 여부 확인
                 {
                     selectedLocation = location;
@@ -74,7 +73,6 @@ public class ObjectManager : MonoBehaviour
 
             if (selectedLocation == null)
             {
-                Debug.LogError($"해당 ItemType({itemSpawn.ItemType})에 대한 리소스를 찾을 수 없습니다.");
                 return;
             }
             // 아이템 생성
@@ -106,12 +104,14 @@ public class ObjectManager : MonoBehaviour
     public void PickupNearbyItems2()
     {
         
+        var player = FindById(MyPlayer.Id);
         // 플레이어의 아이템 줍기 범위 및 아이템 레이어 정보 가져오기
-        var pickupRange = FindById(MyPlayer.Id).GetComponent<InputManager>().pickupRange;
-        var itemLayer = FindById(MyPlayer.Id).GetComponent<InputManager>().itemLayer;
-
+        var pickupRange = player.GetComponent<InputManager>().pickupRange;
+        var itemLayer = player.GetComponent<InputManager>().itemLayer;
+        //플레이어 가져오기
+       
         // 특정 범위 내에 있는 아이템 찾기
-        Collider2D[] items = Physics2D.OverlapCircleAll(transform.position, pickupRange, itemLayer);
+        Collider2D[] items = Physics2D.OverlapCircleAll(player.transform.position, pickupRange, itemLayer);
         Debug.Log("Found " + items.Length + " nearby items");
 
         C_LootItem lootItem = new C_LootItem();
@@ -119,9 +119,7 @@ public class ObjectManager : MonoBehaviour
 
         foreach (Collider2D item in items)
         {
-            Debug.Log(item.gameObject.name);
             InitItem itemInfo = item.GetComponentInChildren<InitItem>();
-
             if (itemInfo != null)
             {
                 nearbyItems.Add(itemInfo);
@@ -142,16 +140,20 @@ public class ObjectManager : MonoBehaviour
                 }
             }
         }
-        
-        
     }
     
 
     public void DespwanItem(S_ItemDespawn itemDespawnPkt)
     {
-        
         Addressables.ReleaseInstance(FindById(itemDespawnPkt.ItemId));
-        
+        _objects.Remove(itemDespawnPkt.ItemId);
+        Debug.Log(FindById(itemDespawnPkt.ItemId)); 
+    }
+    
+    public void DespwanItem2(S_LootItem itemDespawnPkt)
+    {
+        Addressables.ReleaseInstance(FindById(itemDespawnPkt.ItemId));
+        _objects.Remove(itemDespawnPkt.ItemId);
         Debug.Log(FindById(itemDespawnPkt.ItemId)); 
     }
 
@@ -176,6 +178,52 @@ public class ObjectManager : MonoBehaviour
 
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);
+                
+                Debug.Log("이사람의 직업:"+PlayerInformation.playerStatInfo.ClassType);
+
+                // #region weapon아이템 찾기
+                // // --- WeaponItem 찾기 ---
+                // // Transform weaponItem = FindDeepChildLinq(go.transform, "WeaponItem");
+                // var weaponItem = UIManager.Instance.EquipSlots.Find(slot => slot.name == "WeaponItem");
+                // if (weaponItem != null)
+                // {
+                //     Debug.Log("WeaponItem 발견: " + weaponItem.name);
+                //     
+                //     // foreach (var VARIABLE in ItemManager.Instance.ItemList)
+                //     // {
+                //     //     //(경원)임시 현승님 오시면 수정 사항 
+                //     //     //수정을 어떻게 해야되나 직업 클래스 타입으로 받아서 넣어야 한다.
+                //     //     //현재는  WeaponItem의 무기 타입을 보고 넣고있다.
+                //     //     //이렇게 넣으면 무기가 많아지면 무기타입만 보고 넣기에는  오류가 날 것으로 예상 
+                //     //     if (VARIABLE.ItemType == temp.CurrentItemType)
+                //     //     {
+                //     //         temp.CurrentItem = VARIABLE;
+                //     //         temp._image.sprite = VARIABLE.IconSprite;
+                //     //         Color color = temp._image.color;
+                //     //         color.a = 1f;  // 
+                //     //         temp._image.color = color;
+                //     //         
+                //     //         var equipmentstat = PlayerInformation.equipmentStat;
+                //     //         if (temp.CurrentItem is Equipment eq)
+                //     //         {
+                //     //             equipmentstat.AttackPower = eq.attackPower;
+                //     //             equipmentstat.Defense = eq.defensePower;
+                //     //             equipmentstat.MagicPower = eq.magicPower;
+                //     //             Debug.Log("초기값 갱신");
+                //     //             Debug.Log(equipmentstat.AttackPower);
+                //     //         }
+                //     //         
+                //     //         break;
+                //     //     }
+                //     // }
+                //
+                // }
+                // else
+                // {
+                //     Debug.Log("WeaponItem 못찾음 ");
+                // }
+                // #endregion
+
 
                 _objects.Add(info.PlayerId, go);
             }
@@ -211,7 +259,6 @@ public class ObjectManager : MonoBehaviour
             GameObject go = Instantiate(MonsterManager.Instance.GetMonsterPrefab(monsterName));
             go.name = info.Name;
             go.transform.position = new Vector3(info.DestinationX, info.DestinationY, 0f);
-            go.GetComponent<MonsterController>().maxHp = info.StatInfo.Hp;
 
             go.GetComponent<MonsterController>().UpdateInfo(info);
             go.GetComponent<BaseController>().SetDestination(info.DestinationX, info.DestinationY);
@@ -228,7 +275,6 @@ public class ObjectManager : MonoBehaviour
             GameObject go = Instantiate(MonsterManager.Instance.GetMonsterPrefab(monsterName));
             go.name = info.Name;
             go.transform.position = new Vector3(info.DestinationX, info.DestinationY, 0f);
-            go.GetComponent<MonsterController>().maxHp = info.StatInfo.Hp;
 
             go.GetComponent<MonsterController>().UpdateInfo(info);
             go.GetComponent<BaseController>().SetDestination(info.DestinationX, info.DestinationY);
@@ -286,19 +332,6 @@ public class ObjectManager : MonoBehaviour
             // 직업에 따른 프리팹 인스턴싱
             GameObject character = Instantiate(classPrefabList[classIndex], go.transform);     // 캐릭터 오브젝트
             character.name = "Character";
-        }
-
-        {
-            //// 피격 판별용 collider 추가
-            //GameObject damagedCollider = new GameObject();
-            //damagedCollider.transform.SetParent(go.transform);
-            //damagedCollider.name = "DamagedCollider";
-            //damagedCollider.layer = LayerMask.NameToLayer("DamagedCollider");
-
-            //BoxCollider2D boxCollider = damagedCollider.AddComponent<BoxCollider2D>();
-            //boxCollider.offset = new Vector2(0f, 0.7f);
-            //boxCollider.size = new Vector2(0.4f, 1.4f);
-            //boxCollider.isTrigger = true;
         }
     }
 }

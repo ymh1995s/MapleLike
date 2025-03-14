@@ -1,17 +1,28 @@
 using Google.Protobuf.Protocol;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(AudioSource))]
 public class MonsterController : BaseController
 {
+    [Serializable]
+    public class MonsterAudioClips
+    {
+        public AudioClip stunAudioClip;
+        public AudioClip dieAudioClip;
+        public List<AudioClip> skillAudioClips; 
+    }
+
     public MonsterInfo info = new MonsterInfo();
-    public int maxHp { get; set; }
 
     public void UpdateInfo(MonsterInfo newInfo)
     {
@@ -27,11 +38,19 @@ public class MonsterController : BaseController
     protected Collider2D monsterCollider;
     protected Animator monsterAnimator;
     protected SpriteRenderer monsterSpriteRenderer;
+    protected AudioSource monsterAudioSource;
+
+    [Header("몬스터가 재생할 수 있는 오디오 클립")]
+    [SerializeField] protected MonsterAudioClips monsterAudioClips;
+
+    [Header("몬스터 체력")]
+    [SerializeField] protected int maxHp;
+    [SerializeField] protected GameObject hpBar;
+    [SerializeField] protected Image hpBarGauge;
 
     // 지속적으로 서버로부터 넘어오는 State 변경 관련 패킷에 대해 애니메이션 동기화를 위한 변수
     protected bool hasUsedSkill = false;                          
     protected bool isAlreadyDie = false;
-    protected bool isAlreadyStun = false;
 
     protected void Start()
     {
@@ -39,6 +58,9 @@ public class MonsterController : BaseController
         monsterCollider = GetComponent<Collider2D>();
         monsterAnimator = GetComponent<Animator>();
         monsterSpriteRenderer = GetComponent<SpriteRenderer>();
+        monsterAudioSource = GetComponent<AudioSource>();
+
+        StartCoroutine(SpawnCoroutine());
     }
 
 
@@ -60,6 +82,34 @@ public class MonsterController : BaseController
 
     public void SetCurrentHp(int newHp) => info.StatInfo.Hp = newHp;
 
+    private IEnumerator SpawnCoroutine()
+    {
+        monsterCollider.enabled = false;
+        monsterRigidbody.bodyType = RigidbodyType2D.Kinematic;
+
+        float duration = 2.0f;
+        float elapsedTime = 0f;
+
+        Color monsterSpriteColor = monsterSpriteRenderer.color;
+        
+        Color startColor = new Color(monsterSpriteColor.r, monsterSpriteColor.g, monsterSpriteColor.b, 0);
+        Color endColor = new Color(monsterSpriteColor.r, monsterSpriteColor.g, monsterSpriteColor.b, 1);
+
+        monsterSpriteRenderer.color = startColor;
+        
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            monsterSpriteRenderer.color = Color.Lerp(startColor, endColor, elapsedTime / duration);
+            yield return null;
+        }
+
+        monsterSpriteRenderer.color = endColor;
+        monsterCollider.enabled = true;
+        monsterRigidbody.bodyType = RigidbodyType2D.Dynamic;
+    }
+
+
     // 몬스터의 Die 애니메이션의 끝에서 호출되는 이벤트 함수
     private void Despawn()
     {
@@ -73,7 +123,7 @@ public class MonsterController : BaseController
         monsterCollider.enabled = false;
         monsterRigidbody.bodyType = RigidbodyType2D.Kinematic;
 
-        float duration = 1.5f; // 지속 시간
+        float duration = 2.0f; // 지속 시간
         float elapsedTime = 0f; // 경과 시간
 
         Color startColor = monsterSpriteRenderer.color; // 시작 색상
@@ -90,3 +140,6 @@ public class MonsterController : BaseController
         Destroy(gameObject);
     }
 }
+
+
+

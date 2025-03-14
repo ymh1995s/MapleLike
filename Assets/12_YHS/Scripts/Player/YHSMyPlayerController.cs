@@ -1,5 +1,8 @@
 using Google.Protobuf.Protocol;
+using Google.Protobuf.WellKnownTypes;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -17,15 +20,28 @@ public class YHSMyPlayerController : PlayerController
 
     // 기타 컴포넌트
     private CinemachineCamera cinemachine;
+    private bool isPressedJump = false;    // 직접 점프를 눌렀는지 여부
 
-    private bool isMyOnPortal = false;    // 플레이어가 포탈 위에 있는지
-    private bool isPressedJump = false;
-    private MapName nextMapName;            // 이동할 맵 이름
-    
-    
-    public Transform Inventory;
-    public Transform Equipment;
-    private GameObject player;
+    private bool isMyOnPortal = false;          // 플레이어가 포탈 위에 있는지
+    private bool isKnockback = false;      // 넉백 상태
+    private bool _invincible;
+    private MapName nextMapName;                // 이동할 맵 이름
+
+    private bool isMyOnBossPortal = false;      // 플레이어가 보스 입장 포탈 위에 있는지
+    private bool invincible                // 무적 상태
+    {
+        get => _invincible;
+        set
+        {
+            _invincible = value;
+            playerDamagedCollider.enabled = !value;
+            if (value)
+            {
+                StartCoroutine(InvincibleTime());
+            }
+        }
+    }
+    private GameObject bossRoomPortal;     
 
     protected override void Awake()
     {
@@ -42,7 +58,13 @@ public class YHSMyPlayerController : PlayerController
         
         rb = gameObject.AddComponent<Rigidbody2D>();
         playerDamagedCollider = gameObject.AddComponent<BoxCollider2D>();
+        playerDamagedCollider.isTrigger = true;
         playerTerrainCollider = gameObject.AddComponent<EdgeCollider2D>();
+        playerTerrainCollider.excludeLayers = 1 << LayerMask.NameToLayer("Monster") 
+                                            | 1 << LayerMask.NameToLayer("BossMonster")
+                                            | 1 << LayerMask.NameToLayer("Probs2")
+                                            | 1 << LayerMask.NameToLayer("Player")
+                                            | 1 << LayerMask.NameToLayer("MyPlayer");
 
         // 플레이어 스탯 UI 초기화
         //StatusBarManager sbm = FindFirstObjectByType<StatusBarManager>();
@@ -74,23 +96,25 @@ public class YHSMyPlayerController : PlayerController
         playerTerrainCollider.points = new Vector2[] { new Vector2(0f, 0.01f), new Vector2(0f, 0f) };
 
         // 카메라 세팅
-        cinemachine.Follow = gameObject.transform;
-        cinemachine.LookAt = gameObject.transform;
+        cinemachine.Follow = transform;
+        cinemachine.LookAt = transform;
         
-        player =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
-        Inventory = player.transform.Find("Character/Canvas/Inventory");
-        Equipment = player.transform.Find("Character/Canvas/Equip");
+        // player =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
     }
 
     protected override void Update()
     {
         //base.Update();
+        playerSM.Execute();
+
+        if (isAttacking == false)
+        {
+            OperatePlayer();
+        }
     }
 
     protected override void FixedUpdate()
     {
-        playerSM.Execute();
-
         if (isAttacking == false)
         {
             MovePlayer();
@@ -116,6 +140,10 @@ public class YHSMyPlayerController : PlayerController
             if (IsGrounded() == true)
             {
                 // jumpState일 때는 jumpState를 유지한다.
+                if (isKnockback)
+                {
+                    return;
+                }
                 rb.linearVelocityX = PlayerInformation.playerStatInfo.Speed * horizontalDirection;
                 OnMove();
             }
@@ -133,6 +161,10 @@ public class YHSMyPlayerController : PlayerController
                 {
                     OnHit();
                 }
+                else if (isAttacking)
+                {
+                    OnAttack();
+                }
                 else
                 {
                     OnIdle();
@@ -144,13 +176,39 @@ public class YHSMyPlayerController : PlayerController
             }
         }
 
+        // 플레이어 점프
+        if (IsGrounded() == true && Input.GetKey(KeyCode.LeftAlt) && !isKnockback)
+        {
+            rb.linearVelocityY = PlayerInformation.playerStatInfo.Jump;
+            isPressedJump = true;
+        }
+    }
+
+    private void OperatePlayer()
+    {
+        if (isDead == true)
+        {
+            OnDead();
+            return;
+        }
+
         // 플레이어 상하 이동
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (isMyOnPortal)
             {
+                // 포탈로 다음 맵 이동
+                isAttacking = false;
+                isDamaged = false;
+                OnIdle();
                 SendChangeMapPacket();
                 // TODO: 맵 이동할 때 페이드인아웃 애니메이션
+            }
+
+            if (isMyOnBossPortal)
+            {
+                // 포탈로 보스 맵 이동
+                bossRoomPortal.GetComponent<BossRoomPortal>().BossRoomEnterUIActive(gameObject);
             }
         }
         if (Input.GetKey(KeyCode.DownArrow))
@@ -158,39 +216,14 @@ public class YHSMyPlayerController : PlayerController
 
         }
 
-        // 플레이어 점프
-        if (IsGrounded() == true && Input.GetKey(KeyCode.LeftAlt))
-        {
-            //Debug.Log("Key Pressed: Left Alt");
-            rb.linearVelocityY = PlayerInformation.playerStatInfo.Jump;
-            isPressedJump = true;
-        }
-
-        // 플레이어 공중부양 여부 판별
-        //if (IsGrounded() == false)
-        //{
-        //    OnJump();
-        //}
-
         // 플레이어 공격
         if (Input.GetKey(KeyCode.LeftControl) && !isAttacking)
         {
             //Debug.Log("Key Pressed: Left Ctrl");
             OnAttack();
         }
-
-        // 실질적인 위치 차이가 발생하면 이동 패킷을 전송한다.
-        //Vector3 curPosition = transform.position;
-        //float distance = (prevPosition - curPosition).magnitude;
-
-        //if (distance > 0.01f)
-        //{
-        //    // 초당 송신 횟수를 지정하는 방법이 있다.
-        //    // 필수적인 패킷은 즉시 전송하도록.
-        //    SendMovePacket();
-        //    prevPosition = curPosition;
-        //}
     }
+
 
     #region 패킷 송신 기능
     /// <summary>
@@ -238,7 +271,7 @@ public class YHSMyPlayerController : PlayerController
     #endregion
 
     #region 패킷 수신 후 기능
-    
+
     #endregion
 
     #region 동작 관련 메서드
@@ -260,7 +293,10 @@ public class YHSMyPlayerController : PlayerController
             }
             return false;
         }
-
+        if (isOnGround)
+        {
+            isKnockback = false;
+        }
         return isOnGround;
     }
 
@@ -324,39 +360,135 @@ public class YHSMyPlayerController : PlayerController
         return damageList;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    /// <summary>
+    /// 몬스터가 플레이어를 스킬로 공격했을 때의 데미지를 계산하는 메서드
+    /// </summary>
+    /// <param name="target">공격당한 플레이어</param>
+    /// <param name="power">몬스터 공격력</param>
+    /// <param name="totalDamage">몬스터가 가한 총 데미지</param>
+    private List<int> CalculateMonsterSkillToPlayerDamage(MonsterSkill monsterSkill, out int totalDamage)
     {
+        List<int> damageList = new List<int>();
+        totalDamage = 0;
 
+        // 몬스터 공격력 가져오기
+        int monsterPower = monsterSkill.GetDamage();
+
+        // 플레이어 방어력 가져오기
+        int defense = PlayerInformation.playerStatInfo.Defense;
+
+        int skillHitCount = 1;  // 우선은 1타만 맞도록 구현
+        for (int i = 0; i < skillHitCount; i++)
+        {
+            // 데미지 무작위 편차 부여
+            float randomOffset = Random.Range(-0.5f, 0.5f);   // 0.5f 값을 추후에 "숙련도" 스탯으로 대체
+
+            // 공식에 따라 데미지 계산
+            int finalDamage = monsterPower - defense;
+            finalDamage = Mathf.Clamp(finalDamage, 0, finalDamage);
+
+            damageList.Add(finalDamage);
+            totalDamage += finalDamage;
+        }
+
+        return damageList;
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    /// <summary>
+    /// 플레이어에게 넉백효과를 준다. 현재는 몬스터 반대방향으로 튀어나간다.
+    /// </summary>
+    /// <param name="target"></param>
+    private void KnockBack(Transform target)
     {
+        Vector3 targetPosition = target.GetComponent<BoxCollider2D>().bounds.center;
 
+        float backVector = Mathf.Sign(transform.GetComponent<BoxCollider2D>().bounds.center.x - targetPosition.x);
+        rb.linearVelocityY = 4f;
+        rb.linearVelocityX = backVector * 2f;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Monster"))
         {
-            MonsterController monster = collision.GetComponent<MonsterController>();
-
-            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다.
+            if (invincible)
+            {
+                return;
+            }
             int totalDamage = 0;
-            List<int> damageList = CalculateMonsterToPlayerDamage(
+            List<int> damageList;
+
+            MonsterController monster = collision.GetComponent<MonsterController>();
+            damageList = CalculateMonsterToPlayerDamage(
                 monster,
                 out totalDamage
                 );
+
+            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다.
             SpawnManager.Instance.SpawnDamage(damageList, transform, true);
 
             playerInformation.SetPlayerHp(-totalDamage);
             SendPlayerDamaged();
-            OnHit();
+            if (isDead)
+            {
+                OnDead();
+                playerDamagedCollider.enabled = false;
+                return;
+            }
+            if (totalDamage > 0)
+            {
+                isKnockback = true;
+                OnHit();
+                invincible = true;
+                KnockBack(collision.transform);
+            }
+        }
+
+        if (collision.CompareTag("MonsterSkill"))
+        {
+            if (invincible)
+            {
+                return;
+            }
+            int totalDamage = 0;
+            List<int> damageList;
+
+            MonsterSkill monsterSkill = collision.GetComponent<MonsterSkill>();
+            damageList = CalculateMonsterSkillToPlayerDamage(
+                monsterSkill,
+                out totalDamage
+                );
+
+            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다.
+            SpawnManager.Instance.SpawnDamage(damageList, transform, true);
+
+            playerInformation.SetPlayerHp(-totalDamage);
+            SendPlayerDamaged();
+            if (isDead)
+            {
+                OnDead();
+                playerDamagedCollider.enabled = false;
+                return;
+            }
+            if (totalDamage > 0)
+            {
+                isKnockback = true;
+                OnHit();
+                invincible = true;
+                KnockBack(collision.transform);
+            }
         }
 
         if (collision.CompareTag("Portal"))
         {
             isMyOnPortal = true;
             nextMapName = collision.gameObject.GetComponent<Portal>().nextMapName;
+        }
+
+        if (collision.CompareTag("BossRoomEnterPortal"))
+        {
+            isMyOnBossPortal = true;
+            bossRoomPortal = collision.gameObject;
         }
     }
 
@@ -366,6 +498,21 @@ public class YHSMyPlayerController : PlayerController
         {
             isMyOnPortal = false;
         }
+
+        if (collision.CompareTag("BossRoomEnterPortal"))
+        {
+            isMyOnBossPortal = false;
+        }
+    }
+
+    /// <summary>
+    /// 플레이어에게 1.5초간 무적시간을 부여한다.
+    /// </summary>
+    IEnumerator InvincibleTime()
+    {
+        yield return new WaitForSeconds(1.5f);
+        invincible = false;
+        yield break;
     }
     #endregion
 }

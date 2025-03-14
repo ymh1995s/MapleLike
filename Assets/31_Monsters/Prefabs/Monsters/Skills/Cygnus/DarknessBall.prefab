@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8796499471563262654}
   - component: {fileID: 5608419322767263447}
   - component: {fileID: 5883120070514797121}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: DarknessBall
   m_TagString: MonsterSkill
   m_Icon: {fileID: 0}
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 7
+  m_SortingOrder: 80
   m_Sprite: {fileID: 21300000, guid: c9374bab6f0149741a4ee1fdabc33b70, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -170,4 +170,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88fa114c58711c14babfec8fbfb780f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damage: 1
   target: {fileID: 0}

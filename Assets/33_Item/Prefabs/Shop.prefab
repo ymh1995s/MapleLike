@@ -1118,7 +1118,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 1
-  m_Spacing: 3
+  m_Spacing: 6
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -1155,11 +1155,11 @@ MonoBehaviour:
   UIPrefab: {fileID: 3897056799942710925, guid: 2e2f538a1a104344dab3fc58d819a80d, type: 3}
   TooltipGroup: {fileID: 5126825551305062113}
   ClientInventroy: {fileID: 0}
-  ClientTestIncome: {fileID: 0}
   TxtCurrentMeso: {fileID: 0}
   Tooltip: {fileID: 8423559867672753089}
   tooltipCanvas: {fileID: 0}
   ownerType: 1
+  PlayerIcon: {fileID: 0}
 --- !u!1 &3244145246261903546
 GameObject:
   m_ObjectHideFlags: 0
@@ -1741,15 +1741,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.2627451}
-  m_RaycastTarget: 1
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 1758900155, guid: 798bea2ddc8ce104fb9384526b2b4d2c, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1870,8 +1870,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -1931,6 +1931,7 @@ GameObject:
   - component: {fileID: 2863107991279977434}
   - component: {fileID: 2021445363021218112}
   - component: {fileID: 149713997605743133}
+  - component: {fileID: 2187168969890667302}
   m_Layer: 5
   m_Name: Shop
   m_TagString: Untagged
@@ -1959,7 +1960,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 6, y: 70.27478}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 608, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2863107991279977434
@@ -2014,6 +2015,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_AspectMode: 1
   m_AspectRatio: 1
+--- !u!114 &2187168969890667302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5973915998825097345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81e83df3da38d0948b5576c69ca94bce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6494664075447953385
 GameObject:
   m_ObjectHideFlags: 0
@@ -2730,7 +2743,7 @@ MonoBehaviour:
     m_Top: 5
     m_Bottom: 0
   m_ChildAlignment: 1
-  m_Spacing: 3
+  m_Spacing: 6
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -2767,11 +2780,11 @@ MonoBehaviour:
   UIPrefab: {fileID: 5268199521943438110, guid: 3a06406a4c344ea4ea6598462a3d44eb, type: 3}
   TooltipGroup: {fileID: 5126825551305062113}
   ClientInventroy: {fileID: 0}
-  ClientTestIncome: {fileID: 0}
   TxtCurrentMeso: {fileID: 4208130259287017102}
   Tooltip: {fileID: 8423559867672753089}
   tooltipCanvas: {fileID: 0}
   ownerType: 0
+  PlayerIcon: {fileID: 0}
 --- !u!1 &8102565753504790694
 GameObject:
   m_ObjectHideFlags: 0

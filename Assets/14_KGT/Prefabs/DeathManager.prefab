@@ -243,6 +243,10 @@ PrefabInstance:
       value: DeadPanel
       objectReference: {fileID: 0}
     - target: {fileID: 9186102209557193828, guid: c73a622e434850a4dbe240d670267171, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9186102209557193828, guid: c73a622e434850a4dbe240d670267171, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1610690108323343857}

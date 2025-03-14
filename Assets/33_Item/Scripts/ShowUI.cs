@@ -12,7 +12,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
     public Info UIPrefab;
     public GameObject TooltipGroup;
     
-    public PlayerInventory ClientInventroy;
+    // public PlayerInventory ClientInventroy;
     public TextMeshProUGUI TxtCurrentMeso;
     public TextMeshProUGUI Tooltip;
     //쓸데없는 곳 Raycast를 막기 위한 함수,툴팁을 위한것
@@ -93,21 +93,28 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
        
         if (ownerType == Info.OwnerType.Player)
         {
-            var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
+            // var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
             //게임 오브젝트 가져오기
-            ClientInventroy = Player.GetComponent<YHSMyPlayerController>().playerInventory;
+            var a =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
             
             //아이콘 보이게하기
+            if (PlayerIcon != null)
+            {
+                var playerImage = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id)
+                    .GetComponentInChildren<SpriteRenderer>();
+                PlayerIcon.sprite = playerImage.sprite;
+            }
             
             
             if (TxtCurrentMeso != null)
             {
-                 TxtCurrentMeso.text = ClientInventroy.Income.ToString();
+                 TxtCurrentMeso.text = a.Income.ToString();
+                
             }
-            foreach (var itemData in ClientInventroy.Slots)
+            foreach (var itemData in UIManager.Instance.InventorySlots)
             { 
                 var newItemUI = Instantiate(UIPrefab, transform); 
-                newItemUI.SetInfo(itemData.CurrentItem, ownerType,ClientInventroy);
+                newItemUI.SetInfo(itemData.CurrentItem, ownerType,UIManager.Instance.InventorySlots);
             }
           
         }
@@ -122,12 +129,9 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
     public void BuyItem()
     {
         //인벤토리 가져오기 수정
-        ClientInventroy=  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
+        // ClientInventroy=  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
         
-        var a = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
-        Debug.Log("Player"+ a);
-        
-        if (ClientInventroy == null)
+        if (UIManager.Instance.ClientInventroy == null)
         {
             Debug.LogError("❌ ClientInventroy가 설정되지 않았습니다!");
             return;
@@ -156,19 +160,20 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
          * 2.플레이어의 메소와 비교해서 구매 가능 여부를 확인
          * P.S 플레이어 스탯 및 플레이어의 메소 파라미터가  연결이 안되 테스트용 PlayerTestIncome을 만들어서 사용
          */
-        
+        var playerInventory =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
         Item itemToAdd = ItemManager.Instance.ItemList.Find(item => item.id == itemId);
         if (itemToAdd != null)
         {
-            if (ClientInventroy.Income < itemToAdd.buyprice)
+            if (playerInventory.Income < itemToAdd.buyprice)
             {
                 //아마 팝업 UI를 뜨게 할예정
                 Debug.Log("돈 없다. 돈모아와라");
                 return;
             }
-            ClientInventroy.Income -= itemToAdd.buyprice;
-            ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
-            ClientInventroy.UpdateIncome();
+            playerInventory.Income -= itemToAdd.buyprice;
+            // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
+            UIManager.Instance.AddItem(itemToAdd);
+            playerInventory.UpdateIncome();
         }
         else
         {
@@ -179,7 +184,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
         // 🔥 OnItemsLoaded 이벤트 강제 트리거
         Debug.Log("OnItemsLoaded 강제 트리거");
         ItemManager.Instance.TriggerOnItemsLoaded();
-        ClientInventroy.ShowInventory();
+        // ClientInventroy.ShowInventory();
 
     }
     #endregion
@@ -193,7 +198,8 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
      */
     public void SellItem()
     {
-        if (ClientInventroy == null)
+        
+        if (UIManager.Instance.ClientInventroy == null)
         {
             Debug.LogError("❌ ClientInventroy가 설정되지 않았습니다!");
             return;
@@ -219,15 +225,15 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
         }
 
         // 현재 인벤토리에서 해당 아이템을 보유한 슬롯 찾기
-        Slot existingSlot = ClientInventroy.Slots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == itemId);
+        Slot existingSlot = UIManager.Instance.InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == itemId);
 
-
+        var playerInventory =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<YHSMyPlayerController>().playerInventory;
         if (existingSlot != null)
         {
             // ✅ 아이템 개수 감소
             existingSlot.Count--;
             // 골드 증가
-            ClientInventroy.Income += existingSlot.CurrentItem.sellprice;
+            playerInventory.Income += existingSlot.CurrentItem.sellprice;
 
             if (existingSlot.Count <= 0)
             {
@@ -243,7 +249,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             }
 
             
-            ClientInventroy.UpdateIncome();
+            playerInventory.UpdateIncome();
         }
         else
         {
@@ -252,7 +258,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
         }
 
         // 🔥 인벤토리 UI 업데이트
-        ClientInventroy.UpdateInventoryUI(itemId);
+        playerInventory.UpdateInventoryUI(itemId);
 
         // 🔥 OnItemsLoaded 이벤트 강제 트리거
         Debug.Log("OnItemsLoaded 강제 트리거");

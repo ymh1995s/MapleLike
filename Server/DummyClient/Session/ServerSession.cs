@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerCore;
 using System;
@@ -12,23 +12,7 @@ namespace DummyClient.Session
 {
     class ServerSession : PacketSession
     {
-        public PositionInfo dummyPosition { get; private set; } = new PositionInfo();
-
         Random _rand = new Random();
-
-        public ServerSession() 
-        {
-            // 시작 위치를 랜덤으로 정한다.
-            dummyPosition.DestinationPosX = _rand.Next(-20, 20);
-            dummyPosition.DestinationPosY = _rand.Next(0, 5);
-            dummyPosition.DestinationPosZ = _rand.Next(-20, 20);
-        }
-
-        public PositionInfo SetNextPos()
-        {
-            //dummyPosition.DestinationPosX += 0.02f;
-            return dummyPosition;
-        }
 
         public void Send(IMessage packet)
         {
@@ -46,6 +30,10 @@ namespace DummyClient.Session
         public override void OnConnected(EndPoint endPoint)
         {
             Console.WriteLine($"client {endPoint} is connected to the server. Here is client");
+
+            C_ClassChoice pkt = new C_ClassChoice();
+            pkt.ClassType = (ClassType)1;
+            Send(pkt);
         }
 
         public override void OnDisconnected(EndPoint endPoint)
@@ -57,10 +45,10 @@ namespace DummyClient.Session
         {
 
         }
-            //Console.WriteLine("Receive message from server");
+
         public override void OnSend(int numOfBytes)
         {
-            //Console.WriteLine("Send message to server");
+
         }
     }
 }

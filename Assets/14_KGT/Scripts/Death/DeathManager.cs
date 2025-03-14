@@ -60,12 +60,13 @@ public class DeathManager : MonoBehaviour
         {
             DeathPopup.SetActive(false);
         }
+        RevivePlayer();
     }
 
     /// <summary>
     /// 플레이어의 체력을 1%로 깎고, 마을로 복귀시키는 함수
     /// </summary>
-    public void RevivePlayer()
+    private void RevivePlayer()
     {
         if (reviveCoroutine != null)
         {
@@ -103,6 +104,5 @@ public class DeathManager : MonoBehaviour
         }
 
         DeactiveDeathPopup();
-        RevivePlayer();
     }
 }

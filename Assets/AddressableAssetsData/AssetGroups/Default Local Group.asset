@@ -15,8 +15,18 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: aa578d175758f4944ad60cab608c0bff
   m_SerializeEntries:
+  - m_GUID: 0cba108df72695f40a1637488e8d240e
+    m_Address: DefaultStaff
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1348f86bce938834880c6a7361182faf
     m_Address: staff
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a41532a00319d44ba27395dc67a91f4
+    m_Address: DefaultArrow
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -37,6 +47,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 674ea883c67ad264aa634ebf0a56bd61
     m_Address: Sword
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ed843c94ac8715449c074b5dd6fb0a0
+    m_Address: DefaultSword
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

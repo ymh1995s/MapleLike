@@ -28,8 +28,8 @@ public class PlayerDeadState : IPlayerState
         {
             mpc.SendPlayerMovePacket();
             mpc.SendPlayerDiePacket();
+            DeathManager.Instance.ActiveDeathPopup();
         }
-        DeathManager.Instance.ActiveDeathPopup();
     }
 
     public void Execute()
@@ -39,11 +39,15 @@ public class PlayerDeadState : IPlayerState
 
     public void Exit()
     {
-        // 사망 후 부활 시의 후처리
-        playerController.isDead = false;
-        character.GetComponent<SpriteRenderer>().enabled = true;
+        YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
+        if (mpc != null)
+        {
+            // 사망 후 부활 시의 후처리
+            playerController.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+            character.GetComponent<SpriteRenderer>().enabled = true;
 
-        DeathManager.Instance.StopCount();
+            DeathManager.Instance.StopCount();
+        }
     }
 
     public CurrentPlayerState ReturnNowState()

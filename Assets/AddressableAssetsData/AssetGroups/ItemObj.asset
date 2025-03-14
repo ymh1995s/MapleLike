@@ -16,31 +16,43 @@ MonoBehaviour:
   m_GUID: d53cdddaf1c08934ca9ecad6883691e8
   m_SerializeEntries:
   - m_GUID: 2b375e4819ab04f498a4d4dd02c5a842
-    m_Address: 6_ArrowParent
+    m_Address: 06_ArrowParent
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemObj
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2d76d3301d51f03408d7916a0dfe4c91
+    m_Address: 10_DefaultArrowParent
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemObj
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 36c1651f4dcd6284e87bb3c3ca5553a2
+    m_Address: 11_DefaultStaffParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3c43c579607a4cb4ba2f33819c47bb7a
-    m_Address: 7_HppotionParent
+    m_Address: 07_HppotionParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 52633a06a660260419f188e381992b71
-    m_Address: 8_MppotionParent
+    m_Address: 08_MppotionParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5f231492315214944b3d627b7461a346
-    m_Address: 5_StaffParent
+    m_Address: 05_StaffParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 792430611465b19499c513e74a1fec9f
-    m_Address: 3_BootsParent
+    m_Address: 03_BootsParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
@@ -51,20 +63,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a120f4f984ba604c81c062279066f84
+    m_Address: 09_DefaultSwordParent
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemObj
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: afbb706157ca6374d9b3aa2fd9c4826a
-    m_Address: 4_SwordParent
+    m_Address: 04_SwordParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d6477b82468e2234387f2e5e5785090f
-    m_Address: 1_HelmetParent
+    m_Address: 01_HelmetParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f91100f30f8bfc5459a9380a5b177662
-    m_Address: 2_ArmorParent
+    m_Address: 02_ArmorParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj

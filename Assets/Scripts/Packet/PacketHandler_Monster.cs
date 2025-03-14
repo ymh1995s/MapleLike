@@ -44,7 +44,8 @@ public partial class PacketHandler
         if (nmc != null)
         {
             nmc.SetDirection(movePacket.IsRight);
-            nmc.SetState(movePacket.State);
+            if (movePacket.State != MonsterState.MDead && movePacket.State != MonsterState.MStun)
+                nmc.SetState(movePacket.State);
         }
         
         // 보스몬스터의 경우
@@ -52,16 +53,17 @@ public partial class PacketHandler
         if (bmc != null)
         {
             bmc.SetDirection(movePacket.IsRight);
-            bmc.SetState(movePacket.State);
+            if (movePacket.State != MonsterState.MDead && movePacket.State != MonsterState.MStun)
+                bmc.SetState(movePacket.State);
         }
     }
 
     public static void S_MonsterDespawnHandler(PacketSession session, IMessage packet)
     {
         S_MonsterDespawn despawnPacket = packet as S_MonsterDespawn;
-        foreach (int id in despawnPacket.MonsterIds)
+        foreach (int monsterId in despawnPacket.MonsterIds)
         {
-            ObjectManager.Instance.Remove(id);
+            ObjectManager.Instance.Remove(monsterId);
         }
     }
 
@@ -111,11 +113,10 @@ public partial class PacketHandler
         }
             
         // 보스몬스터의 경우
-        // TODO: 보스몬스터 체력바
         BossMonsterController bmc = go.GetComponent<BossMonsterController>();
         if (bmc != null)
         {
-            bmc.SetState(MonsterState.MStun);
+            // bmc.SetState(MonsterState.MStun);
             bmc.UpdateHPBarGauge();
         }
     }
@@ -140,5 +141,7 @@ public partial class PacketHandler
     public static void S_GameClearHandler(PacketSession session, IMessage packet)
     {
         S_GameClear gameClearPacket = packet as S_GameClear;
+
+        BossClearAndExitUI.Instance.BossClear();
     }
 }

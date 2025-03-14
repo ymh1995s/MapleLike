@@ -21,6 +21,8 @@ namespace ServerContents.Object
     {
         BossMonsterState _currentState = BossMonsterState.Idle;
 
+        private DateTime _lastSetTargetTime = DateTime.Now;
+
         public BossMonster()
         {
             ObjectType = GameObjectType.Bossmonster;
@@ -138,7 +140,17 @@ namespace ServerContents.Object
         protected override void Think()
         {
             int random = rnd.Next(0, 2);
-            if (random == 0) _currentState = BossMonsterState.Move;
+            if (random == 0)
+            {
+                if (_target == null)
+                {
+                    _currentState = (BossMonsterState)rnd.Next(0, 2);
+
+                    _isRight = rnd.Next(0, 2) == 0;
+                }
+                else _currentState = BossMonsterState.Move;
+
+            }
             else UpdateSkill();
         }
 
@@ -149,7 +161,6 @@ namespace ServerContents.Object
             // 위치 변동 없음
         }
 
-        // TODO: 보스가 움직이게 할 것인가?
         protected override void UpdateMove()
         {
             _currentState = BossMonsterState.Move;
@@ -206,18 +217,27 @@ namespace ServerContents.Object
             {
                 UpdateDead();
 
-                // 다른 플레이어에게도 알린다.
-                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
-                despawnPacket.MonsterIds.Add(Id);
-                Room.Broadcast(despawnPacket);
-
-
-                // TODO: 보스 클리어 패킷 전송
-
-
+                // TODO: 경험치 제공
+                // TODO: 아이템 제공
+               
+                // 현재 룸에 존재하는 모든 클라이언트에게 알림
                 Room.LeaveMonster(Id);
+
                 MonsterManager.Instance.MonsterDespawn(Id);
+
+                Room.GameClear();
             }
+        }
+
+        public override void SetTarget(Player newTarget)
+        {
+            DateTime currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSetTargetTime).TotalSeconds <= 10.0f)
+                return;
+
+            _target = newTarget;
+            _lastSetTargetTime = currentTime;
         }
     }
 }

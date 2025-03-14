@@ -5,11 +5,15 @@ using UnityEngine;
 public class Archer : BaseClass
 {
     [SerializeField] private GameObject arrowPrefab;
+    
     protected override void Start()
     {
         base.Start();
         InitializeSkill();
-        ClassStat();
+        if (playerStatInfo.ClassType == ClassType.Cnone)
+        {
+            ClassStat();
+        }
     }
 
     /// <summary>
@@ -21,16 +25,18 @@ public class Archer : BaseClass
         playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 1.1f);
         playerStatInfo.ClassType = ClassType.Archer;
 
-        playerStatInfo.Hp = playerStatInfo.Hp;
-        playerStatInfo.Mp = playerStatInfo.Mp;
+        playerStatInfo.Hp = playerStatInfo.MaxHp;
+        playerStatInfo.Mp = playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
-    public override void ActiveHitbox()
+    protected override void ActiveHitbox()
     {
+        Vector3 playerPosition = transform.parent.position;
         if (Hitbox != null)
         {
-            Hitbox.enabled = true;
+            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-2.5f), playerPosition.y + 1f), Quaternion.identity);
+            currentHit.GetComponent<TriggerScript>().player = playerPosition;
         }
         if (Effect != null)
         {
@@ -40,62 +46,80 @@ public class Archer : BaseClass
         }
     }
 
-    public override void DeactiveHitbox()
-    {
-        if (Hitbox != null)
-        {
-            Hitbox.enabled = false;
-        }
-        controller.isAttacking = false;
-        controller.isDamaged = true;
-    }
-
     public override void CreateHitEffect()
     {
-        target = Hitbox.GetComponent<TriggerScript>().GetTarget();
-
-        if (target != null)
-        {
-            // 플레이어가 공격했을 때 데미지를 화면에 띄운다.
-            int totalDamage = 0;
-            List<int> damageList = CalculatePlayerToMonsterDamage(
-                target,
-                playerStatInfo.AttackPower,
-                "Double Shot",
-                out totalDamage
-                );
-            SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
-
-            SendHitMonsterPacket(totalDamage);
-        }
+        target = currentHit.GetComponent<TriggerScript>().GetTarget();
 
         for (int i = 0; i < classSkill[0].hitCount; i++)
         {
-            Invoke("CreateArrow", 0.01f);
+            CreateArrow(i);
         }
     }
 
-    /// Todo
-    /// 화살이 몬스터 방향으로 이동하며, 이동속도는 화살 활성화시간에 반비례. 화살은 0.5초간 날아가며,
-    /// 최소 속도는 1f, 최대 속도는 3f
-    /// 화살 오브젝트에 BoxCollider가 있고, 이 BoxCollider는 trigger임
-    /// 화살 오브젝트의 trigger에 몬스터가 닿으면 파괴하고, 아래 주석처리된 hitGo 오브젝트를 생성하는 코드를 실행한다.
-    /// 타겟이 없다면 플레이어가 바라보는 방향으로 5f만큼 날아가다 사라진다.
+    private void CreateDamageSkin()
+    {
+        int totalDamage = 0;
+        List<int> damageList = CalculatePlayerToMonsterDamage(
+                                    target,
+                                    playerStatInfo.AttackPower,
+                                    "Double Shot",
+                                    out totalDamage
+                                    );
+        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
+        SendHitMonsterPacket(totalDamage);
+    }
+
+    protected override List<int> CalculatePlayerToMonsterDamage(MonsterController target, int power, string skillKey, out int totalDamage)
+    {
+        List<int> damageList = new List<int>();
+        totalDamage = 0;
+
+        // 1레벨 스킬 데이터 가져오기
+        float skillDamage = skillList[skillKey].skill.damage / 100f;
+        int skillHitCount = skillList[skillKey].skill.hitCount;
+
+        // 몬스터 방어력 가져오기
+        float monsterDefense = 1 - target.info.StatInfo.Defense / 100f;
+
+        for (int i = 0; i < skillHitCount; i++)
+        {
+            // 데미지 무작위 편차 부여
+            float randomOffset = Random.Range(-0.5f, 0.5f);   // 0.5f 값을 추후에 "숙련도" 스탯으로 대체
+
+            // 공식에 따라 데미지 계산
+            int finalDamage = (int)((power * (1f + randomOffset)) * skillDamage * monsterDefense);
+            damageList.Add(finalDamage);
+            totalDamage += finalDamage;
+        }
+
+        return damageList;
+    }
+
     /// <summary>
     /// 화살을 생성하여 타겟 방향으로 발사한다. 타겟이 없다면, 플레이어가 바라보는 방향으로 발사한다.
     /// </summary>
-    private void CreateArrow()
+    private void CreateArrow(int y)
     {
-        GameObject arrowGo = Instantiate(arrowPrefab, 
-                                        new Vector3(transform.parent.position.x + (-0.5f) * transform.parent.localScale.x, transform.parent.position.y + 0.4f),
+        Collider2D hitCollider = currentHit.GetComponent<Collider2D>();
+        Vector3 min = hitCollider.bounds.min;
+        Vector3 max = hitCollider.bounds.max;
+        Vector3 startPoint = controller.isRight ? max : min;
+        startPoint.y = hitCollider.bounds.center.y;
+
+        GameObject arrowGo = Instantiate(arrowPrefab,
+                                        new Vector3(
+                                                        startPoint.x + (-0.5f) * transform.parent.localScale.x,
+                                                        startPoint.y + (y * -0.1f) - 0.3f
+                                                    ),
                                         Quaternion.identity);
         arrowGo.transform.localScale = transform.parent.localScale;
+        arrowGo.GetComponent<ArrowMovement>().num = y;
 
         Vector3 start = arrowGo.transform.position;
         Vector3 end;
         if (target != null)
         {
-            end = target.transform.position;
+            end = target.GetComponent<BoxCollider2D>().bounds.center;
         }
         else
         {
@@ -104,12 +128,12 @@ public class Archer : BaseClass
 
         Vector3 direction = (end - start).normalized;
         float distance = Vector3.Distance(start, end);
-        float minSpeed = 1f;
+        float minSpeed = 5f;
         float maxSpeed = 10f;
         float duration = 0.5f;
         float speed = Mathf.Clamp(distance / duration, minSpeed, maxSpeed);
 
-        arrowGo.GetComponent<ArrowMovement>().Initialize(direction, speed, duration, HitObject, target);
+        arrowGo.GetComponent<ArrowMovement>().Initialize(direction, end, speed, duration, HitObject, target, CreateDamageSkin);
     }
     #endregion
 

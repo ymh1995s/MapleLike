@@ -27,7 +27,7 @@ namespace ServerContents
             // AWS 전용 하드 코딩
             string ipAddressString = "127.0.0.1";
             IPAddress ipAddr = IPAddress.Parse(ipAddressString);
-            //IPAddress ipAddr = ipHost.AddressList[1];
+            //IPAddress ipAddr = ipHost.AddressList[0]; 
             IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
             // Func.Invoke() (Listener의 _sessionFactory.Invoke();) 에 의해 SessionManager.Instance.Generate() 가 N번 생성됨

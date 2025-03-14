@@ -131,6 +131,8 @@ namespace ServerContents.Room
         // (MonsterId, (roomId, zoneId))
         private Dictionary<int, Tuple<int, int>> allMonsters = new Dictionary<int, Tuple<int, int>>();
 
+        public bool canSpawnBoss = true;
+
         public void MonsterSpawn(int currentRoomId)
         {
             if (RoomManager.Instance.Find(currentRoomId) == null)
@@ -142,11 +144,13 @@ namespace ServerContents.Room
             if (monsterDatabase == null || monsterDatabase.monsterDatabase == null)
                 return;
 
-            // 보스맵의 경우, 해당 맵에 사람이 있을 때만 스폰이 되도록 처리해야함.
-            if (currentMap.mapType == "Boss")
+            // 보스맵의 경우, 해당 맵에 사람이 없을 때만 스폰이 되도록 처리해야함.
+            if (currentRoomId == (int)MapName.BossRoom)
             {
-                if (RoomManager.Instance.Find(currentRoomId).GetPlayerCountInRoom() <= 0)
+                if (RoomManager.Instance.Find(currentRoomId).GetPlayerCountInRoom() <= 0 || canSpawnBoss == false)
                     return;
+                if (RoomManager.Instance.Find(currentRoomId).GetPlayerCountInRoom() > 0 && canSpawnBoss == true)
+                    canSpawnBoss = false;
             }
 
             foreach (var zone in currentMap.zones)
@@ -170,8 +174,6 @@ namespace ServerContents.Room
                         // 랜덤으로 하나 선택
                         MonsterData selectedMonster = validMonsters[rnd.Next(validMonsters.Count)];
 
-                        Console.WriteLine($"{currentMap.mapType} Map {currentRoomId}의 Zone {zone.Value.id}에서 {selectedMonster.type} {selectedMonster.name} (Lv.{selectedMonster.level})가 스폰됨! 위치: ({spawnPosX}, {spawnPosY})");
-
                         Monster monster = null;
                         if (spawnableMonsterType == "Normal")
                         {
@@ -187,11 +189,13 @@ namespace ServerContents.Room
                             monster = ObjectManager.Instance.Add<BossMonster>();
                             
                             // 보스 몬스터인 경우, 이동 가능한 범위의 중앙의 위치에서 스폰
-                            spawnPosX = (MathF.Abs(zone.Value.range.Item1.Item1) + MathF.Abs(zone.Value.range.Item1.Item2)) / 2; // 중앙 위치 계산
+                            spawnPosX = (zone.Value.range.Item1.Item1 + zone.Value.range.Item1.Item2) / 2; // 중앙 위치 계산
                             monster.Info.DestinationX = spawnPosX;
                             monster.Info.DestinationY = spawnPosY;
                         }
-                            
+
+                        Console.WriteLine($"{currentMap.mapType} Map {currentRoomId}의 Zone {zone.Value.id}에서 {selectedMonster.type} {selectedMonster.name} (Lv.{selectedMonster.level})가 스폰됨! 위치: ({spawnPosX}, {spawnPosY})");
+
                         monster.Info.Name = $"{selectedMonster.name}_{monster.Info.MonsterId}";
                         monster.Info.StatInfo = GetMonsterStatInfo(selectedMonster);
                         monster.Stat = monster.Info.StatInfo;
@@ -281,11 +285,15 @@ namespace ServerContents.Room
 
         private void LoadMonsterData()
         {
-            string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
-            string path = Path.Combine(projectRoot, "Room", "Data", "Monsters.Json");
-
             // AWS 
-            // string path = AppDomain.CurrentDomain.BaseDirectory + "Monsters.Json";
+            string path = AppDomain.CurrentDomain.BaseDirectory + "Monsters.Json";
+            
+            // Local
+            if (!File.Exists(path))
+            {
+                string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+                path = Path.Combine(projectRoot, "Room", "Data", "Monsters.Json");
+            }
 
             if (File.Exists(path))
             {
@@ -302,11 +310,15 @@ namespace ServerContents.Room
 
         private void LoadMapData()
         {
-            string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
-            string path = Path.Combine(projectRoot, "Room", "Data", "Maps.Json");
+            // AWS 
+            string path = AppDomain.CurrentDomain.BaseDirectory + "Maps.Json";
 
-            // AWS
-            // string path = AppDomain.CurrentDomain.BaseDirectory + "Maps.Json";
+            // Local
+            if (!File.Exists(path))
+            {
+                string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+                path = Path.Combine(projectRoot, "Room", "Data", "Maps.Json");
+            }
 
             if (File.Exists(path))
             {

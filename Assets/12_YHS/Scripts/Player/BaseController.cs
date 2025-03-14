@@ -34,7 +34,8 @@ public class BaseController : MonoBehaviour
         else
         {
             // 스르륵 이동
-            transform.position = Vector3.MoveTowards(transform.position, destinationPos, 5 * Time.fixedDeltaTime);
+            float speed = Mathf.Clamp(distance * 2f, 20f, 30f); // 최소 N, 최대 M으로 이동속도 설정
+            transform.position = Vector3.MoveTowards(transform.position, destinationPos, speed * Time.fixedDeltaTime);
         }
     }
 

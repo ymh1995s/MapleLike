@@ -31,7 +31,6 @@ public class SpawnManager : MonoBehaviour
     public void SpawnAsset(string assetKey, Transform transform)
     {
         AsyncOperationHandle<GameObject> loadHandler;
-        //loadHandler = Addressables.LoadAssetAsync<GameObject>(some asset);
         loadHandler = Addressables.LoadAssetAsync<GameObject>(assetKey);
 
         loadHandler.Completed += handle =>

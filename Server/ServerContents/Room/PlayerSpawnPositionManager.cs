@@ -61,11 +61,15 @@ namespace ServerContents.Room
         {
             if (!isAlreadyInitialize)
             {
-                string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
-                string path = Path.Combine(projectRoot, "Room", "Data", "PlayerSpawnPositions.Json");
+                // AWS 
+                string path = AppDomain.CurrentDomain.BaseDirectory + "PlayerSpawnPositions.Json";
 
-                // AWS
-                //string path = AppDomain.CurrentDomain.BaseDirectory + "PlayerSpawnPositions.Json";
+                // Local
+                if (!File.Exists(path))
+                {
+                    string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+                    path = Path.Combine(projectRoot, "Room", "Data", "PlayerSpawnPositions.Json");
+                }
 
                 if (File.Exists(path))
                 {

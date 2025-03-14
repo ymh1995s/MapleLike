@@ -16,8 +16,6 @@ public class PlayerHitState : IPlayerState
 
     public void Enter()
     {
-        /// Todo
-        /// StateMachine에 현재 상태를 enum Type으로 저장해주는 작업을 한다.
         playerController.animator.SetTrigger("Hit");
 
         YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
@@ -29,17 +27,22 @@ public class PlayerHitState : IPlayerState
 
     public void Execute()
     {
+        if (playerController.isDead)
+        {
+            playerController.OnDead();
+            isPlaying = false;
+            playerController.StopCoroutine(DurationDamaged());
+        }
         if (!isPlaying)
         {
             isPlaying = true;
-            //playerController.coroutine = DurationDamaged();
             playerController.StartCoroutine(DurationDamaged());
         }
     }
 
     public void Exit()
     {
-        //playerController.StopCoroutine(playerController.coroutine);
+        playerController.StopCoroutine(DurationDamaged());
     }
 
     /// <summary>
@@ -48,7 +51,6 @@ public class PlayerHitState : IPlayerState
     /// </summary>
     IEnumerator DurationDamaged()
     {
-        Debug.Log("코루틴 호출됨");
         yield return new WaitForSeconds(duration);
         playerController.isDamaged = false;
         isPlaying = false;

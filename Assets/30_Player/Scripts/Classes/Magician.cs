@@ -8,7 +8,10 @@ public class Magician : BaseClass
     {
         base.Start();
         InitializeSkill();
-        ClassStat();
+        if (playerStatInfo.ClassType == ClassType.Cnone)
+        {
+            ClassStat();
+        }
     }
 
     /// <summary>
@@ -19,18 +22,24 @@ public class Magician : BaseClass
         playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 0.75f);
         playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 1.5f);
         playerStatInfo.ClassType = ClassType.Magician;
-        
+
         playerStatInfo.Hp = playerStatInfo.MaxHp;
         playerStatInfo.Mp = playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
-    public override void ActiveHitbox()
+    protected override void ActiveHitbox()
     {
+        Vector3 playerPosition = transform.parent.position;
         if (Hitbox != null)
         {
-            Hitbox.enabled = true;
+            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-2f), playerPosition.y + 0.5f), Quaternion.identity);
+            currentHit.GetComponent<TriggerScript>().player = playerPosition;
         }
+    }
+
+    protected void ActiveEffect()
+    {
         if (Effect != null)
         {
             Effect.SetActive(true);
@@ -39,25 +48,13 @@ public class Magician : BaseClass
         }
     }
 
-    public override void DeactiveHitbox()
-    {
-        if (Hitbox != null)
-        {
-            Hitbox.enabled = false;
-        }
-        controller.isAttacking = false;
-        controller.isDamaged = true;
-    }
-
     public override void CreateHitEffect()
     {
-        target = Hitbox.GetComponent<TriggerScript>().GetTarget();
+        target = currentHit.GetComponent<TriggerScript>().GetTarget();
         if (target == null)
             return;
 
-        /// Todo
-        /// 대상을 찾았기 때문에 클라이언트에서 몬스터에 데미지 처리를 한다.
-        /// 또한 데미지 숫자 텍스트도 출력한다.
+        Vector3 targetPosition = target.GetComponent<BoxCollider2D>().bounds.center;
 
         // 플레이어가 공격했을 때 데미지를 화면에 띄운다.
         int totalDamage = 0;
@@ -71,7 +68,7 @@ public class Magician : BaseClass
 
         SendHitMonsterPacket(totalDamage);
 
-        GameObject hitGo = Instantiate(HitObject, target.transform.position, Quaternion.identity);
+        GameObject hitGo = Instantiate(HitObject, targetPosition, Quaternion.identity);
         hitGo.GetComponent<Animator>().SetTrigger("Hit");
         Destroy(hitGo, 0.45f);
     }

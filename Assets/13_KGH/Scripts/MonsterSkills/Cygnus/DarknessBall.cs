@@ -6,23 +6,26 @@ public class DarknessBall : MonsterSkill
 {
     [HideInInspector] public GameObject target;
 
+    private Vector3 initalProjectilePos = new Vector3();
+    private Vector3 initialTargetPos = new Vector3();
+    private Vector3 direction;
+
     protected override void Start()
     { 
         base.Start();
 
-        // TODO: 데미지 설정
-        damage = 10;
-
+        initalProjectilePos = transform.position;
+        initialTargetPos = target.transform.position;
+        direction = (initialTargetPos - initalProjectilePos).normalized;
+        
+        spriteRenderer.flipX = transform.position.x > initialTargetPos.x ? false : true;
+        
         StartCoroutine(DestroyCoroutine());
     }
 
     private void FixedUpdate()
     {
-        if (target != null)
-        {
-            spriteRenderer.flipX = transform.position.x > target.transform.position.x ? false : true;
-            transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.fixedDeltaTime * 1.5f);
-        }
+        transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, Time.fixedDeltaTime * 1.5f);
     }
 
     IEnumerator DestroyCoroutine()

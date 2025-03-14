@@ -1,4 +1,3 @@
-using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -70,7 +69,7 @@ public class DamageSpawner : MonoBehaviour
 
     private int ReverseNumber(int oneLineNum, out int numCount)
     {
-        string str = oneLineNum.ToString();
+        string str = Mathf.Abs(oneLineNum).ToString();
         numCount = str.Length;
 
         string reverseStr = "";
@@ -89,12 +88,12 @@ public class DamageSpawner : MonoBehaviour
         numCount = 0;       // 한 줄에 띄울 숫자 개수
         oneLineNumber = ReverseNumber(oneLineNumber, out numCount);     // 출력 순서 효과를 위해 수 뒤집기
 
-        int depth = 0;          // position z에 곱해질 값으로, 숫자가 좌우로 겹칠 때 보여질 순서
+        int depth = 0;      // position z에 곱해질 값으로, 숫자가 좌우로 겹칠 때 보여질 순서
 
         // 한 줄의 데미지 출력
         for (int i = 0; i < numCount; i++)
         {
-            int number = oneLineNumber % 10;           // 높은 자리수부터 출력
+            int number = oneLineNumber % 10;    // 높은 자리수부터 출력
             oneLineNumber /= 10;
 
             float positionY = UnityEngine.Random.Range(-0.07f, 0.07f);  // 한 줄 내에서 상하 방향 숫자 위치
@@ -117,7 +116,6 @@ public class DamageSpawner : MonoBehaviour
         GameObject numberObject = Instantiate(damageNumberPrefab, oneLineDamage.transform);
         numberObject.GetComponent<SpriteRenderer>().sprite = currentDamageSkin[10];
     }
-
 
     IEnumerator DestoryDamage()
     {

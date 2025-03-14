@@ -34,7 +34,7 @@ namespace ServerContents.Object
 
         // Skill
         protected DateTime _skillStartTime;
-        protected float _skillDuration = 10.0f;
+        protected float _skillDuration = 5.0f;
 
         public Monster() { Info.StatInfo = Stat; }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -60,7 +61,7 @@ public class Info : MonoBehaviour
         }
     }
     
-    public void SetInfo(Item item, OwnerType ownerType,PlayerInventory inventory)
+    public void SetInfo(Item item, OwnerType ownerType,List<Slot> InventorySlots)
     {
         if (item == null)
         {
@@ -76,13 +77,20 @@ public class Info : MonoBehaviour
             case OwnerType.Player:
                 Price.text = $"판매 가격: {item.sellprice} G";
                 // 기존에 있는 아이템인지 확인
-                Slot existingSlot = inventory.Slots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == item.id);
+                Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == item.id);
                 if (existingSlot == null)
                 {
                     Debug.Log("없어요");
                     return;
                 }
-                TxtCount.text = existingSlot.Count.ToString();
+
+                if (existingSlot.Count > 1)
+                {
+                    TxtCount.text = existingSlot.Count.ToString();
+                }
+              
+
+                
                 break;
             case OwnerType.Shop:
                 Price.text = $"구매 가격: {item.buyprice} G";

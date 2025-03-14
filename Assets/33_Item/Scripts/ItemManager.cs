@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Google.Protobuf.Protocol;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -18,7 +17,6 @@ public class ItemManager : MonoBehaviour
     public event Action OnItemsLoaded;
     
     AsyncOperationHandle handle;
-    public GameObject shop;
 
     private void Awake()
     {
@@ -65,7 +63,8 @@ public class ItemManager : MonoBehaviour
                     newEquipment.magicPower = itemData.magicPower;
                     newEquipment.defensePower = itemData.defensePower;
                     newEquipment.limitLevel = itemData.limitLevel;
-                    newEquipment.limitJob = (Equipment.Job)Enum.Parse(typeof(Equipment.Job), itemData.limitJob);
+                    newEquipment.classType = (ClassType)Enum.Parse(typeof(ClassType), itemData.classType);
+                    newEquipment.parts = (Equipment.Parts)Enum.Parse(typeof(Equipment.Parts), itemData.parts);
                 }
 
                 if (newItem != null)

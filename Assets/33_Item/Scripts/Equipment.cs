@@ -1,19 +1,22 @@
+using Google.Protobuf.Protocol;
 using UnityEngine;
 
 
 [CreateAssetMenu(fileName = "Equipment ", menuName = "Scriptable Objects/Equipment ")]
 public class Equipment  : Item
 {
-    public enum Job
+   
+    public enum Parts
     {
-        None,
-        Warrier,
-        Wizard,
-        Ranger
+        Head,    // 머리
+        Body,    // 몸통
+        Foot,      // 다리
+        Weapon  //무기
     }
 
     public int limitLevel;
-    public Job limitJob;
+    public ClassType classType;
+    public Parts parts;
     //보너스 스텟
     public int attackPower;
     public int magicPower;

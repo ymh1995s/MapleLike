@@ -1,6 +1,6 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
 
 public class InputManager : MonoBehaviour
 {
@@ -23,6 +23,47 @@ public class InputManager : MonoBehaviour
         player =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            // player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(true);
+            UIManager.Instance.invenotory.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            // player.GetComponent<YHSMyPlayerController>().Equipment.gameObject.SetActive(true);
+            UIManager.Instance.Equipment.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.PageUp))
+        {
+         
+            foreach (var VARIABLE in UIManager.Instance.InventorySlots)
+            {
+                //없을것을 대비한 널 체크 추가 
+                if (VARIABLE.CurrentItem != null && VARIABLE.CurrentItem.ItemType == ItemType.Hppotion)
+                {
+                    UIManager.Instance.UseItem(VARIABLE.CurrentItem);
+                    break;
+                }
+            }
+            Debug.Log("UseItem HP");
+        }
+        if (Input.GetKeyDown(KeyCode.PageDown))
+        {
+            foreach (var VARIABLE in UIManager.Instance.InventorySlots)
+            {
+                //없을것을 대비한 널 체크 추가
+                if (VARIABLE.CurrentItem != null && VARIABLE.CurrentItem.ItemType == ItemType.Mppotion)
+                {
+                    UIManager.Instance.UseItem(VARIABLE.CurrentItem);
+                    break;
+                }
+            }
+            Debug.Log("UseItem MP");
+        }
+    }
+
     private void FixedUpdate()
     {
         // FSM 상태 변환이 수반되지 않는 인풋 처리는 이곳에서 합니다.
@@ -38,16 +79,7 @@ public class InputManager : MonoBehaviour
             ObjectManager.Instance.PickupNearbyItems2();
         }
         
-        if (Input.GetKey(KeyCode.PageUp))
-        {
-            //Debug.Log("Key Pressed: PgUp");
-            Debug.Log("UseItem HP");
-        }
-        if (Input.GetKey(KeyCode.PageDown))
-        {
-            //Debug.Log("Key Pressed: PgDn");
-            Debug.Log("UseItem MP");
-        }
+     
  
         // 테스트를 위한 임시 단축키들
         if (Input.GetKeyDown(KeyCode.Q))
@@ -58,7 +90,7 @@ public class InputManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             // 씬 리로드
-            SceneManager.LoadScene("LHSSampleScene");
+            // SceneManager.LoadScene("LHSSampleScene");
         }
         if (Input.GetKeyDown(KeyCode.B))
         {
@@ -85,13 +117,6 @@ public class InputManager : MonoBehaviour
         {
             playerInfo.SetPlayerExp(12);
         }
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(true);
-        }
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            player.GetComponent<YHSMyPlayerController>().Equipment.gameObject.SetActive(true);
-        }
+      
     }
 }

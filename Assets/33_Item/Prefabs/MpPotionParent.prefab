@@ -202,6 +202,8 @@ MonoBehaviour:
   itemType: 0
   itemName: 
   Property: {fileID: 0}
+  Serverid: 0
+  Ownerid: 0
 --- !u!114 &1224139210437593803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,7 +229,7 @@ GameObject:
   - component: {fileID: -1664734147169285498}
   - component: {fileID: 834450922689161924}
   - component: {fileID: -6374803293652900144}
-  m_Layer: 21
+  m_Layer: 15
   m_Name: MpPotionParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -275,6 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attractSpeed: 5
+  player: {fileID: 0}
 --- !u!50 &834450922689161924
 Rigidbody2D:
   serializedVersion: 5

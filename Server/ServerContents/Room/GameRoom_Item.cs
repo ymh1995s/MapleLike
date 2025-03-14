@@ -2,12 +2,7 @@ using Google.Protobuf.Protocol;
 using ServerContents.Job;
 using ServerContents.Object;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace ServerContents.Room
 {
@@ -94,8 +89,8 @@ namespace ServerContents.Room
         {
             double roll = random.NextDouble() * 100; // 0.0 ~ 99.9999...
 
-            if (roll < 90.0) return ItemType.Hppotion;      // 90%
-            if (roll < 94.5) return ItemType.Gold;  // 4.5%
+            if (roll < 90.0) return ItemType.Armor;      // 90%
+            if (roll < 94.5) return ItemType.Hppotion;  // 4.5%
             if (roll < 99.0) return ItemType.Mppotion;   // 4.5%
             // ItemType.Hppotion; 
             // 나머지 1%를 6개로 균등 배분 (각각 0.1667%)

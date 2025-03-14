@@ -2,16 +2,16 @@ using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerCore;
 using System;
-using System.Linq;
+using NUnit.Framework;
 using UnityEngine;
-using Random = UnityEngine.Random;
-using UnityEngine.AddressableAssets;
 
 
 // 기타 패킷 핸들러
 public partial class PacketHandler
 {
     public static event Action OnActivateStartScenePanel;
+
+    public static int TestitemSpawnPktid; //테스트 코드
     public static void S_ConnectedHandler(PacketSession session, IMessage packet)
     {
         OnActivateStartScenePanel?.Invoke();
@@ -22,7 +22,12 @@ public partial class PacketHandler
     {
         //실제 로직 기능 구현 
         S_ItemSpawn itemSpawnPkt = packet as S_ItemSpawn;
-  
+        TestitemSpawnPktid = itemSpawnPkt.PlayerId;
+        
+        // itemSpawnPkt.PlayerId // 몬스터를 죽인 플레이어 아이디  이걸로 연동하기 
+        
+        //먹는 시간은 아이템 정보를 클라이언트 단에서 시간초를 확인해라 
+        
         // TODO 아이템 생기는 효과도 주기
         //  _objects 딕셔너리에 추가해주기 
         // 여기까지 했으면 모든 플레이어들에게 이 아이템이 떨어졌다고 보일거임!
@@ -35,43 +40,61 @@ public partial class PacketHandler
     //사라짐 
     public static void S_ItemDespawnHandler(PacketSession session, IMessage packet)
     {
-        // 몇초 뒤 사라지는 기능 
+        // 몇초 뒤 사라지는 기능  + 누가 먹으면  사라지게 보여야해 
         S_ItemDespawn itemDespawnPkt = packet as S_ItemDespawn;
         ObjectManager.Instance.DespwanItem(itemDespawnPkt);
         
+        // 어떻게 아이템먹을때 호출 시킬까?
     }
-
     
     //먹기
     public static void S_LootItemHandler(PacketSession session, IMessage packet)
     {
-        //실제 로직 기능 구현 
+        // 실제 로직 기능 구현
         S_LootItem lootItemPkt = packet as S_LootItem;
+        if (lootItemPkt == null)
+        {
+            Debug.Log("아무것도 안들어옴");
+            return;
+        }
 
-        
-        if (lootItemPkt.PlayerId == ObjectManager.Instance.MyPlayer.Id )
+        var item = ObjectManager.Instance.FindById(lootItemPkt.ItemId);
+
+        if (lootItemPkt.PlayerId == ObjectManager.Instance.MyPlayer.Id) // 내가 먹은 패킷인지 확인
         {
-            Debug.Log($"Player {ObjectManager.Instance.MyPlayer.Id} has loot item");
-            Debug.Log($"ItemID:{lootItemPkt.ItemId}");
-            var item = ObjectManager.Instance.FindById(lootItemPkt.ItemId);
-            //누가 죽였는지 알아야함 
-            if (item.GetComponentInChildren<InitItem>().Ownerid == ObjectManager.Instance.MyPlayer.Id)
+            if (item == null)
             {
-                Debug.Log($"Player {ObjectManager.Instance.MyPlayer.Id} has looted the item.");
-                Debug.Log($"ItemID: {lootItemPkt.ItemId}");
-                item.GetComponent<ItemPickup>().StartAttracting(ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).transform);
-            }else
-            {
-                Debug.Log("이 아이템은 내가 죽인 몬스터에서 나온 것이 아님!");
+                Debug.LogWarning("아이템을 찾을 수 없습니다.");
+                return;
             }
-        
+
+            InitItem initItem = item.GetComponentInChildren<InitItem>();
+
+            if (initItem != null && initItem.Ownerid == ObjectManager.Instance.MyPlayer.Id)
+            {
+                // 아이템이 나의 것일 경우
+                var itemPickup = item.GetComponent<ItemPickup>();
+                if (itemPickup != null && !itemPickup.isAttracting)
+                {
+                    itemPickup.StartAttracting(); // 아이템 흡수 시작
+                    Debug.Log($"[내 아이템] lootItemPkt.PlayerId:{lootItemPkt.PlayerId} == MyPlayer.Id:{ObjectManager.Instance.MyPlayer.Id} → 아이템 흡수 시작");
+                }
+                else
+                {
+                    Debug.Log("아이템이 이미 흡수 중입니다.");
+                }
+            }
+            else
+            {
+                Debug.Log($"[다른 사람 아이템] lootItemPkt.PlayerId:{lootItemPkt.PlayerId} != MyPlayer.Id:{ObjectManager.Instance.MyPlayer.Id} → 아이템 무시");
+            }
         }
-        else
+        
+        // 아이템이 흡수 중인지 확인하고 흡수되지 않았다면 처리
+        if (item != null && item.GetComponent<ItemPickup>().isAttracting == false)
         {
-            Debug.Log("다른이가 먹었음 "+ObjectManager.Instance.MyPlayer.Id);
-            Debug.Log($"ItemID:{lootItemPkt.ItemId}");
+            Debug.Log("아이템 흡수 완료된 상태로 간주하고 아이템 제거");
+            ObjectManager.Instance.DespwanItem2(lootItemPkt);
         }
-        
-        
     }
 }

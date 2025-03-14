@@ -151,7 +151,7 @@ public class Controller : MonoBehaviour
             /// 직업의 스킬은 BaseClass의 abstract로 선언된 UseSkill을 각 직업에서 상속하여 override한 UseSkill이다.
             
             sm.TransitionTo(sm.attackState);
-            playerClass.ActiveHitbox();
+            //playerClass.ActiveHitbox();
         }
     }
 

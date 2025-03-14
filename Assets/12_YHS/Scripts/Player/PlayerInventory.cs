@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Google.Protobuf.Protocol;
 using TMPro;
 using UnityEngine;
 
@@ -23,24 +24,28 @@ public class PlayerInventory : MonoBehaviour
     
     private void Start()
     {
-        Slots = new List<Slot>(transform.GetComponentsInChildren<Slot>());
-        var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
-        //게임 오브젝트 가져오기
-        ClientInventroy = Player.GetComponent<YHSMyPlayerController>().playerInventory;
-        TextMeshProUGUI[] textComponents = GetComponentsInChildren<TextMeshProUGUI>();
-        foreach (var text in textComponents)
-        {
-            if (text.gameObject.name == "TxtGold")
-            {
-                TxtGold = text; // 정확한 TxtGold 찾기
-                Debug.Log("🎯 정확한 TxtGold 찾음: " + TxtGold.text);
-                break; // 찾았으면 더 이상 반복할 필요 없음
-            }
-        }
-
+        // //Slotitem에 있는 slot 스크립트 찾기 
+        // Slots = new List<Slot>(transform.GetComponentsInChildren<Slot>());
+        // var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
+        // //게임 오브젝트 가져오기
+        // ClientInventroy = Player.GetComponent<YHSMyPlayerController>().playerInventory;
+        // TextMeshProUGUI[] textComponents = GetComponentsInChildren<TextMeshProUGUI>();
+        // foreach (var text in textComponents)
+        // {
+        //     if (text.gameObject.name == "TxtGold")
+        //     {
+        //         TxtGold = text; // 정확한 TxtGold 찾기
+        //         Debug.Log("🎯 정확한 TxtGold 찾음: " + TxtGold.text);
+        //         break; // 찾았으면 더 이상 반복할 필요 없음
+        //     }
+        // }
+        //
         Income = 10000;
-        TxtGold.text = Income.ToString();
-        Player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(false);
+        // TxtGold.text = Income.ToString();
+        // Player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(false);
+        UIManager.Instance.TxtGold.text = Income.ToString();
+        UIManager.Instance.ConnectPlayer();
+        
     }
     
     public void AddItem(Item newItem)
@@ -51,9 +56,20 @@ public class PlayerInventory : MonoBehaviour
         }
         // 기존에 있는 아이템인지 확인
         Slot existingSlot = Slots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
-
-        if (existingSlot != null)
+        
+        //골드 일때를 인벤토리에 넣지 말고 income 추가후 갱신 
+        if (newItem.ItemType == ItemType.Gold)
         {
+            Income += 1000;
+            TxtGold.text = Income.ToString();
+            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
+            return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
+        }
+     
+        if (existingSlot != null)
+        {   
+         
+         
             // 🔥 이미 존재하는 아이템이면 개수 증가
             existingSlot.Count++;
             existingSlot.UpdateUI();
@@ -96,6 +112,24 @@ public class PlayerInventory : MonoBehaviour
             /*
              * 사용 했을 시 사용 효과 적용
              */
+            PlayerInformation temp = GetComponent<PlayerInformation>();
+
+            if (existingSlot.CurrentItem is Consumable consume)
+            {
+                switch (existingSlot.CurrentItem.ItemType)
+                {
+                    case ItemType.Hppotion:
+                        temp.SetPlayerHp(consume.healAmount);
+                        Debug.Log("체력 회복");
+                        break;
+                    case ItemType.Mppotion:
+                        temp.SetPlayerMp(consume.MpAmount);
+                        Debug.Log("마나 회복");
+                        break;
+                }
+            }
+
+
             existingSlot.Count--;
             existingSlot.UpdateUI();
             if (existingSlot.Count == 0)
@@ -115,38 +149,15 @@ public class PlayerInventory : MonoBehaviour
         }
         
     }
+    
+    
 
 
-    public void ShowInventory()
-    {
-     
-        //있는거 다시 집어넣기 
-        for (int i = 0; i < ClientInventroy.items.Count && i < Slots.Count; i++)
-        {
-            
-            Slots[i].SetItem(ClientInventroy.items[i]); // ✅ 아이템 UI 업데이트
-            
-        }
-    }
-
-    //전체 초기화 
-    public void ClearInventory()
-    {
-        Debug.Log("🔄 인벤토리 초기화 실행");
-
-        foreach (var slot in Slots)
-        {
-            slot.ClearSlot();
-        }
-
-        // 🔥 클라이언트 인벤토리의 실제 아이템 리스트 비우기
-        ClientInventroy.items.Clear();
-    }
 
     //돈 초기화
     public void UpdateIncome()
     {
-        TxtGold.text = Income.ToString();
+       UIManager.Instance.TxtGold.text= Income.ToString();
     }
 
     //선택한 하나 지우기

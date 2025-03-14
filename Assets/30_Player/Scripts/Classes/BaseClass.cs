@@ -1,6 +1,7 @@
 using Google.Protobuf.Protocol;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// 직업 요소를 담는 추상 클래스
@@ -19,9 +20,10 @@ public abstract class BaseClass : MonoBehaviour
     [Header("스킬 요소")]
     public Dictionary<string, SkillData> skillList = new Dictionary<string, SkillData>();    // 해당 직업의 스킬과 현재 스킬 레벨
     public Skill[] classSkill;    // 해당 직업의 스킬
-    public Collider2D Hitbox;
+    public GameObject Hitbox;
     public GameObject Effect;
     public GameObject HitObject;
+    protected GameObject currentHit;
 
     protected MonsterController target;
 
@@ -110,25 +112,52 @@ public abstract class BaseClass : MonoBehaviour
         return true;
     }
 
-    public abstract void ActiveHitbox();
+    protected virtual void ActiveHitbox()
+    {
+        if (Hitbox != null)
+        {
+            currentHit = Instantiate(Hitbox);
+        }
+        if (Effect != null)
+        {
+            Effect.SetActive(true);
+            Effect.GetComponent<Animator>().SetTrigger("Attack");
+        }
+    }
 
     /// <summary>
     /// 실제 타격 이펙트를 생성하는 함수. 데미지 처리 밑 패킷을 생성하여 보내는 처리도 여기서 할 예정
     /// 히트 오브젝트를 생성하는 함수
     /// 트리거 스크립트로부터 대상을 받아 해당 대상의 위치에 히트 오브젝트 생성
-    /// (현재는 플레이어가 타격한 방향과 상관없이 생성중)
     /// </summary>
     public abstract void CreateHitEffect();
 
     protected void SendHitMonsterPacket(int totalDamage)
     {
+        if (controller == null)
+        {
+            return;
+        }
         C_HitMonster HitMonster = new C_HitMonster();
         HitMonster.MonsterId = target.Id;
         HitMonster.PlayerAttackPower = totalDamage;
         NetworkManager.Instance.Send(HitMonster);
+        Debug.Log("패킷 송신함, totalDamage : " + totalDamage);
+
     }
 
-    public abstract void DeactiveHitbox();
+    protected virtual void DeactiveHitbox()
+    {
+        if (currentHit != null)
+        {
+            Destroy(currentHit);
+        }
+        if (controller != null)
+        {
+            controller.isDamaged = true;
+            controller.isAttacking = false;
+        }
+    }
 
     /// <summary>
     /// 플레이어가 몬스터를 공격했을 때의 데미지를 계산하는 메서드
@@ -138,7 +167,7 @@ public abstract class BaseClass : MonoBehaviour
     /// <param name="skillKey">플레이어가 발동한 스킬</param>
     /// <param name="totalDamage">플레이어가 가한 총 데미지</param>
     /// <returns></returns>
-    protected List<int> CalculatePlayerToMonsterDamage(MonsterController target, int power, string skillKey, out int totalDamage)
+    protected virtual List<int> CalculatePlayerToMonsterDamage(MonsterController target, int power, string skillKey, out int totalDamage)
     {
         List<int> damageList = new List<int>();
         totalDamage = 0;
@@ -157,6 +186,7 @@ public abstract class BaseClass : MonoBehaviour
 
             // 공식에 따라 데미지 계산
             int finalDamage = (int)((power * (1f + randomOffset)) * skillDamage * monsterDefense);
+            finalDamage = Mathf.Clamp(finalDamage, 0, finalDamage);
             damageList.Add(finalDamage);
             totalDamage += finalDamage;
         }

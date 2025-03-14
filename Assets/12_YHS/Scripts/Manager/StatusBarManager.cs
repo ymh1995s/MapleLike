@@ -1,10 +1,28 @@
-using Google.Protobuf.Protocol;
 using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class StatusBarManager : MonoBehaviour
 {
+    [SerializeField] List<Sprite> levelNumberSprite;
+    [SerializeField] List<Sprite> gaugeNumberSprite;
+
+    [SerializeField] GameObject levelNumber;        // 숫자가 출력될 위치
+    [SerializeField] GameObject hpNumber;           // 숫자가 출력될 위치
+    [SerializeField] GameObject mpNumber;           // 숫자가 출력될 위치
+    [SerializeField] GameObject expNumber;          // 숫자가 출력될 위치
+    
+    [SerializeField] GameObject rect3x3Prefab;      // 사각형 프리팹
+    [SerializeField] GameObject rect4x9Prefab;
+    [SerializeField] GameObject rect7x9Prefab;
+    [SerializeField] GameObject rect9x9Prefab;
+    [SerializeField] GameObject rect5x10Prefab;
+    [SerializeField] GameObject rect7x10Prefab;
+
+    [SerializeField] GameObject slashTextPrefab;
+
     [SerializeField] GameObject hpGauge;
     [SerializeField] GameObject mpGauge;
     [SerializeField] GameObject expGauge;
@@ -31,21 +49,25 @@ public class StatusBarManager : MonoBehaviour
         playerInformation.UpdateHpAction += UpdateHpGauge;
         playerInformation.UpdateMpAction += UpdateMpGauge;
         playerInformation.UpdateExpAction += UpdateExpGauge;
+        playerInformation.UpdateLevelUpAction += UpdateLevelUp;
     }
 
-    public void UpdateHpGauge(float hp, float maxHp)
+    public void UpdateHpGauge(int hp, int maxHp)
     {
-        StartCoroutine(ScaleOverTime(hpGauge, hp / maxHp, 0.5f));
+        UpdateGaugeNumber(hp, maxHp, hpNumber.transform, false);
+        StartCoroutine(ScaleOverTime(hpGauge, (float)hp / maxHp, 0.5f));
     }
 
-    public void UpdateMpGauge(float mp, float maxMp)
+    public void UpdateMpGauge(int mp, int maxMp)
     {
-        StartCoroutine(ScaleOverTime(mpGauge, mp / maxMp, 0.5f));
+        UpdateGaugeNumber(mp, maxMp, mpNumber.transform, false);
+        StartCoroutine(ScaleOverTime(mpGauge, (float)mp / maxMp, 0.5f));
     }
 
-    public void UpdateExpGauge(float exp, float totalExp)
+    public void UpdateExpGauge(int exp, int totalExp)
     {
-        StartCoroutine(ScaleOverTime(expGauge, exp / totalExp, 0.5f));
+        UpdateGaugeNumber(exp, totalExp, expNumber.transform, true);
+        StartCoroutine(ScaleOverTime(expGauge, (float)exp / totalExp, 0.5f));
 
         // TODO: 경험치바 끄트머리 반짝이 효과는 보류
         //Bounds bounds = expGauge.GetComponent<Renderer>().bounds;
@@ -55,6 +77,19 @@ public class StatusBarManager : MonoBehaviour
         //expEffect.transform.position = effectPosition;
     }
 
+    public void UpdateLevelUp(int level)
+    {
+        UpdateLevelNumber(level, levelNumber.transform);
+    }
+
+#region 출력 관련 메서드
+    /// <summary>
+    /// 게이지 증감이 시간에 따라 부드럽게 이루어지도록 하는 메서드
+    /// </summary>
+    /// <param name="go">게이지</param>
+    /// <param name="targetScaleX">목표 스케일</param>
+    /// <param name="time">목표 소요시간</param>
+    /// <returns></returns>
     IEnumerator ScaleOverTime(GameObject go, float targetScaleX, float time)
     {
         Vector3 startScale = go.transform.localScale;
@@ -72,4 +107,139 @@ public class StatusBarManager : MonoBehaviour
 
         go.transform.localScale = targetScale;
     }
+
+    /// <summary>
+    /// UI에 레벨을 출력하는 메서드
+    /// </summary>
+    /// <param name="currentLevel"></param>
+    /// <param name="parentTransform"></param>
+    public void UpdateLevelNumber(int currentLevel, Transform parentTransform)
+    {
+        // 기존 데이터 삭제
+        int childCount = parentTransform.childCount;
+        for (int i = 0; i < childCount; i++)
+        {
+            GameObject.Destroy(parentTransform.GetChild(i).gameObject);
+        }
+
+        string level = currentLevel.ToString();
+        foreach (char number in level)
+        {
+            GameObject go;
+            if (number == '1')
+            {
+                go = Instantiate(rect5x10Prefab, parentTransform);
+            }
+            else
+            {
+                go = Instantiate(rect7x10Prefab, parentTransform);
+            }
+            go.GetComponent<Image>().sprite = levelNumberSprite[number - '0'];
+        }
+    }
+
+    /// <summary>
+    /// 게이지를 덮는 숫자를 출력하는 메서드
+    /// </summary>
+    /// <param name="currentAmount">현재 수치</param>
+    /// <param name="maxAmount">최대 수치</param>
+    /// <param name="parentTransform">출력 위치</param>
+    public void UpdateGaugeNumber(int currentAmount, int maxAmount, Transform parentTransform, bool isExp)
+    {
+        // 기존 데이터 삭제
+        int childCount = parentTransform.childCount;
+        for (int i = 0; i < childCount; i++)
+        {
+            GameObject.Destroy(parentTransform.GetChild(i).gameObject);
+        }
+
+        // 게이지 현재 용량 출력
+        string amount = currentAmount.ToString();
+        foreach (char number in amount)
+        {
+            GameObject go;
+            if (number == '1')
+            {
+                go = Instantiate(rect4x9Prefab, parentTransform);
+            }
+            else
+            {
+                go = Instantiate(rect7x9Prefab, parentTransform);
+            }
+            go.GetComponent<Image>().sprite = gaugeNumberSprite[number - '0'];
+        }
+
+        // 경험치 게이지를 위한 분기
+        if (isExp == true)
+        {
+            UpdateExpRate(currentAmount, maxAmount, parentTransform);
+            return;
+        }
+
+        // 슬래시(/) 출력
+        Instantiate(slashTextPrefab, parentTransform);
+
+        // 게이지 최대 용량 출력
+        amount = maxAmount.ToString();
+        foreach (char number in amount)
+        {
+            GameObject go;
+            if (number == '1')
+            {
+                go = Instantiate(rect4x9Prefab, parentTransform);
+            }
+            else
+            {
+                go = Instantiate(rect7x9Prefab, parentTransform);
+            }
+            go.GetComponent<Image>().sprite = gaugeNumberSprite[number - '0'];
+        }
+    }
+
+    /// <summary>
+    /// 현재 경험치 / 전체 경험치 비율을 출력하는 메서드
+    /// </summary>
+    /// <param name="currentExp">현재 경험치</param>
+    /// <param name="maxExp">전체 경험치</param>
+    /// <param name="parentTransform">출력 위치</param>
+    public void UpdateExpRate(int currentExp, int maxExp, Transform parentTransform)
+    {
+        GameObject go;
+
+        // "[" 출력
+        go = Instantiate(rect7x9Prefab, parentTransform);
+        go.GetComponent<Image>().sprite = gaugeNumberSprite[10];
+
+        string rate = ((float)currentExp / maxExp * 100).ToString("F2");
+
+        foreach (char number in rate)
+        {
+            // 소수점 "." 출력
+            if (number == '.')
+            {
+                go = Instantiate(rect3x3Prefab, parentTransform);
+                go.GetComponent<Image>().sprite = gaugeNumberSprite[11];
+                continue;
+            }
+
+            if (number == '1')
+            {
+                go = Instantiate(rect4x9Prefab, parentTransform);
+            }
+            else
+            {
+                go = Instantiate(rect7x9Prefab, parentTransform);
+            }
+            go.GetComponent<Image>().sprite = gaugeNumberSprite[number - '0'];
+        }
+
+        // "%" 출력
+        go = Instantiate(rect9x9Prefab, parentTransform);
+        go.GetComponent<Image>().sprite = gaugeNumberSprite[12];
+
+        // "[" 출력
+        go = Instantiate(rect4x9Prefab, parentTransform);
+        go.GetComponent<Image>().sprite = gaugeNumberSprite[13];
+    }
+#endregion
 }

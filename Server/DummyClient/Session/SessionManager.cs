@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Protocol;
+using Google.Protobuf.Protocol;
 using Google.Protobuf.WellKnownTypes;
 using ServerCore;
 using System;
@@ -46,8 +46,7 @@ namespace DummyClient.Session
             {
                 foreach (var session in _sessions)
                 {
-                    C_Move dummyMovePacket = new C_Move();
-                    dummyMovePacket.PosInfo = session.Value.SetNextPos();
+                    C_PlayerMove dummyMovePacket = new C_PlayerMove();
                     session.Value.Send(dummyMovePacket);
                 }
             }

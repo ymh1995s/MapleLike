@@ -24,9 +24,6 @@ enum NormalMonsterSkill
 
 public class NormalMonsterController : MonsterController
 {
-    [SerializeField] GameObject hpBar;
-    [SerializeField] Image hpBarGauge;
-
     private Coroutine inactiveHPBarCoroutine = null;
 
     // 패킷 수신 시 세팅되는 값
@@ -34,16 +31,14 @@ public class NormalMonsterController : MonsterController
     NormalMonsterSkill currentSkill = NormalMonsterSkill.Skill0;    // TODO: 아직 일반 몬스터 스킬 구현 계획 없음.
     bool isRight;
 
-    protected override void FixedUpdate()
+    protected override void Update()
     {
         if (isAlreadyDie) return;
 
-        // 위치 동기화 (SyncPos)
-        base.FixedUpdate();
+        base.Update();
 
         // 변수 초기화
         if (currentState != NormalMonsterState.Skill) hasUsedSkill = false;
-        if (currentState != NormalMonsterState.Stun) isAlreadyStun = false;
 
         switch (currentState)
         {
@@ -54,7 +49,7 @@ public class NormalMonsterController : MonsterController
                 Move();
                 break;
             case NormalMonsterState.Stun:
-                Stun();
+                // Stun();
                 break;
             case NormalMonsterState.Skill:
                 Skill();
@@ -63,6 +58,12 @@ public class NormalMonsterController : MonsterController
                 Dead();
                 break;
         }
+    }
+
+    protected override void FixedUpdate()
+    {
+        // 위치 동기화 (SyncPos)
+        base.FixedUpdate();
     }
 
     protected override void Idle()
@@ -81,14 +82,8 @@ public class NormalMonsterController : MonsterController
 
     protected override void Stun()
     {
-        if (isAlreadyStun) return;
-
-        AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
-        if (!animatorStateInfo.IsName("hit"))
-        {
-            monsterAnimator.SetTrigger("hit");
-            isAlreadyStun = true;
-        }
+        monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+        monsterAnimator.SetTrigger("hit");
     }
 
     protected override void Skill()
@@ -101,7 +96,9 @@ public class NormalMonsterController : MonsterController
         AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
         if (!animatorStateInfo.IsName("die"))
         {
+            monsterAudioSource.PlayOneShot(monsterAudioClips.dieAudioClip);
             monsterAnimator.SetTrigger("die");
+            monsterCollider.enabled = false;
 
             if (inactiveHPBarCoroutine != null)
                 StopCoroutine(inactiveHPBarCoroutine);
@@ -124,6 +121,7 @@ public class NormalMonsterController : MonsterController
                 break;
             case MonsterState.MStun:
                 currentState = NormalMonsterState.Stun;
+                Stun();
                 break;
             case MonsterState.MSkill:
                 currentState = NormalMonsterState.Skill;
@@ -154,7 +152,7 @@ public class NormalMonsterController : MonsterController
         if (inactiveHPBarCoroutine != null)
             StopCoroutine(inactiveHPBarCoroutine);
 
-        hpBarGauge.fillAmount = Mathf.Clamp(info.StatInfo.Hp / maxHp, 0.0f, 1.0f);
+        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / maxHp;
 
         inactiveHPBarCoroutine = StartCoroutine(InActiveHPBar());
     }

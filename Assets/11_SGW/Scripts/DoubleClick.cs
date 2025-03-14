@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,8 +9,10 @@ public class DoubleClick : MonoBehaviour
     private float clickInterval = 0.3f;
     private int clickCount = 0;
     
+    [SerializeField] GameObject ShopUI;
     
-    public enum InventoryType { Inventory, Shop,Equip } // 현재 UI 타입 구분
+    
+    public enum InventoryType { Inventory, Shop,Equip,Misc } // 현재 UI 타입 구분
     public enum ItemType { Equipment, Consumable, Misc }// 아이템 타입 구분
 
     [Header("UI 타입")]
@@ -18,8 +21,12 @@ public class DoubleClick : MonoBehaviour
     
  
     
-    void Start()
+    void OnEnable()
     {
+        if (targetButton != null)
+        {
+            return;
+        }
         targetButton = GetComponent<Button>();
         targetButton.onClick.AddListener(OnButtonClick);
     }
@@ -49,11 +56,11 @@ public class DoubleClick : MonoBehaviour
 
     void HandleDoubleClick()
     {
-        //
+        
         if (currentInventoryType == InventoryType.Inventory)
         {
-            // var currentItem = transform.GetComponentInChildren<Slot>().CurrentItem;
-            var inventoyItemSlot = transform.GetComponentInChildren<Slot>();
+            Slot inventoyItemSlot = transform.GetComponentInChildren<Slot>();
+            
             if (inventoyItemSlot == null)
             {
                 Debug.Log("없어요");
@@ -68,25 +75,25 @@ public class DoubleClick : MonoBehaviour
             //슬롯안에 들어있는 아이템 카테고리가 장비라면
             if (inventoyItemSlot.CurrentItem.category == Item.ItemCategory.Equipment)
             {
-                PlayerEquip eqiup = transform.root.GetComponent<PlayerEquip>();
-                if (eqiup ==null)
+                
+                //플레이어 레벨을 확인 그리고 limitjob를 확인 렙이 낮으면 장착 못하게 하기  
+                if (inventoyItemSlot.CurrentItem is Equipment eq)
                 {
-                    Debug.Log("없음");
-                    return;
+                    int playerLevel = 6; //(경원)임시 변수 나중에 수정 할 예정 
+                    if (playerLevel < eq.limitLevel)
+                    {
+                        Debug.Log("장착 불가 입니다.");
+                        return;
+                    }
                 }
-                
-                //장착 시 수치 증가  변수명 넣어서 사용하면됨  statValue 사용
-                int statValue = eqiup.EquipItem(inventoyItemSlot.CurrentItem ,inventoyItemSlot);
-                
-                
-            
+                //수정 구문
+                UIManager.Instance.EquipItem2(inventoyItemSlot.CurrentItem ,inventoyItemSlot);
                 
             }
             //슬롯안에 들어있는 아이템 카테고리가 소비라면 
             else if (inventoyItemSlot.CurrentItem.category == Item.ItemCategory.Consumable)
             {
-                PlayerInventory inventory = transform.root.GetComponent<PlayerInventory>();
-                inventory.UseItem(inventoyItemSlot.CurrentItem);
+                UIManager.Instance.UseItem(inventoyItemSlot.CurrentItem);
             }
             
         }
@@ -107,25 +114,40 @@ public class DoubleClick : MonoBehaviour
         else if (currentInventoryType == InventoryType.Equip)
         {
             EquipSlot currentEquipSlot = transform.GetComponentInChildren<EquipSlot>();
-            PlayerInventory inventory = transform.root.GetComponent<PlayerInventory>();
             if (currentEquipSlot != null)
             {
-                inventory.AddItem(currentEquipSlot.CurrentItem);
+                UIManager.Instance.AddItem(currentEquipSlot.CurrentItem);
                 if (currentEquipSlot.CurrentItem is Equipment eq)
                 {
-                    //벗기 일때 statValue 사용
-                    int statValue = currentEquipSlot.CurrentItem.ItemType switch
-                    {
-                        Google.Protobuf.Protocol.ItemType.Armor or Google.Protobuf.Protocol.ItemType.Helmet or    Google.Protobuf.Protocol.ItemType.Boots => eq.defensePower,
-                        Google.Protobuf.Protocol.ItemType.Arrow or    Google.Protobuf.Protocol.ItemType.Sword => eq.attackPower,
-                        Google.Protobuf.Protocol.ItemType.Staff  => eq.magicPower,
-                        _ => 0 // 기본값 (예: 방어력/공격력이 없는 경우)
-                    };
-                    Debug.Log("장비 벗기"+statValue);
+                    if (PlayerInformation.equipmentStat == null)
+                        PlayerInformation.equipmentStat = new PlayerStatInfo(); // null일 경우 초기화
+
+                    var equipmentstat = PlayerInformation.equipmentStat; // 기존 객체 사용
+
+                    equipmentstat.AttackPower = eq.attackPower;
+                    equipmentstat.MagicPower = eq.magicPower;
+                    equipmentstat.Defense = eq.defensePower;
+
+                    Debug.Log("eq의 어택파워 :" + eq.attackPower);
+                    Debug.Log("eq의 방어력 :" + eq.defensePower);
+                    Debug.Log("equipmentstat.AttackPower: " + equipmentstat.AttackPower);
+                    Debug.Log("equipmentstat.Defense: " + equipmentstat.Defense);
+                    Debug.Log("equipmentstat.MagicPower: " + equipmentstat.MagicPower);
+                    Debug.Log("장비 벗기 완료");
                 }
-                currentEquipSlot._image.sprite = null;
+                Color color = currentEquipSlot._image.color;
+                color.a = 0f; // 알파 값 0 (완전 투명)
+                currentEquipSlot._image.color = color;
                 currentEquipSlot.CurrentItem = null;
             }
+        }else if (currentInventoryType == InventoryType.Misc)
+        {
+            if (ShopUI ==null)
+            {
+                Debug.Log("상점이 없거나, currentInventoryType 확인하세요");
+                return;
+            }
+            ShopUI.SetActive(true);
         }
       
     }

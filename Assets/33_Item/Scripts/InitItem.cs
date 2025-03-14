@@ -14,7 +14,8 @@ public class InitItem : MonoBehaviour
     
     void Start()
     {
-        Ownerid = ObjectManager.Instance.MyPlayer.Id;
+
+        Ownerid = PacketHandler.TestitemSpawnPktid;
         itemName = gameObject.name;
 
         if (Enum.TryParse(itemName, out ItemType parsedType))

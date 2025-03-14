@@ -33,12 +33,7 @@ public class PlayerAttackState : IPlayerState
 
     public void Exit()
     {
-        // TODO: 점프 공격 시 피격당하면 원작과 다르게 공격이 중단됨
-        // 점프 공격 시 공격이 중단되면 AttackState를 벗어나도록
-        //playerController.isAttacking = false;
 
-        // 공격 후 숨찬 상태(HitState)로 진입하도록
-        //playerController.isDamaged = true;
     }
 
     public CurrentPlayerState ReturnNowState()

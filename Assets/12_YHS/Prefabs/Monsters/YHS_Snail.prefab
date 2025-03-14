@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8489557464897416321}
   - component: {fileID: 1616804209122592881}
   - component: {fileID: -2799178778723225303}
-  - component: {fileID: -8367033509851478901}
   - component: {fileID: 5094225279983290277}
   m_Layer: 10
   m_Name: YHS_Snail
@@ -188,22 +187,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.66, y: 0.41991517}
   m_EdgeRadius: 0
---- !u!114 &-8367033509851478901
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6463191910955712951}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fdf162f56fb2ca1488dcd03fe48b87f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SpwanPos: {fileID: 8218801405962524259}
-  Ref:
-    m_LabelString: ItemObj
-  DropItemType: 0
 --- !u!114 &5094225279983290277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,6 +199,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6c1c10751613474a9d4323d6f1f509b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hpBar: {fileID: 0}
+  hpBarGauge: {fileID: 0}
 --- !u!1 &8878015492797938990
 GameObject:
   m_ObjectHideFlags: 0

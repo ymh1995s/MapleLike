@@ -1152,14 +1152,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6153337506099830736, guid: e67a87a2fc4f6c549943a22e283ed930, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: RevivePlayer
-      objectReference: {fileID: 0}
-    - target: {fileID: 6153337506099830736, guid: e67a87a2fc4f6c549943a22e283ed930, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: DeactiveDeathPopup
-      objectReference: {fileID: 0}
     - target: {fileID: 6259012922649544041, guid: e67a87a2fc4f6c549943a22e283ed930, type: 3}
       propertyPath: m_Name
       value: DeathManager

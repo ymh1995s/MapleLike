@@ -18,4 +18,4 @@ MonoBehaviour:
   addDamage: 25
   manaCost: 0
   addManaCost: 25
-  hitCount: 1
+  hitCount: 2

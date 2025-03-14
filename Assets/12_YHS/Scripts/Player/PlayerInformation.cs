@@ -1,6 +1,7 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
 using System;
+using Google.Protobuf.WellKnownTypes;
 
 public class PlayerInformation : MonoBehaviour
 {
@@ -45,6 +46,8 @@ public class PlayerInformation : MonoBehaviour
     public static AbilityPoint equipmentAp = new AbilityPoint();        // 장비 착용으로 상승하는 AP(임시)
     public static AbilityPoint finalAp = new AbilityPoint();            // 최종 AP
 
+    public static PlayerStatInfo equipmentStat = new PlayerStatInfo();
+
     private PlayerStatInfo initStatInfo = new PlayerStatInfo()
     {
         // 임시 (확정일 수도 있는) 스탯 데이터
@@ -64,9 +67,10 @@ public class PlayerInformation : MonoBehaviour
         TotalExp = 100,
     };
 
-    public Action<float, float> UpdateHpAction;     // UI 동기화를 위한 Action
-    public Action<float, float> UpdateMpAction;
-    public Action<float, float> UpdateExpAction;
+    public Action<int, int> UpdateHpAction;     // UI 동기화를 위한 Action
+    public Action<int, int> UpdateMpAction;
+    public Action<int, int> UpdateExpAction;
+    public Action<int> UpdateLevelUpAction;
 
     private void Start()
     {
@@ -131,8 +135,7 @@ public class PlayerInformation : MonoBehaviour
                 break;
         }
 
-        float finalAttackPower = (mainAp * 4 + subAp) * 0.05f;
-        //tempAttackPower *= 장비 공격력;
+        float finalAttackPower = (mainAp * 4 + subAp) * equipmentStat.AttackPower * 0.05f;
 
         playerStatInfo.AttackPower = initStatInfo.AttackPower + (int)finalAttackPower;
     }
@@ -156,6 +159,8 @@ public class PlayerInformation : MonoBehaviour
                 break;
         }
 
+        float finalMagicPower = (mainAp * 4 + subAp) * equipmentStat.MagicPower * 0.05f;
+
         playerStatInfo.MagicPower = initStatInfo.MagicPower + (int)((mainAp * 4 + subAp) * 0.05f);
     }
 
@@ -165,14 +170,15 @@ public class PlayerInformation : MonoBehaviour
                     + finalAp.Ap[(int)ApName.DEX] * 2
                     + finalAp.Ap[(int)ApName.INT] * 1;
 
-        //defense += 장비 방어력;
+        defense += equipmentStat.Defense;
 
         playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)(defense * 0.1f);
     }
 
     private void CalculateHpMp()
     {
-        // TODO:
+        UpdateHpAction.Invoke(playerStatInfo.Hp, playerStatInfo.MaxHp);
+        UpdateMpAction.Invoke(playerStatInfo.Mp, playerStatInfo.MaxMp);
     }
     #endregion
 
@@ -184,23 +190,20 @@ public class PlayerInformation : MonoBehaviour
 
     public void SetPlayerHp(int changeAmount)
     {
-
-        playerStatInfo.Hp += changeAmount;
-
-        Debug.Log(changeAmount);
-        int hp = playerStatInfo.Hp;
+        int hp = playerStatInfo.Hp + changeAmount;
         int maxHp = playerStatInfo.MaxHp;
 
         if (hp > maxHp)
         {
-            playerStatInfo.Hp = maxHp;
+            hp = maxHp;
         }
         if (hp <= 0)
         {
-            playerStatInfo.Hp = 0;
-            hp = -1;
+            hp = 0;
             playerController.OnDead();
         }
+
+        playerStatInfo.Hp = hp;
         UpdateHpAction.Invoke(hp, maxHp);      // UI 동기화
         Debug.Log("HP: " + hp + " / " + maxHp);
     }
@@ -214,21 +217,19 @@ public class PlayerInformation : MonoBehaviour
 
     public void SetPlayerMp(int changeAmount)
     {
-        playerStatInfo.Mp += changeAmount;
-
-        Debug.Log(changeAmount);
-        int mp = playerStatInfo.Mp;
+        int mp = playerStatInfo.Mp + changeAmount;
         int maxMp = playerStatInfo.MaxMp;
 
         if (mp > maxMp)
         {
-            playerStatInfo.Mp = maxMp;
+            mp = maxMp;
         }
         if (mp < 0)
         {
-            playerStatInfo.Mp = 0;
-            mp = -1;
+            mp = 0;
         }
+
+        playerStatInfo.Mp = mp;
         UpdateMpAction.Invoke(mp, maxMp);      // UI 동기화
         Debug.Log("MP: " + mp + " / " + maxMp);
     }
@@ -242,58 +243,71 @@ public class PlayerInformation : MonoBehaviour
 
     public void SetPlayerExp(int changeAmount)
     {
-        playerStatInfo.CurrentExp += changeAmount;
-
-        Debug.Log(changeAmount);
-        int exp = playerStatInfo.CurrentExp;
+        int exp = playerStatInfo.CurrentExp + changeAmount;
         int totalExp = playerStatInfo.TotalExp;
 
         if (exp >= totalExp)
         {
-            playerStatInfo.CurrentExp = exp - totalExp;
-            playerStatInfo.TotalExp = (int)(totalExp * 1.25f);     // 다음 레벨업에 필요한 경험치량 상승      
             exp -= totalExp;
 
-            if (exp == 0)
-            {
-                exp = 1;
-            }
-
+            playerStatInfo.TotalExp = (int)(totalExp * 1.25f);     // 다음 레벨업에 필요한 경험치량 상승      
             playerStatInfo.Level += 1;
-            LevelUp();
+            UpdateLevelUpAction.Invoke(playerStatInfo.Level);
 
             // 레벨업 애니메이션
             SpawnManager.Instance.SpawnAsset(ConstList.LevelUp, transform);
+
+            LevelUp();
         }
 
+        playerStatInfo.CurrentExp = exp;
         UpdateExpAction.Invoke(exp, totalExp);     // UI 동기화
         Debug.Log("EXP: " + exp + " / " + totalExp);
     }
 
     /// <summary>
-    /// 레벨업에 따른 주스탯 자동 투자 메서드
+    /// 레벨업에 따른 스탯 자동 증가 메서드
     /// </summary>
     private void LevelUp()
     {
         ClassType classType = playerStatInfo.ClassType;
 
+        int apIndex = 0;
+        float hpExtendRate = 1f;
+        float mpExtendRate = 1f;
+
         switch (classType)
         {
             case ClassType.Warrior:
-                playerAp.Ap[(int)ApName.STR] += 5;
+                apIndex = (int)ApName.STR;
+                hpExtendRate = 1.25f;
+                mpExtendRate = 1.05f;
                 break;
             case ClassType.Magician:
-                playerAp.Ap[(int)ApName.INT] += 5;
+                apIndex = (int)ApName.STR;
+                hpExtendRate = 1.10f;
+                mpExtendRate = 1.35f;
                 break;
             case ClassType.Archer:
-                playerAp.Ap[(int)ApName.DEX] += 5;
+                apIndex = (int)ApName.DEX;
+                hpExtendRate = 1.15f;
+                mpExtendRate = 1.15f;
                 break;
         }
+
+        playerAp.Ap[apIndex] += 5;
+        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * hpExtendRate);
+        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * mpExtendRate);
 
         CalculateAp();
         CalculateAttackPower();
         CalculateMagicPower();
         CalculateDefense();
+        CalculateHpMp();
+
+        // HP/MP 모두 회복
+        SetPlayerHp(playerStatInfo.MaxHp);
+        SetPlayerMp(playerStatInfo.MaxMp);
     }
     #endregion
 

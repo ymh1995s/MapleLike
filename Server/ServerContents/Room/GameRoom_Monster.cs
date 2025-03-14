@@ -39,6 +39,31 @@ namespace ServerContents.Room
             }
         }
 
+         
+        void BossRoomUpdate()
+        {
+            // 보스맵인 경우
+            if (RoomId != (int)MapName.BossRoom)
+                return;
+
+            if (_players.Count > 0) return;
+            else
+            {
+                foreach (int normalMonsterId in  _normalMonsters.Keys)
+                {
+                    LeaveMonster(normalMonsterId);
+                    MonsterManager.Instance.MonsterDespawn(normalMonsterId);
+                }
+                    
+                foreach (int bossMonsterId in _bossMonsters.Keys)
+                {
+                    LeaveMonster(bossMonsterId);
+                    MonsterManager.Instance.MonsterDespawn(bossMonsterId);
+                }
+                MonsterManager.Instance.canSpawnBoss = true;   
+            }
+        }
+
         public void MonsterEnterGame(GameObject gameObject)
         {
             lock (_lock)
@@ -61,14 +86,13 @@ namespace ServerContents.Room
                     monster.Room = this;
                 }
 
-                // 게임룸에 입장한 사실을 다른 클라이언트에게 전송
+                // 게임룸에 존재하는 모든 클라이언트에게 전달
                 {
                     S_MonsterSpawn spawnPacket = new S_MonsterSpawn();
                     spawnPacket.MonsterInfos.Add((gameObject as Monster)?.Info);
                     foreach (Player p in _players.Values)
                     {
-                        if (p.Id != gameObject.Id)
-                            p.Session.Send(spawnPacket);
+                        p.Session.Send(spawnPacket);
                     }
                 }
             }
@@ -81,30 +105,28 @@ namespace ServerContents.Room
 
             if (type == GameObjectType.Normalmonster)
             {
-                NormalMonster monster = null;
-                if (_normalMonsters.Remove(objectId, out monster) == false)
-                    return;
-
-                monster.Room = null;
+                NormalMonster normalMonster = null;
+                if (_normalMonsters.Remove(objectId, out normalMonster) != false)
+                {
+                    normalMonster.Room = null;
+                }
             }
             else if (type == GameObjectType.Bossmonster)
             {
-                BossMonster projectile = null;
-                if (_bossMonsters.Remove(objectId, out projectile) == false)
-                    return;
-
-                projectile.Room = null;
+                BossMonster bossMonster = null;
+                if (_bossMonsters.Remove(objectId, out bossMonster) == false)
+                {
+                    bossMonster.Room = null;
+                }
             }
 
-            // 타인한테 정보 전송
+            // 게임룸에 존재하는 모든 클라이언트에게 전달
             {
-                // TODO : 디스폰 구분
                 S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
                 despawnPacket.MonsterIds.Add(objectId);
                 foreach (Player p in _players.Values)
                 {
-                    if (p.Id != objectId)
-                        p.Session.Send(despawnPacket);
+                    p.Session.Send(despawnPacket);
                 }
             }
         }
@@ -142,6 +164,18 @@ namespace ServerContents.Room
             return _players.Count;
         }
         #endregion
+
+        public void GameClear()
+        {
+            if (RoomId != (int)MapName.BossRoom)
+                return;
+
+            foreach (Player p in _players.Values)
+            {
+                S_GameClear gameClearPacket = new S_GameClear();
+                p.Session.Send(gameClearPacket);
+            }
+        }
 
         #region 보스룸 웨이팅 관련
 

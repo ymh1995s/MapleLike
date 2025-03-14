@@ -25,32 +25,28 @@ enum BossMonsterSkill
 
 public class BossMonsterController : MonsterController
 {
-    // TODO: 보스 체력바 구현
-    [SerializeField] GameObject hpBar;
-    [SerializeField] Image hpBarGauge;
-
     // 패킷 수신 시 세팅되는 값
     BossMonsterState currentState = BossMonsterState.Idle;
     BossMonsterSkill currentSkill = BossMonsterSkill.DarkGenesis;
     bool isRight;
 
+    [Header("보스몬스터 스킬")]
     // 스킬 발사체 스폰 포지션
-    [SerializeField] GameObject darknessBallSpawnPosition;
+    [SerializeField] GameObject darknessBallSpawnPositionLeft;
+    [SerializeField] GameObject darknessBallSpawnPositionRight;
 
     // 스킬 프리팹
     [SerializeField] GameObject darkGenesisSkillProjectilePrefab;
     [SerializeField] GameObject darknessBallSkillProjectilePrefab;
 
-    protected override void FixedUpdate()
+    protected override void Update()
     {
         if (isAlreadyDie) return;
 
-        // 위치 동기화 (SyncPos)
-        base.FixedUpdate();
+        base.Update();
 
         // 변수 초기화
         if (currentState != BossMonsterState.Skill) hasUsedSkill = false;
-        if (currentState != BossMonsterState.Stun) isAlreadyStun = false;
         
         switch (currentState)
         {
@@ -61,7 +57,7 @@ public class BossMonsterController : MonsterController
                 Move();
                 break;
             case BossMonsterState.Stun:
-                Stun();
+                // Stun();
                 break;
             case BossMonsterState.Skill:
                 Skill();
@@ -70,6 +66,11 @@ public class BossMonsterController : MonsterController
                 Dead();
                 break;
         }
+    }
+    protected override void FixedUpdate()
+    {
+        // 위치 동기화 (SyncPos)
+        base.FixedUpdate();
     }
 
     protected override void Idle()
@@ -88,14 +89,9 @@ public class BossMonsterController : MonsterController
 
     protected override void Stun()
     {
-        if (isAlreadyStun) return;
-
-        AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
-        if (!animatorStateInfo.IsName("hit"))
-        {
-            monsterAnimator.SetTrigger("hit");
-            isAlreadyStun = true;
-        }
+        // TODO: 보스몬스터는 히트 애니메이션 존재하지 않음.
+        // monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+        // monsterAnimator.SetTrigger("hit");
     }
 
     protected override void Skill()
@@ -114,6 +110,7 @@ public class BossMonsterController : MonsterController
                     monsterAnimator.SetTrigger("darknessBall");
                     break;
             }
+            monsterAudioSource.PlayOneShot(monsterAudioClips.skillAudioClips[(int)BossMonsterSkill.DarkGenesis]);
             hasUsedSkill = true;
         }
     }
@@ -123,7 +120,12 @@ public class BossMonsterController : MonsterController
         AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
         if (!animatorStateInfo.IsName("die"))
         {
+            monsterAudioSource.PlayOneShot(monsterAudioClips.dieAudioClip);
             monsterAnimator.SetTrigger("die");
+            monsterCollider.enabled = false;
+
+            hpBar.SetActive(false);
+
             isAlreadyDie = true;
         }
     }
@@ -141,6 +143,7 @@ public class BossMonsterController : MonsterController
                 break;
             case MonsterState.MStun:
                 currentState = BossMonsterState.Stun;
+                Stun();
                 break;
             case MonsterState.MSkill:
                 currentState = BossMonsterState.Skill;
@@ -166,10 +169,7 @@ public class BossMonsterController : MonsterController
 
     public void UpdateHPBarGauge()
     {
-        // TODO: 보스 체력바 구현
-
-        hpBar.SetActive(true);
-        hpBarGauge.fillAmount = Mathf.Clamp(info.StatInfo.Hp / maxHp, 0.0f, 1.0f);
+        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / maxHp;
     }
 
     #region 스킬
@@ -177,7 +177,16 @@ public class BossMonsterController : MonsterController
     // attack1 애니메이션에서 이벤트로 호출됨.
     public void DarkGenesis()
     {
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        List<GameObject> players = new List<GameObject>();
+
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.name.Contains("Player"))
+            {
+                players.Add(obj);
+            }
+        }
 
         foreach (GameObject player in players)
         {
@@ -189,15 +198,23 @@ public class BossMonsterController : MonsterController
     // attack2 애니메이션에서 이벤트로 호출됨.
     public void DarknessBall()
     {
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        List<GameObject> players = new List<GameObject>();
 
-        foreach (GameObject player in players) 
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.name.Contains("Player"))
+            {
+                players.Add(obj);
+            }
+        }
+
+        foreach (GameObject player in players)
         {
             GameObject projectile = Instantiate(darknessBallSkillProjectilePrefab);
-            Vector3 spawnPosition = darknessBallSpawnPosition.transform.position;
 
             // flipX에 따라 x 좌표를 반전
-            spawnPosition.x *= monsterSpriteRenderer.flipX ? -1 : 1;
+            Vector3 spawnPosition = monsterSpriteRenderer.flipX ? darknessBallSpawnPositionRight.transform.position : darknessBallSpawnPositionLeft.transform.position;
 
             projectile.transform.position = spawnPosition;
             projectile.GetComponent<DarknessBall>().target = player;
