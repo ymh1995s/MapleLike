@@ -1,5 +1,6 @@
 using Google.Protobuf.Protocol;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -19,26 +20,30 @@ public abstract class BaseClass : MonoBehaviour
 
     [Header("스킬 요소")]
     public Dictionary<string, SkillData> skillList = new Dictionary<string, SkillData>();    // 해당 직업의 스킬과 현재 스킬 레벨
+    public Dictionary<string, AudioClip> skillSound = new Dictionary<string, AudioClip>();
     public Skill[] classSkill;    // 해당 직업의 스킬
+    public AudioClip[] SkillSound;
     public GameObject Hitbox;
     public GameObject Effect;
     public GameObject HitObject;
     protected GameObject currentHit;
+    protected AudioSource SkillSource;
 
     protected MonsterController target;
 
     protected virtual void Start()
     {
+        SkillSource = gameObject.AddComponent<AudioSource>();
         info = GetComponentInParent<PlayerInformation>();
-        playerInfo = PlayerInformation.playerInfo;
-        playerStatInfo = PlayerInformation.playerStatInfo;
+        playerInfo = PlayerInformation.playerInfo;          // static이어서 없어도 됩니다.
+        playerStatInfo = PlayerInformation.playerStatInfo;  // static이어서 없어도 됩니다.
         controller = GetComponentInParent<YHSMyPlayerController>();
     }
 
     /// <summary>
     /// 직업의 스펙을 조정한다.
     /// </summary>
-    protected abstract void ClassStat();
+    public abstract void ClassStat();
 
     /// <summary>
     /// 스킬을 사용할 때 사용한다. Bool타입으로 스킬 사용에 성공했는지 여부를 리턴한다.
@@ -83,6 +88,10 @@ public abstract class BaseClass : MonoBehaviour
         {
             skillList[classSkill[i].skillName] = new SkillData(classSkill[i], 1);
         }
+        for(int i = 0; i < SkillSound.Length; i++)
+        {
+            skillSound[classSkill[i].skillName] = SkillSound[i];
+        }
     }
 
     /// <summary>
@@ -112,18 +121,7 @@ public abstract class BaseClass : MonoBehaviour
         return true;
     }
 
-    protected virtual void ActiveHitbox()
-    {
-        if (Hitbox != null)
-        {
-            currentHit = Instantiate(Hitbox);
-        }
-        if (Effect != null)
-        {
-            Effect.SetActive(true);
-            Effect.GetComponent<Animator>().SetTrigger("Attack");
-        }
-    }
+    protected abstract void ActiveHitbox();
 
     /// <summary>
     /// 실제 타격 이펙트를 생성하는 함수. 데미지 처리 밑 패킷을 생성하여 보내는 처리도 여기서 할 예정
@@ -132,18 +130,23 @@ public abstract class BaseClass : MonoBehaviour
     /// </summary>
     public abstract void CreateHitEffect();
 
-    protected void SendHitMonsterPacket(int totalDamage)
+    protected void SendHitMonsterPacket(List<int> damageList)
     {
         if (controller == null)
         {
             return;
         }
+
         C_HitMonster HitMonster = new C_HitMonster();
         HitMonster.MonsterId = target.Id;
-        HitMonster.PlayerAttackPower = totalDamage;
-        NetworkManager.Instance.Send(HitMonster);
-        Debug.Log("패킷 송신함, totalDamage : " + totalDamage);
 
+        foreach (var damage in damageList)
+        {
+            HitMonster.PlayerAttackPowers.Add(damage);
+        }
+        
+        NetworkManager.Instance.Send(HitMonster);
+        Debug.Log("패킷 송신함, totalDamage : " + damageList);
     }
 
     protected virtual void DeactiveHitbox()

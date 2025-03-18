@@ -22,13 +22,13 @@ MonoBehaviour:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2d76d3301d51f03408d7916a0dfe4c91
-    m_Address: 10_DefaultArrowParent
+    m_Address: 10_DefaultarrowParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 36c1651f4dcd6284e87bb3c3ca5553a2
-    m_Address: 11_DefaultStaffParent
+    m_Address: 11_DefaultstaffParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj
@@ -64,7 +64,7 @@ MonoBehaviour:
     - ItemObj
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8a120f4f984ba604c81c062279066f84
-    m_Address: 09_DefaultSwordParent
+    m_Address: 09_DefaultswordParent
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemObj

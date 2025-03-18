@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ServerContents.Room
 {
@@ -131,7 +132,7 @@ namespace ServerContents.Room
             }
         }
 
-        public void MonsterHitAndSetTarget(Player player, int monsterId, int damageAmount)
+        public void MonsterHitAndSetTarget(Player player, int monsterId, List<int> damageAmounts)
         {
             Monster monster = null;
 
@@ -144,7 +145,7 @@ namespace ServerContents.Room
             if (monster != null)
             {
                 monster.SetTarget(player);
-                monster.TakeDamage(player.Id, damageAmount);
+                monster.TakeDamage(player.Id, damageAmounts);
             }
             else
             {
@@ -163,12 +164,46 @@ namespace ServerContents.Room
         {
             return _players.Count;
         }
+
+        // 보스몬스터의 일반몬스터 소환 스킬 사용에 있어서 현재 룸에 있는 일반몬스터의 수를 파악하기 위함.
+        public int GetNormalMonsterCountInRoom()
+        {
+            return _normalMonsters.Count;
+        }
+
+        public void RemoveMonster(int id)
+        {
+            GameObjectType type = ObjectManager.GetObjectTypeById(id);
+
+            if (type == GameObjectType.Normalmonster)
+            {
+                NormalMonster normalMonster = null;
+                if (_normalMonsters.Remove(id, out normalMonster) != false)
+                {
+                    normalMonster.Room = null;
+                }
+            }
+            else if (type == GameObjectType.Bossmonster)
+            {
+                BossMonster bossMonster = null;
+                if (_bossMonsters.Remove(id, out bossMonster) == false)
+                {
+                    bossMonster.Room = null;
+                }
+            }
+        }
+
         #endregion
 
         public void GameClear()
         {
             if (RoomId != (int)MapName.BossRoom)
                 return;
+
+            foreach(var normalMonster in _normalMonsters)
+            {
+                LeaveMonster(normalMonster.Key);
+            }
 
             foreach (Player p in _players.Values)
             {

@@ -53,9 +53,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             Debug.LogWarning("ItemManager.Instance가 null입니다.");
         }
     }
-
-
-
+    
     private void OnEnable()
     {
         InitUI();
@@ -108,7 +106,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             
             if (TxtCurrentMeso != null)
             {
-                 TxtCurrentMeso.text = a.Income.ToString();
+                 TxtCurrentMeso.text = UIManager.Instance.Income.ToString();
                 
             }
             foreach (var itemData in UIManager.Instance.InventorySlots)
@@ -164,13 +162,13 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
         Item itemToAdd = ItemManager.Instance.ItemList.Find(item => item.id == itemId);
         if (itemToAdd != null)
         {
-            if (playerInventory.Income < itemToAdd.buyprice)
+            if (UIManager.Instance.Income< itemToAdd.buyprice)
             {
                 //아마 팝업 UI를 뜨게 할예정
                 Debug.Log("돈 없다. 돈모아와라");
                 return;
             }
-            playerInventory.Income -= itemToAdd.buyprice;
+            UIManager.Instance.Income -= itemToAdd.buyprice;
             // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
             UIManager.Instance.AddItem(itemToAdd);
             playerInventory.UpdateIncome();
@@ -233,7 +231,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             // ✅ 아이템 개수 감소
             existingSlot.Count--;
             // 골드 증가
-            playerInventory.Income += existingSlot.CurrentItem.sellprice;
+            UIManager.Instance.Income += existingSlot.CurrentItem.sellprice;
 
             if (existingSlot.Count <= 0)
             {

@@ -1,5 +1,6 @@
 using Google.Protobuf.Protocol;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Archer : BaseClass
@@ -10,44 +11,57 @@ public class Archer : BaseClass
     {
         base.Start();
         InitializeSkill();
-        if (playerStatInfo.ClassType == ClassType.Cnone)
-        {
-            ClassStat();
-        }
     }
 
     /// <summary>
     /// 궁수 직업의 고유 특성 부여
     /// </summary>
-    protected override void ClassStat()
+    public override void ClassStat()
     {
-        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 0.9f);
-        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 1.1f);
-        playerStatInfo.ClassType = ClassType.Archer;
+        PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 0.9f);
+        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 2.5f);
 
-        playerStatInfo.Hp = playerStatInfo.MaxHp;
-        playerStatInfo.Mp = playerStatInfo.MaxMp;
+        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp;
+        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
     protected override void ActiveHitbox()
     {
-        Vector3 playerPosition = transform.parent.position;
-        if (Hitbox != null)
-        {
-            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-2.5f), playerPosition.y + 1f), Quaternion.identity);
-            currentHit.GetComponent<TriggerScript>().player = playerPosition;
-        }
         if (Effect != null)
         {
             Effect.SetActive(true);
             Effect.GetComponent<Animator>().SetTrigger("Attack");
             // 스킬 사용 이펙트 활성화 및 애니메이션 실행
         }
+
+        //if (controller == null)
+        //{
+        //    return;
+        //}
+
+        if (currentHit != null)
+        {
+            Destroy(currentHit);
+            currentHit = null;
+        }
+
+        Vector3 playerPosition = transform.parent.position;
+        if (Hitbox != null)
+        {
+            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-3.5f), playerPosition.y + 1f), Quaternion.identity);
+            currentHit.GetComponent<TriggerScript>().player = playerPosition;
+        }
+
     }
 
     public override void CreateHitEffect()
     {
+        //if (controller == null)
+        //{
+        //    return;
+        //}
+
         target = currentHit.GetComponent<TriggerScript>().GetTarget();
 
         for (int i = 0; i < classSkill[0].hitCount; i++)
@@ -58,6 +72,11 @@ public class Archer : BaseClass
 
     private void CreateDamageSkin()
     {
+        if (controller == null)
+        {
+            return;
+        }
+
         int totalDamage = 0;
         List<int> damageList = CalculatePlayerToMonsterDamage(
                                     target,
@@ -65,8 +84,7 @@ public class Archer : BaseClass
                                     "Double Shot",
                                     out totalDamage
                                     );
-        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
-        SendHitMonsterPacket(totalDamage);
+        SendHitMonsterPacket(damageList);
     }
 
     protected override List<int> CalculatePlayerToMonsterDamage(MonsterController target, int power, string skillKey, out int totalDamage)
@@ -103,7 +121,7 @@ public class Archer : BaseClass
         Collider2D hitCollider = currentHit.GetComponent<Collider2D>();
         Vector3 min = hitCollider.bounds.min;
         Vector3 max = hitCollider.bounds.max;
-        Vector3 startPoint = controller.isRight ? max : min;
+        Vector3 startPoint = GetComponentInParent<PlayerController>().isRight ? max : min;
         startPoint.y = hitCollider.bounds.center.y;
 
         GameObject arrowGo = Instantiate(arrowPrefab,
@@ -128,9 +146,9 @@ public class Archer : BaseClass
 
         Vector3 direction = (end - start).normalized;
         float distance = Vector3.Distance(start, end);
-        float minSpeed = 5f;
-        float maxSpeed = 10f;
-        float duration = 0.5f;
+        float minSpeed = 10f;
+        float maxSpeed = 20f;
+        float duration = 1.5f;
         float speed = Mathf.Clamp(distance / duration, minSpeed, maxSpeed);
 
         arrowGo.GetComponent<ArrowMovement>().Initialize(direction, end, speed, duration, HitObject, target, CreateDamageSkin);
@@ -152,6 +170,7 @@ public class Archer : BaseClass
         else
         {
             info.SetPlayerMp(-cost);
+            SkillSource.PlayOneShot(skillSound["Double Shot"]);
             return true;
         }
     }

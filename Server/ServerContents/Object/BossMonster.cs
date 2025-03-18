@@ -2,6 +2,7 @@ using Google.Protobuf.Protocol;
 using ServerContents.Room;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,12 +23,14 @@ namespace ServerContents.Object
         BossMonsterState _currentState = BossMonsterState.Idle;
 
         private DateTime _lastSetTargetTime = DateTime.Now;
+        private DateTime _spawnTime;
 
         public BossMonster()
         {
             ObjectType = GameObjectType.Bossmonster;
 
             _lastThinkTime = DateTime.Now;
+            _spawnTime = DateTime.Now;
             _thinkInterval = 0.0f;
         }
 
@@ -77,9 +80,16 @@ namespace ServerContents.Object
         {
             S_MonsterSkill monsterSkillPacket = new S_MonsterSkill();
             monsterSkillPacket.MonsterId = Id;
-            monsterSkillPacket.SkillType = (BossMonsterSkillType)(rnd.Next(0, 2));  // 현재 구현은 2개의 스킬이므로 둘 중에 하나 랜덤 선택
+
+            if (RoomManager.Instance.Find((int)MapName.BossRoom).GetNormalMonsterCountInRoom() <= 2)
+                monsterSkillPacket.SkillType = (BossMonsterSkillType)(rnd.Next(0, 4));
+            else
+                monsterSkillPacket.SkillType = (BossMonsterSkillType)(rnd.Next(0, 3));  // 현재 구현은 2개의 스킬이므로 둘 중에 하나 랜덤 선택
 
             Room.Broadcast(monsterSkillPacket);
+
+            if (monsterSkillPacket.SkillType == BossMonsterSkillType.Bossskill4)
+                MonsterManager.Instance.BossMonsterSpawnNormalMonster(_destinationPos.X, (int)MapName.BossRoom, 5);
         }
 
         protected override void UpdateInfo()
@@ -109,7 +119,7 @@ namespace ServerContents.Object
                     // 스턴이 끝난 후 Think를 호출
                     Think();
 
-                    _thinkInterval = (float)(rnd.NextDouble() * 2 + 3); // 3초에서 5초
+                    _thinkInterval = (float)(rnd.NextDouble() * 1.5 + 1.5); // 3초에서 5초
                     _lastThinkTime = currentTime;
                 }
             }
@@ -119,7 +129,7 @@ namespace ServerContents.Object
                 {
                     Think();
 
-                    _thinkInterval = (float)(rnd.NextDouble() * 2 + 3); // 3초에서 5초
+                    _thinkInterval = (float)(rnd.NextDouble() * 1.5 + 1.5); // 3초에서 5초
                     _lastThinkTime = currentTime;
                 }
             }
@@ -130,7 +140,7 @@ namespace ServerContents.Object
                 {
                     Think();
 
-                    _thinkInterval = (float)(rnd.NextDouble() * 2 + 3); // 3초에서 5초
+                    _thinkInterval = (float)(rnd.NextDouble() * 1.5 + 1.5); // 3초에서 5초
                     _lastThinkTime = currentTime;
                 }
             }
@@ -139,6 +149,15 @@ namespace ServerContents.Object
         // Move, Skill random Selection
         protected override void Think()
         {
+            DateTime currentTime = DateTime.Now;
+
+            // 초기 3초 동안 Idle 상태 유지
+            if ((currentTime - _spawnTime).TotalSeconds < 3.0f)
+            {
+                _currentState = BossMonsterState.Idle; 
+                return;
+            }
+
             int random = rnd.Next(0, 2);
             if (random == 0)
             {
@@ -168,12 +187,18 @@ namespace ServerContents.Object
             _destinationPos.X += (_isRight ? Stat.Speed : -Stat.Speed);
 
             if (_target != null)
-                _isRight = _target.Info.PositionX > _destinationPos.X ? true : false;
+            {
+                float distance = Math.Abs(_target.Info.PositionX - _destinationPos.X);
+
+                if (distance >= 1.0f) // 거리 차이가 1.0 이상일 때만 변경
+                {
+                    _isRight = _target.Info.PositionX > _destinationPos.X;
+                }
+            }
 
             _destinationPos.X = Math.Clamp(_destinationPos.X, _minX, _maxX);
         }
 
-        // TODO: 보스가 스턴이 있는가?
         protected override void UpdateStun()
         {
             if (_currentState != BossMonsterState.Stun)
@@ -202,14 +227,19 @@ namespace ServerContents.Object
             // 위치 변동 없음
         }
 
-        public override void TakeDamage(int playerId, int attackPower)
+        public override void TakeDamage(int playerId, List<int> damageAmounts)
         {
-            base.TakeDamage(playerId, attackPower);
+            base.TakeDamage(playerId, damageAmounts);
 
             if (Stat.Hp > 0)
             {
+                UpdateStun();
+
                 S_HitMonster hitPacket = new S_HitMonster();
                 hitPacket.MonsterId = Id;
+                hitPacket.PlayerId = playerId;
+                foreach (var damageAmount in damageAmounts)
+                    hitPacket.Damages.Add(damageAmount);
                 hitPacket.MonsterCurrentHp = Stat.Hp;
                 Room.Broadcast(hitPacket);
             }
@@ -219,9 +249,20 @@ namespace ServerContents.Object
 
                 // TODO: 경험치 제공
                 // TODO: 아이템 제공
-               
+
+                S_HitMonster hitPacket = new S_HitMonster();
+                hitPacket.MonsterId = Id;
+                hitPacket.PlayerId = playerId;
+                foreach (var damageAmount in damageAmounts)
+                    hitPacket.Damages.Add(damageAmount);
+                hitPacket.MonsterCurrentHp = Stat.Hp;
+                Room.Broadcast(hitPacket);
+
                 // 현재 룸에 존재하는 모든 클라이언트에게 알림
-                Room.LeaveMonster(Id);
+                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
+                despawnPacket.MonsterIds.Add(Id);
+                Room.Broadcast(despawnPacket);
+                Room.RemoveMonster(Id);
 
                 MonsterManager.Instance.MonsterDespawn(Id);
 
@@ -233,7 +274,7 @@ namespace ServerContents.Object
         {
             DateTime currentTime = DateTime.Now;
 
-            if ((currentTime - _lastSetTargetTime).TotalSeconds <= 10.0f)
+            if ((currentTime - _lastSetTargetTime).TotalSeconds <= 5.0f)
                 return;
 
             _target = newTarget;

@@ -234,7 +234,7 @@ SpriteRenderer:
   m_SortingOrder: 20
   m_Sprite: {fileID: 21300000, guid: 686def0af37e2324d872ee001434b95e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 0.79, y: 0.71}
@@ -326,17 +326,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.3973893}
+  m_Offset: {x: -0.0044469014, y: 0.3973893}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0.02, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.028547706}
+    border: {x: 0.37, y: 0.02, z: 0.01, w: 0}
+    pivot: {x: 0.72714335, y: 0.029712334}
     oldSize: {x: 0.79, y: 0.71}
     newSize: {x: 0.79, y: 0.71}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.79, y: 0.58468366}
+  m_Size: {x: 0.43425125, y: 0.58468366}
   m_EdgeRadius: 0
 --- !u!114 &6116554027977999680
 MonoBehaviour:
@@ -491,7 +491,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.174, y: 0.02}
+  m_AnchoredPosition: {x: 0.014, y: 0.02}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8342719271970409058
@@ -515,7 +515,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 20
   m_TargetDisplay: 0
 --- !u!114 &5817304744336917745
 MonoBehaviour:

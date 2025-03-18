@@ -22,7 +22,10 @@ public partial class PacketHandler
         if (room == null)
             return;
 
-        room.Push(room.MonsterHitAndSetTarget, player, hitPacket.MonsterId, hitPacket.PlayerAttackPower);
+        List<int> damageAmounts = new List<int>();
+        foreach (int playerAttackPower in hitPacket.PlayerAttackPowers)
+            damageAmounts.Add(playerAttackPower);
+        room.Push(room.MonsterHitAndSetTarget, player, hitPacket.MonsterId, damageAmounts);
     }
     public static void C_BossRegisterHandler(PacketSession session, IMessage packet)
     {

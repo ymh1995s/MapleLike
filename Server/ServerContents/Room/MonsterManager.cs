@@ -19,6 +19,7 @@ namespace ServerContents.Room
         public string name { get; set; }
         public string type { get; set; }
         public int level { get; set; }
+        public int maxHp { get; set; }
         public int hp { get; set; }
         public int attackPower { get; set; }
         public int defense { get; set; }
@@ -221,6 +222,7 @@ namespace ServerContents.Room
             MonsterStatInfo monsterStatInfo = new MonsterStatInfo();
 
             monsterStatInfo.Level = monsterData.level;
+            monsterStatInfo.MaxHp = monsterData.maxHp;
             monsterStatInfo.Hp = monsterData.hp;
             monsterStatInfo.AttackPower = monsterData.attackPower;
             monsterStatInfo.Defense = monsterData.defense;
@@ -230,6 +232,69 @@ namespace ServerContents.Room
             return monsterStatInfo;
         }
 
+        // 보스몬스터가 일반몬스터 스폰 스킬 사용시 의도적으로 일반몬스터를 스폰 시키기 위함.
+        public void BossMonsterSpawnNormalMonster(float currentBossXPos, int currentRoomId, int spawnMonsterCount)
+        {
+            if (RoomManager.Instance.Find(currentRoomId) == null)
+                return;
+
+            if (!maps.TryGetValue(currentRoomId, out Map currentMap))
+                return;
+
+            if (monsterDatabase == null || monsterDatabase.monsterDatabase == null)
+                return;
+
+            foreach (var zone in currentMap.zones)
+            {
+                if (zone.Value.monsterType == "Boss") continue;
+
+                for(int i = 0; i < spawnMonsterCount; i++)
+                {
+                    float spawnPosX = (float)(rnd.NextDouble() * 6 - 3) + currentBossXPos;
+                    float spawnPosY = zone.Value.range.Item2;
+
+                    int minLevel = zone.Value.levelRange.Item1;
+                    int maxLevel = zone.Value.levelRange.Item2;
+                    string spawnableMonsterType = zone.Value.monsterType;
+
+                    // Type, LevelRange에 해당하는 몬스터 필터링
+                    var validMonsters = monsterDatabase.monsterDatabase
+                        .Where(monster => monster.type == spawnableMonsterType && monster.level >= minLevel && monster.level <= maxLevel)
+                        .ToList();
+
+                    // 랜덤으로 하나 선택
+                    MonsterData selectedMonster = validMonsters[rnd.Next(validMonsters.Count)];
+
+                    Monster monster = null;
+                    if (spawnableMonsterType == "Normal")
+                    {
+                        monster = ObjectManager.Instance.Add<NormalMonster>();
+
+                        // 일반 몬스터인 경우, 이동 가능한 범위 내에서 랜덤한 위치에 스폰
+                        monster.Info.DestinationX = spawnPosX;
+                        monster.Info.DestinationY = spawnPosY;
+                    }
+
+                    Console.WriteLine($"보스의 스킬 사용으로 {currentMap.mapType} Map {currentRoomId}의 Zone {zone.Value.id}에서 {selectedMonster.type} {selectedMonster.name} (Lv.{selectedMonster.level})가 스폰됨! 위치: ({spawnPosX}, {spawnPosY})");
+
+                    monster.Info.Name = $"{selectedMonster.name}_{monster.Info.MonsterId}";
+                    monster.Info.StatInfo = GetMonsterStatInfo(selectedMonster);
+                    monster.Stat = monster.Info.StatInfo;
+                    monster.Info.CreatureState = MonsterState.MIdle;
+
+                    monster.SetInitialPos(new Vector2(spawnPosX, spawnPosY));
+                    monster.SetBoundPos(new Vector2(zone.Value.range.Item1.Item1, zone.Value.range.Item1.Item2));
+
+                    RoomManager.Instance.Find(currentRoomId).MonsterEnterGame(monster);
+
+                    zone.Value.currentMonsterCount++;
+                    currentMap.currentMonsterCount++;
+
+                    Tuple<int, int> monsterSpawnLocation = new Tuple<int, int>(currentRoomId, zone.Value.id);
+                    allMonsters.Add(monster.Info.MonsterId, monsterSpawnLocation);
+                }
+            }
+        }
 
         public void MonsterDespawn(int monsterId)
         {

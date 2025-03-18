@@ -842,7 +842,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 60
-    OrthographicSize: 5
+    OrthographicSize: 6
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -902,12 +902,12 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 37f0df817b37c5248adb299a3c6702cd, type: 3}
-  m_Resource: {fileID: 8300000, guid: 37f0df817b37c5248adb299a3c6702cd, type: 3}
+  m_audioClip: {fileID: 8300000, guid: e43f00ff4b4f1e24982c9012e89928fb, type: 3}
+  m_Resource: {fileID: 8300000, guid: e43f00ff4b4f1e24982c9012e89928fb, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -1266,7 +1266,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1291,7 +1291,7 @@ Transform:
   m_GameObject: {fileID: 1955231953}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.000008702278, y: 0.36181474, z: 0}
+  m_LocalPosition: {x: -0.000008702278, y: 1.3618147, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

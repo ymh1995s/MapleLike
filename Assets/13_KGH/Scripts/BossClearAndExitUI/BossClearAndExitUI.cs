@@ -9,6 +9,7 @@ public class BossClearAndExitUI : MonoBehaviour
 
     [SerializeField] GameObject bossClearLogo;
     [SerializeField] GameObject bossClearTooltip;
+    [SerializeField] GameObject bossRoomExitButton;
     [SerializeField] GameObject portalToViliage;
 
     private void Awake()
@@ -16,6 +17,13 @@ public class BossClearAndExitUI : MonoBehaviour
         if (Instance == null)
             Instance = this;
         else Destroy(gameObject);
+    }
+
+    private void Update()
+    {
+        // 다른 객체를 참조해서 가져오는 것이 객체간 결합도가 증가해서 찝찝하긴 하지만..
+        if (DeathManager.Instance.player != null && DeathManager.Instance.player.isDead)
+            bossRoomExitButton.SetActive(false);
     }
 
     public void ExitButtonPressed()
@@ -31,6 +39,7 @@ public class BossClearAndExitUI : MonoBehaviour
         StartCoroutine(BossClearLogoInactiveCoroutine());
         
         bossClearTooltip.SetActive(true);
+        bossRoomExitButton.SetActive(false);
         portalToViliage.SetActive(true);
     }
 

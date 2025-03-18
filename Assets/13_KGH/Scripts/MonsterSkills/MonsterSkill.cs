@@ -5,9 +5,9 @@ public class MonsterSkill : MonoBehaviour
 {
     protected SpriteRenderer spriteRenderer;
     protected Collider2D collider2D;
-
+    
     // 플레이어가 몬스터 스킬과 충돌을 입었을 시, 해당 값을 바탕으로 체력 감소로직에 적용시켜야 함.
-    [SerializeField] protected int damage;
+    private int damage;
     
     protected virtual void Start()
     {
@@ -19,6 +19,11 @@ public class MonsterSkill : MonoBehaviour
     public void DestroyEvent()
     {
         Destroy(gameObject);
+    }
+
+    public void SetDamage(int damage)
+    {
+        this.damage = damage;
     }
 
     public int GetDamage()

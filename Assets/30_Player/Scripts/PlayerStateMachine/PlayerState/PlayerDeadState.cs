@@ -20,8 +20,8 @@ public class PlayerDeadState : IPlayerState
     {
         character.GetComponent<SpriteRenderer>().enabled = false;
         
-        //SpawnManager.Instance.SpawnAsset(ConstList.RIP, playerController.transform);   // 비석 소환
-        SpawnManager.Instance.SpawnAsset(ConstList.YHSRIP, playerController.transform);   // 비석 소환
+        SpawnManager.Instance.SpawnAsset(ConstList.RIP, playerController.transform);   // 비석 소환
+        SoundManager.Instance.PlaySoundOneShot(ConstList.Death);
 
         YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
         if (mpc != null)

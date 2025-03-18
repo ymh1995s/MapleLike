@@ -8,7 +8,6 @@ public class EquipSlot : MonoBehaviour
 
     public Image _image;
     public Item CurrentItem;
-    public ItemType CurrentItemType;
 
     public Equipment.Parts CurrentPart;
     

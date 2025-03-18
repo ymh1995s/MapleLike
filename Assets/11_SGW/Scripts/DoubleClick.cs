@@ -6,7 +6,7 @@ public class DoubleClick : MonoBehaviour
 {
     public Button targetButton;
     private float clickTime = 0f;
-    private float clickInterval = 0.3f;
+    private float clickInterval = 0.5f;
     private int clickCount = 0;
     
     [SerializeField] GameObject ShopUI;
@@ -56,7 +56,6 @@ public class DoubleClick : MonoBehaviour
 
     void HandleDoubleClick()
     {
-        
         if (currentInventoryType == InventoryType.Inventory)
         {
             Slot inventoyItemSlot = transform.GetComponentInChildren<Slot>();
@@ -79,10 +78,11 @@ public class DoubleClick : MonoBehaviour
                 //플레이어 레벨을 확인 그리고 limitjob를 확인 렙이 낮으면 장착 못하게 하기  
                 if (inventoyItemSlot.CurrentItem is Equipment eq)
                 {
-                    int playerLevel = 6; //(경원)임시 변수 나중에 수정 할 예정 
-                    if (playerLevel < eq.limitLevel)
+                    if (PlayerInformation.playerStatInfo.Level < eq.limitLevel)
                     {
-                        Debug.Log("장착 불가 입니다.");
+                        Debug.Log("렙이 낮아서 착용 할수 없어요");
+                        UIManager.Instance.warningGroup.SetActive(true);
+                        UIManager.Instance.PlaySoundDlgNotice();
                         return;
                     }
                 }
@@ -121,12 +121,13 @@ public class DoubleClick : MonoBehaviour
                 {
                     if (PlayerInformation.equipmentStat == null)
                         PlayerInformation.equipmentStat = new PlayerStatInfo(); // null일 경우 초기화
-
+                    
+                    
                     var equipmentstat = PlayerInformation.equipmentStat; // 기존 객체 사용
 
-                    equipmentstat.AttackPower = eq.attackPower;
-                    equipmentstat.MagicPower = eq.magicPower;
-                    equipmentstat.Defense = eq.defensePower;
+                    equipmentstat.AttackPower -= eq.attackPower;
+                    equipmentstat.MagicPower -= eq.magicPower;
+                    equipmentstat.Defense -= eq.defensePower;
 
                     Debug.Log("eq의 어택파워 :" + eq.attackPower);
                     Debug.Log("eq의 방어력 :" + eq.defensePower);
@@ -139,6 +140,8 @@ public class DoubleClick : MonoBehaviour
                 color.a = 0f; // 알파 값 0 (완전 투명)
                 currentEquipSlot._image.color = color;
                 currentEquipSlot.CurrentItem = null;
+                var playerObj =ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
+                playerObj.GetComponent<PlayerInformation>().CalculateStat();
             }
         }else if (currentInventoryType == InventoryType.Misc)
         {

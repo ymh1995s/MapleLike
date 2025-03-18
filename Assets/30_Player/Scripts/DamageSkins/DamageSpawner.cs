@@ -10,7 +10,7 @@ public class DamageSpawner : MonoBehaviour
     [SerializeField] GameObject damageNumberPrefab;     // 데미지스킨 스프라이트를 할당할 흰색 Square
     private List<Sprite> currentDamageSkin;             // 공격/피격에 따라 데미지스킨 선택
 
-    public List<int> damageList = new List<int>{ 12, 345, 6789, 20250228 }; // temp
+    //public List<int> damageList = new List<int>{ 12, 345, 6789, 20250228 }; // temp
 
     private float horizontalOffset = 0.4f;  // 좌우 방향 숫자 위치(간격)
 

@@ -65,14 +65,20 @@ public class ArrowMovement : MonoBehaviour
     {
         if (collision.CompareTag("Monster") && collision.GetComponent<MonsterController>() == monster)
         {
-            Vector3 targetPosition = collision.GetComponent<BoxCollider2D>().bounds.center;
-            GameObject hitGo = Instantiate(hitObject, targetPosition, Quaternion.identity);
-            hitGo.GetComponent<Animator>().SetTrigger("Hit");
-            hitGo.GetComponent<SpriteRenderer>().flipX = 
-                (transform.GetComponent<BoxCollider2D>().bounds.center.x > targetPosition.x);
-            // Archer로부터 함수를 받아 데미지 처리 패킷을 보내고, 데미지스킨이 출력되도록 한다.
-            onHit?.Invoke();
-            Destroy(hitGo, 0.45f);
+            if (PlayerInformation.playerInfo.PlayerId == FindAnyObjectByType<YHSMyPlayerController>().Id)
+            {
+                Vector3 targetPosition = collision.GetComponent<BoxCollider2D>().bounds.center;
+
+                GameObject hitGo = Instantiate(hitObject, targetPosition, Quaternion.identity);
+
+                hitGo.GetComponent<SpriteRenderer>().flipX =
+                    (transform.GetComponent<BoxCollider2D>().bounds.center.x > targetPosition.x);
+                // Archer로부터 함수를 받아 데미지 처리 패킷을 보내고, 데미지스킨이 출력되도록 한다.
+                hitGo.GetComponent<Animator>().SetTrigger("Hit");
+                Debug.Log("히트 이펙트 생성");
+                onHit?.Invoke();
+                Destroy(hitGo, 0.45f);
+            }
 
             Destroy(gameObject);
         }

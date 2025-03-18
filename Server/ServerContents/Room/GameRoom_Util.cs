@@ -30,6 +30,7 @@ namespace ServerContents.Room
         {
             while (true)
             {
+                if (RoomId != (int)MapName.Tutorial) break;
                 Console.WriteLine($"# {Enum.GetName(typeof(MapName), RoomId),-15} | 총 {recvPacketCount + sendPacketCount,5}개 | recv : {recvPacketCount,5}개 | send : {sendPacketCount,5}개 처리 (1초)");
                 recvPacketCount = 0;
                 sendPacketCount = 0;

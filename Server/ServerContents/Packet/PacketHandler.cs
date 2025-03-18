@@ -30,7 +30,7 @@ public partial class PacketHandler
             Console.WriteLine(" 허용되지 않은 클래스 타입. 클라이언트 오류 ");
             return;
         }
-        clientSession.MyPlayer.Info.StatInfo.ClassType = (int)pkt.ClassType;
+        clientSession.MyPlayer.Info.StatInfo.ClassType = pkt.ClassType;
 
         GameRoom room = RoomManager.Instance.Find((int)MapName.Tutorial); 
         if (room == null)

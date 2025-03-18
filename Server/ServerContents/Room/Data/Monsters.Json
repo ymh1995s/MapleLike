@@ -1,62 +1,68 @@
 {
   "monsterDatabase": [
     {
-      "name": "리본돼지",
-      "type": "Normal",
-      "level": 10,
-      "hp": 125,
-      "attackPower": 38,
-      "defense": 10,
-      "speed": 5,
-      "exp": 17
-    },
-    {
-      "name": "슬라임",
-      "type": "Normal",
-      "level": 7,
-      "hp": 80,
-      "attackPower": 25,
-      "defense": 5,
-      "speed": 1,
-      "exp": 12
-    },
-    {
       "name": "달팽이",
       "type": "Normal",
       "level": 1,
-      "hp": 15,
-      "attackPower": 2,
+      "maxHp": 30,
+      "hp": 30,
+      "attackPower": 5,
       "defense": 0,
       "speed": 1,
       "exp": 3
     },
     {
-      "name": "주황버섯",
+      "name": "슬라임",
       "type": "Normal",
-      "level": 10,
-      "hp": 125,
-      "attackPower": 41,
-      "defense": 0,
-      "speed": 5,
-      "exp": 17
+      "level": 7,
+      "maxHp": 160,
+      "hp": 160,
+      "attackPower": 25,
+      "defense": 5,
+      "speed": 3,
+      "exp": 12
     },
     {
       "name": "스텀프",
       "type": "Normal",
       "level": 8,
-      "hp": 95,
+      "maxHp": 180,
+      "hp": 180,
       "attackPower": 30,
       "defense": 0,
       "speed": 1,
       "exp": 13
     },
     {
+      "name": "리본돼지",
+      "type": "Normal",
+      "level": 10,
+      "maxHp": 250,
+      "hp": 250,
+      "attackPower": 38,
+      "defense": 10,
+      "speed": 4,
+      "exp": 17
+    },
+    {
+      "name": "주황버섯",
+      "type": "Normal",
+      "level": 10,
+      "maxHp": 250,
+      "hp": 250,
+      "attackPower": 41,
+      "defense": 0,
+      "speed": 3,
+      "exp": 17
+    },
+    {
       "name": "페어리",
       "type": "Normal",
       "level": 13,
-      "hp": 200,
+      "maxHp": 400,
+      "hp": 400,
       "attackPower": 53,
-      "defense": 85,
+      "defense": 40,
       "speed": 3,
       "exp": 27
     },
@@ -64,91 +70,100 @@
       "name": "초록버섯",
       "type": "Normal",
       "level": 15,
-      "hp": 250,
+      "maxHp": 500,
+      "hp": 500,
       "attackPower": 58,
       "defense": 12,
-      "speed": 1,
+      "speed": 2.5,
       "exp": 21
     },
     {
       "name": "아이언호그",
       "type": "Normal",
       "level": 16,
-      "hp": 250,
+      "maxHp": 500,
+      "hp": 500,
       "attackPower": 58,
       "defense": 12,
-      "speed": 1,
+      "speed": 4,
       "exp": 21
     },
     {
       "name": "머쉬맘",
       "type": "Normal",
       "level": 19,
-      "hp": 500,
-      "attackPower": 1,
+      "maxHp": 5000,
+      "hp": 5000,
+      "attackPower": 60,
       "defense": 50,
-      "speed": 1,
-      "exp": 1650
+      "speed": 2,
+      "exp": 200
     },
     {
       "name": "정식기사A",
       "type": "Normal",
       "level": 20,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 1650
+      "maxHp": 1000,
+      "hp": 1000,
+      "attackPower": 70,
+      "defense": 70,
+      "speed": 2,
+      "exp": 40
     },
     {
       "name": "정식기사B",
       "type": "Normal",
       "level": 20,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 1650
+      "maxHp": 1050,
+      "hp": 1050,
+      "attackPower": 72,
+      "defense": 72,
+      "speed": 2,
+      "exp": 42
     },
     {
       "name": "정식기사C",
       "type": "Normal",
       "level": 20,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 1650
+      "maxHp": 1100,
+      "hp": 1100,
+      "attackPower": 74,
+      "defense": 74,
+      "speed": 2.5,
+      "exp": 44
     },
     {
       "name": "정식기사D",
       "type": "Normal",
       "level": 20,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 1650
+      "maxHp": 1150,
+      "hp": 1150,
+      "attackPower": 76,
+      "defense": 76,
+      "speed": 2.5,
+      "exp": 46
     },
     {
       "name": "정식기사E",
       "type": "Normal",
       "level": 20,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 1650
+      "maxHp": 1200,
+      "hp": 1200,
+      "attackPower": 78,
+      "defense": 78,
+      "speed": 2.5,
+      "exp": 48
     },
     {
       "name": "시그너스",
       "type": "Boss",
       "level": 140,
-      "hp": 500,
-      "attackPower": 1,
-      "defense": 1,
-      "speed": 1,
-      "exp": 2040000
+      "maxHp": 30000,
+      "hp": 30000,
+      "attackPower": 150,
+      "defense": 95,
+      "speed": 2,
+      "exp": 1
     }
   ]
 }

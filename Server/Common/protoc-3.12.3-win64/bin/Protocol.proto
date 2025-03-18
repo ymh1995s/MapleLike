@@ -101,9 +101,8 @@ message S_MonsterDespawn {
 message S_ItemSpawn{
   ItemInfo itemInfo = 1;
   ItemType itemType = 2;
-  int32 playerId = 3;
-  int32 canOnlyOwnerLootTime = 4;
-  int32 lifeTime  = 5;
+  int32 canOnlyOwnerLootTime = 3;
+  int32 lifeTime  = 4;
 }
 
 message C_PlayerSkill{
@@ -122,14 +121,15 @@ message S_MonsterSkill{
 
 message C_HitMonster {
 	int32 monsterId = 1;
-	int32 playerAttackPower = 2;
+	repeated int32 playerAttackPowers = 2;
 }
 
 message S_HitMonster {
 	int32 playerId = 1;
 	int32 monsterId = 2;
-	int32 monsterMaxHp = 3;
-	int32 monsterCurrentHp = 4;
+	repeated int32 damages = 3;
+	int32 monsterMaxHp = 4;
+	int32 monsterCurrentHp = 5;
 }
 
 message C_PlayerDamaged {
@@ -200,7 +200,7 @@ message MonsterInfo {
 
 message PlayerStatInfo {
   int32 level = 1;
-  int32 classType = 2; // 직업명
+  ClassType classType = 2; // 직업명
   int32 hp = 3;
   int32 maxHp = 4;
   int32 mp = 5;
@@ -218,16 +218,19 @@ message MonsterStatInfo {
   int32 id = 1;
   int32 level = 2;
   int32 hp = 3;
-  int32 attackPower = 4;
-  int32 defense = 5;
-  float speed = 6;
-  int32 exp = 7;
+  int32 maxHp = 4;
+  int32 attackPower = 5;
+  int32 defense = 6;
+  float speed = 7;
+  int32 exp = 8;
 }
 
 message ItemInfo {
-  int32 itemId = 1;
-  float positionX = 2;
-  float positionY = 3;
+  int32 itemId = 1;  
+  int32 ownerId = 2;
+  bool canRootAnyOne = 3;
+  float positionX = 4;
+  float positionY = 5;
   // TODO : 여기서 세부 아이템 정보를 관리한다.
 }
 
@@ -274,6 +277,9 @@ enum ItemType {
   ARROW = 6;
   HPPOTION = 7;
   MPPOTION = 8;
+  DEFAULTSWORD = 9;
+  DEFAULTSTAFF = 10;
+  DEFAULTARROW = 11;
 }
 
 // 플레이어와 작동방식 ex. FSM? 을 보고 한번 맞추긴 해야겠다.

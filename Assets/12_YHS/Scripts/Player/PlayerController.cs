@@ -1,5 +1,5 @@
-
 using Google.Protobuf.Protocol;
+using System.Collections;
 using UnityEngine;
 
 public class PlayerController : BaseController
@@ -9,9 +9,36 @@ public class PlayerController : BaseController
     public Animator animator;
     GameObject character;
     BaseClass playerClass;
+    protected Coroutine DeadTime;
 
     public bool isRight = true;          // 플레이어가 바라보는 방향
-    public bool isAttacking = false;     // 플레이어가 공격 중인지
+    private bool _isAttacking = false;
+    public bool isAttacking              // 플레이어가 공격 중인지
+    {
+        get => _isAttacking;
+        set
+        {
+            _isAttacking = value;
+            if (value)
+            {
+                if (DeadTime != null)
+                {
+                    StopCoroutine(DeadTime);
+                    DeadTime = null;
+                }
+                DeadTime = StartCoroutine(TimeWatchAttack());
+            }
+            else
+            {
+                if (DeadTime != null)
+                {
+                    StopCoroutine(DeadTime);
+                    DeadTime = null;
+                }
+            }
+        }
+    }
+
     public bool isDamaged = false;       // 플레이어가 피격 되었는지
     public bool isDead = false;          // 플레이어가 사망했는지
 
@@ -117,4 +144,16 @@ public class PlayerController : BaseController
         }
     }
     #endregion
+
+    IEnumerator TimeWatchAttack()
+    {
+        float timer = 0f;
+        while (timer < 2f)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        isAttacking = false;
+        yield break;
+    }
 }

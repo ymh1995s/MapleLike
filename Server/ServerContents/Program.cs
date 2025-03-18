@@ -24,7 +24,6 @@ namespace ServerContents
             Console.WriteLine("Server Start!");
             string host = Dns.GetHostName();
             IPHostEntry ipHost = Dns.GetHostEntry(host);
-            // AWS 전용 하드 코딩
             string ipAddressString = "127.0.0.1";
             IPAddress ipAddr = IPAddress.Parse(ipAddressString);
             //IPAddress ipAddr = ipHost.AddressList[0]; 

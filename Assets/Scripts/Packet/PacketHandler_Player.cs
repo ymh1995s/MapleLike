@@ -2,6 +2,7 @@ using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerCore;
 using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -90,10 +91,23 @@ public partial class PacketHandler
         // 현재 S_PlayerMoveHandler()와 기능 통합
     }
 
+    /// <summary>
+    /// 플레이어들의 피격 데미지스킨 동기화를 위한 메서드
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
     public static void S_PlayerDamagedHandler(PacketSession session, IMessage packet)
     {
-        // 플레이어의 Hit(Stun) 상태로의 전환은 S_PlayerMoveHandler()와 기능 통합
-        // 패킷에서 damage를 수신하므로 체력 반영이 가능하다.
+        // 플레이어의 Hit(Stun) 상태로의 전환은 S_PlayerMoveHandler()와 기능 통합, 나중에 분리 가능할지도?
+        // 패킷에서 damage를 수신하므로 파티원간 현재 체력 공유 구현도 가능하다.
+        S_PlayerDamaged playerDamagedPacket = packet as S_PlayerDamaged;
+        Transform target = ObjectManager.Instance.FindById(playerDamagedPacket.PlayerId).transform;
+
+        SpawnManager.Instance.SpawnDamage(
+            new List<int>() { playerDamagedPacket.Damage },
+            target,
+            true
+            );
     }
 
     public static void S_PlayerDieHandler(PacketSession session, IMessage packet)

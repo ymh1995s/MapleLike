@@ -52,22 +52,47 @@ public class StatusBarManager : MonoBehaviour
         playerInformation.UpdateLevelUpAction += UpdateLevelUp;
     }
 
+    #region 수치 계산 관련 메서드
     public void UpdateHpGauge(int hp, int maxHp)
     {
         UpdateGaugeNumber(hp, maxHp, hpNumber.transform, false);
-        StartCoroutine(ScaleOverTime(hpGauge, (float)hp / maxHp, 0.5f));
+
+        float scale = 0f;
+
+        if (hp != 0)
+        {
+            scale = (float)hp / maxHp;
+        }
+        
+        StartCoroutine(ScaleOverTime(hpGauge, scale, 0.5f, false));
     }
 
     public void UpdateMpGauge(int mp, int maxMp)
     {
         UpdateGaugeNumber(mp, maxMp, mpNumber.transform, false);
-        StartCoroutine(ScaleOverTime(mpGauge, (float)mp / maxMp, 0.5f));
+
+        float scale = 0f;
+
+        if (mp != 0)
+        {
+            scale = (float)mp / maxMp;
+        }
+
+        StartCoroutine(ScaleOverTime(mpGauge, scale, 0.5f, false));
     }
 
     public void UpdateExpGauge(int exp, int totalExp)
     {
         UpdateGaugeNumber(exp, totalExp, expNumber.transform, true);
-        StartCoroutine(ScaleOverTime(expGauge, (float)exp / totalExp, 0.5f));
+
+        float scale = 0f;
+
+        if (exp != 0)
+        {
+            scale = (float)exp / totalExp;
+        }
+
+        StartCoroutine(ScaleOverTime(expGauge, scale, 0.5f, true));
 
         // TODO: 경험치바 끄트머리 반짝이 효과는 보류
         //Bounds bounds = expGauge.GetComponent<Renderer>().bounds;
@@ -81,8 +106,9 @@ public class StatusBarManager : MonoBehaviour
     {
         UpdateLevelNumber(level, levelNumber.transform);
     }
+    #endregion
 
-#region 출력 관련 메서드
+    #region 출력 관련 메서드
     /// <summary>
     /// 게이지 증감이 시간에 따라 부드럽게 이루어지도록 하는 메서드
     /// </summary>
@@ -90,11 +116,17 @@ public class StatusBarManager : MonoBehaviour
     /// <param name="targetScaleX">목표 스케일</param>
     /// <param name="time">목표 소요시간</param>
     /// <returns></returns>
-    IEnumerator ScaleOverTime(GameObject go, float targetScaleX, float time)
+    IEnumerator ScaleOverTime(GameObject go, float targetScaleX, float time, bool isExp)
     {
         Vector3 startScale = go.transform.localScale;
         Vector3 targetScale = startScale;
         targetScale.x = targetScaleX;
+
+        if (isExp == true && startScale.x > targetScale.x)
+        {
+            // 최대 경험치 초과 시 스케일 0부터 다시 시작
+            startScale.x = 0f;
+        }
 
         float elapsedTime = 0f;
 

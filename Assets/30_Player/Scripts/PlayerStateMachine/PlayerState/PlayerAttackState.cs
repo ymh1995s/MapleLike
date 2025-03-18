@@ -15,7 +15,14 @@ public class PlayerAttackState : IPlayerState
     public void Enter()
     {
         playerController.isDamaged = false;
-        playerController.animator.SetTrigger("Attack");
+        string attack = "Attack";
+        if (playerController.GetComponentInChildren<Warrior>())
+        {
+            int a = Random.Range(1, 4);
+            attack += (a > 1 ? a : "");
+        }
+
+        playerController.animator.SetTrigger(attack);
 
         YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
         if (mpc != null)

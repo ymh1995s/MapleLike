@@ -33,7 +33,8 @@ public class NetworkManager : MonoBehaviour
         string host = Dns.GetHostName();
         IPHostEntry ipHost = Dns.GetHostEntry(host);
         // AWS 전용 하드 코딩
-        string ipAddressString = "127.0.0.1";
+        // string ipAddressString = "127.0.0.1";
+        string ipAddressString = "15.164.213.236"; // aws
         IPAddress ipAddr = IPAddress.Parse(ipAddressString);
         //IPAddress ipAddr = ipHost.AddressList[0];
         IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
@@ -53,7 +54,7 @@ public class NetworkManager : MonoBehaviour
         //dummyMovePacket.PosInfo = dummyPosition;
         //_session.Send(dummyMovePacket);
 
-        Screen.SetResolution(640, 480, false);
+        Screen.SetResolution(1920, 1080, false);
         Application.targetFrameRate = 60; // 60프레임 고정
     }
 

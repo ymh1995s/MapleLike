@@ -60,6 +60,7 @@ public class DeathManager : MonoBehaviour
         {
             DeathPopup.SetActive(false);
         }
+
         RevivePlayer();
     }
 
@@ -72,16 +73,23 @@ public class DeathManager : MonoBehaviour
         {
             StopCount();
         }
+        player.SendPlayerToVillage();
 
+        player.SetInvincible();
         player.isDead = false;
         player.OnIdle();
 
-        int hp = PlayerInformation.playerStatInfo.MaxHp / 20;
-        int mp = PlayerInformation.playerStatInfo.MaxMp / 20;
-        player.playerInformation.SetPlayerHp(hp);
-        player.playerInformation.SetPlayerMp(mp);
+        // 부활 후 HPMP 패널티
+        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp / 20;
+        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp / 20;
+    }
 
-        player.SendPlayerToVillage();
+    /// <summary>
+    /// 부활창 패널이 활성화 되었는지 확인하는 함수
+    /// </summary>
+    public bool IsPopupActive()
+    {
+        return DeathPopup.activeSelf;
     }
 
     /// <summary>

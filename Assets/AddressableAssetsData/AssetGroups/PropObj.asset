@@ -27,14 +27,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - PropObj
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b5af9296159dc664f992cb29e11c5332
+  - m_GUID: 6a717aed8f43358409d7ca66fce816b3
     m_Address: RIP
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - PropObj
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ff9ba410beeda0d41a39e358e86c8901
-    m_Address: YHSRIP
     m_ReadOnly: 0
     m_SerializedLabels:
     - PropObj

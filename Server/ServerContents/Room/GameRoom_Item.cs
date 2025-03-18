@@ -27,10 +27,10 @@ namespace ServerContents.Room
                 S_ItemSpawn spawnPacket = new S_ItemSpawn();
                 spawnPacket.ItemType = GetRandomItem();
                 Console.WriteLine(spawnPacket.ItemType);
-                spawnPacket.PlayerId = player.Id;
-                spawnPacket.CanOnlyOwnerLootTime = 100000;
-                spawnPacket.LifeTime = 10000000;
+                spawnPacket.CanOnlyOwnerLootTime = 15000; //15초
+                spawnPacket.LifeTime = 30000; //30초
                 spawnPacket.ItemInfo = item.Info;
+                spawnPacket.ItemInfo.OwnerId = player.Id;
                 spawnPacket.ItemInfo.PositionX = posX;
                 spawnPacket.ItemInfo.PositionY = posY;
                 
@@ -39,9 +39,8 @@ namespace ServerContents.Room
                 // 아이템 N초 후에 사라질 것을 예약함
                 S_ItemDespawn deSpawnPacket = new S_ItemDespawn();
                 deSpawnPacket.ItemId = item.Id;
-                PushAfter(spawnPacket.LifeTime, LeaveItem, deSpawnPacket.ItemId); // ex) 20초 후
-                
-
+                PushAfter(spawnPacket.CanOnlyOwnerLootTime, SetItemRootAnyOne, item.Id); // ex) 15초 후
+                PushAfter(spawnPacket.LifeTime, LeaveItem, deSpawnPacket.ItemId); // ex) 30초 후
                 
             }
         }
@@ -69,27 +68,47 @@ namespace ServerContents.Room
             }
         }
 
+        public void SetItemRootAnyOne(int itemId)
+        {
+            Item item = null;
+
+            // 이미 이 맵에 해당 아이템이 없다면 함수 종료
+            if (_items.TryGetValue(itemId, out item) == false)
+                return;
+
+            item.Info.CanRootAnyOne = true;
+        }
+
         public void ItemRooting(Player player, int itemId)
         {
             if(player == null) return;
 
             Item item = null;
-            if (_items.Remove(itemId, out item) == false)
+            if (_items.TryGetValue(itemId, out item) == false)
                 return;
 
-            item.Room = null;
+            // 모두에게 소유권이 있거나, 소유권이 있는 사람이 아이템 루팅을 요청할 때
+            if((item.Info.CanRootAnyOne) || (!item.Info.CanRootAnyOne && item.Info.OwnerId == player.Id))
+            {
+                if (_items.Remove(itemId, out item)==false)
+                {
+                    return;
+                }
+                
+                item.Room = null;
 
-            S_LootItem pkt = new S_LootItem();
-            pkt.ItemId = itemId;
-            pkt.PlayerId = player.Id;
-            Broadcast(pkt);
+                S_LootItem pkt = new S_LootItem();
+                pkt.ItemId = itemId;
+                pkt.PlayerId = player.Id;
+                Broadcast(pkt);
+            }
         }
 
         public static ItemType GetRandomItem()
         {
             double roll = random.NextDouble() * 100; // 0.0 ~ 99.9999...
 
-            if (roll < 90.0) return ItemType.Armor;      // 90%
+            if (roll < 90.0) return ItemType.Gold;      // 90%
             if (roll < 94.5) return ItemType.Hppotion;  // 4.5%
             if (roll < 99.0) return ItemType.Mppotion;   // 4.5%
             // ItemType.Hppotion; 

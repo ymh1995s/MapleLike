@@ -34,7 +34,7 @@ namespace ServerContents.Object
 
         // Skill
         protected DateTime _skillStartTime;
-        protected float _skillDuration = 5.0f;
+        protected float _skillDuration = 3.5f;
 
         public Monster() { Info.StatInfo = Stat; }
 
@@ -45,7 +45,13 @@ namespace ServerContents.Object
 
         public virtual void SetTarget(Player newTarget) { }
 
-        public virtual void TakeDamage(int playerId, int attackPower) { Stat.Hp -= attackPower; }
+        public virtual void TakeDamage(int playerId, List<int> damageAmounts)
+        {
+            int totalDamageAmount = 0;
+            foreach (var damageAmount in damageAmounts)
+                totalDamageAmount += damageAmount;
+            Stat.Hp -= totalDamageAmount; 
+        }
 
         protected virtual void BroadcastMove() { }
 

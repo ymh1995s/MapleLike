@@ -15,35 +15,14 @@ public class PlayerInventory : MonoBehaviour
     
     public TextMeshProUGUI TxtGold;
     
-    public PlayerInventory ClientInventroy;
-    
-    
-    //플레이어가 가지고 있는 돈을 확인
-    public int Income;
+   
 
     
     private void Start()
     {
-        // //Slotitem에 있는 slot 스크립트 찾기 
-        // Slots = new List<Slot>(transform.GetComponentsInChildren<Slot>());
-        // var Player = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
-        // //게임 오브젝트 가져오기
-        // ClientInventroy = Player.GetComponent<YHSMyPlayerController>().playerInventory;
-        // TextMeshProUGUI[] textComponents = GetComponentsInChildren<TextMeshProUGUI>();
-        // foreach (var text in textComponents)
-        // {
-        //     if (text.gameObject.name == "TxtGold")
-        //     {
-        //         TxtGold = text; // 정확한 TxtGold 찾기
-        //         Debug.Log("🎯 정확한 TxtGold 찾음: " + TxtGold.text);
-        //         break; // 찾았으면 더 이상 반복할 필요 없음
-        //     }
-        // }
-        //
-        Income = 10000;
-        // TxtGold.text = Income.ToString();
-        // Player.GetComponent<YHSMyPlayerController>().Inventory.gameObject.SetActive(false);
-        UIManager.Instance.TxtGold.text = Income.ToString();
+       
+        
+        UIManager.Instance.TxtGold.text = UIManager.Instance.Income.ToString();
         UIManager.Instance.ConnectPlayer();
         
     }
@@ -60,9 +39,9 @@ public class PlayerInventory : MonoBehaviour
         //골드 일때를 인벤토리에 넣지 말고 income 추가후 갱신 
         if (newItem.ItemType == ItemType.Gold)
         {
-            Income += 1000;
-            TxtGold.text = Income.ToString();
-            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
+            UIManager.Instance.Income += 1000;
+            TxtGold.text = UIManager.Instance.Income.ToString();
+            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {UIManager.Instance.Income}");
             return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
         }
      
@@ -157,7 +136,7 @@ public class PlayerInventory : MonoBehaviour
     //돈 초기화
     public void UpdateIncome()
     {
-       UIManager.Instance.TxtGold.text= Income.ToString();
+       UIManager.Instance.TxtGold.text= UIManager.Instance.Income.ToString();
     }
 
     //선택한 하나 지우기

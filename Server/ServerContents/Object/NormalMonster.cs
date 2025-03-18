@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 enum NormalMonsterState
 {
@@ -168,8 +169,15 @@ namespace ServerContents.Object
             _destinationPos.X += (_isRight ? Stat.Speed : -Stat.Speed);
 
             if (_target != null)
-                _isRight = _target.Info.PositionX > _destinationPos.X ? true : false;
+            {
+                float distance = Math.Abs(_target.Info.PositionX - _destinationPos.X);
 
+                if (distance >= 1.0f) // 거리 차이가 1.0 이상일 때만 변경
+                {
+                    _isRight = _target.Info.PositionX > _destinationPos.X;
+                }
+            }
+                
             _destinationPos.X = Math.Clamp(_destinationPos.X, _minX, _maxX);
         }
 
@@ -204,9 +212,9 @@ namespace ServerContents.Object
             // 위치 변동 없음
         }
 
-        public override void TakeDamage(int playerId, int attackPower)
+        public override void TakeDamage(int playerId, List<int> damageAmounts)
         {
-            base.TakeDamage(playerId, attackPower);
+            base.TakeDamage(playerId, damageAmounts);
 
             if (Stat.Hp > 0)
             {
@@ -215,6 +223,9 @@ namespace ServerContents.Object
                 // 현재 룸에 존재하는 모든 클라이언트에게 알림
                 S_HitMonster hitPacket = new S_HitMonster();
                 hitPacket.MonsterId = Id;
+                hitPacket.PlayerId = playerId;
+                foreach (var damageAmount in damageAmounts)
+                    hitPacket.Damages.Add(damageAmount);
                 hitPacket.MonsterCurrentHp = Stat.Hp;
                 Room.Broadcast(hitPacket);
             }
@@ -231,7 +242,19 @@ namespace ServerContents.Object
                 Room.Broadcast(expPacket);
 
                 // 현재 룸에 존재하는 모든 클라이언트에게 알림
-                Room.LeaveMonster(Id);
+                S_HitMonster hitPacket = new S_HitMonster();
+                hitPacket.MonsterId = Id;
+                hitPacket.PlayerId = playerId;
+                foreach (var damageAmount in damageAmounts)
+                    hitPacket.Damages.Add(damageAmount);
+                hitPacket.MonsterCurrentHp = Stat.Hp;
+                Room.Broadcast(hitPacket);
+
+                // 현재 룸에 존재하는 모든 클라이언트에게 알림
+                S_MonsterDespawn despawnPacket = new S_MonsterDespawn();
+                despawnPacket.MonsterIds.Add(Id);
+                Room.Broadcast(despawnPacket);
+                Room.RemoveMonster(Id);
 
                 MonsterManager.Instance.MonsterDespawn(Id);
             }

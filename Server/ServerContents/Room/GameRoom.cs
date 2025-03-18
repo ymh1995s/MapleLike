@@ -214,6 +214,7 @@ namespace ServerContents.Room
 
             S_PlayerDamaged resPkt = new S_PlayerDamaged();
             resPkt.PlayerId = player.Id;
+            resPkt.Damage = damagePacket.Damage;
             Broadcast(resPkt);
         }
 

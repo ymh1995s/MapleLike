@@ -10,44 +10,56 @@ public class Warrior : BaseClass
     {
         base.Start();
         InitializeSkill();
-        if (playerStatInfo.ClassType == ClassType.Cnone)
-        {
-            ClassStat();
-        }
     }
 
     /// <summary>
     /// 전사 직업의 고유 특성 부여
     /// </summary>
-    protected override void ClassStat()
+    public override void ClassStat()
     {
-        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 1.5f);
-        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 0.75f);
-        playerStatInfo.ClassType = ClassType.Warrior;
+        PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 4f);
+        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 0.75f);
 
-        playerStatInfo.Hp = playerStatInfo.MaxHp;
-        playerStatInfo.Mp = playerStatInfo.MaxMp;
+        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp;
+        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
     protected override void ActiveHitbox()
     {
-        Vector3 playerPosition = transform.parent.position;
-        if (Hitbox != null)
-        {
-            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-1f), playerPosition.y + 1f), Quaternion.identity);
-            currentHit.GetComponent<TriggerScript>().player = playerPosition;
-        }
         if (Effect != null)
         {
             Effect.SetActive(true);
             Effect.GetComponent<Animator>().SetTrigger("Attack");
             // 스킬 사용 이펙트 활성화 및 애니메이션 실행
         }
+
+        if (controller == null)
+        {
+            return;
+        }
+
+        if (currentHit != null)
+        {
+            Destroy(currentHit);
+            currentHit = null;
+        }
+
+        Vector3 playerPosition = transform.parent.position;
+        if (Hitbox != null)
+        {
+            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-1f), playerPosition.y + 1f), Quaternion.identity);
+            currentHit.GetComponent<TriggerScript>().player = playerPosition;
+        }
     }
 
     public override void CreateHitEffect()
     {
+        if (controller == null)
+        {
+            return;
+        }
+
         target = currentHit.GetComponent<TriggerScript>().GetTarget();
         if (target == null) return;
 
@@ -61,16 +73,19 @@ public class Warrior : BaseClass
             "Power Strike",
             out totalDamage
             );
-        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
-        
-        SendHitMonsterPacket(totalDamage);
+
+        SendHitMonsterPacket(damageList);
+
+        Vector3 attackerPosition = Vector3.zero;
+        attackerPosition = controller.GetComponent<BoxCollider2D>().bounds.center;
+
 
         GameObject hitGo = Instantiate(HitObject, targetPosition, Quaternion.identity);
+        hitGo.GetComponent<SpriteRenderer>().flipX = (attackerPosition.x > targetPosition.x);
         hitGo.GetComponent<Animator>().SetTrigger("Hit");
-        hitGo.GetComponent<SpriteRenderer>().flipX = (controller.GetComponent<BoxCollider2D>().bounds.center.x > targetPosition.x);
         Destroy(hitGo, 0.45f);
     }
-#endregion
+    #endregion
 
     #region 스킬
     /// <summary>
@@ -87,6 +102,7 @@ public class Warrior : BaseClass
         else
         {
             info.SetPlayerMp(-cost);
+            SkillSource.PlayOneShot(skillSound["Power Strike"]);
             return true;
         }
     }

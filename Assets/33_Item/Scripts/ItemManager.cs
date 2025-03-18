@@ -54,6 +54,7 @@ public class ItemManager : MonoBehaviour
                 {
                     newItem = ScriptableObject.CreateInstance<Consumable>();
                     (newItem as Consumable).healAmount = itemData.healAmount;
+                    (newItem as Consumable).MpAmount = itemData.MpAmount;
                 }
                 else if (itemData.itemCategory == "Equipment")
                 {
@@ -72,8 +73,8 @@ public class ItemManager : MonoBehaviour
                     newItem.id = itemData.id;
                     newItem.itemName = itemData.itemName;
                     newItem.description = itemData.description;
-                    newItem.sellprice = itemData.sellprice;
                     newItem.buyprice = itemData.buyprice;
+                    newItem.sellprice = itemData.buyprice/3;
                     newItem.iconAddress = itemData.iconAddress;
                     newItem.ItemType =  (ItemType)Enum.Parse(typeof(ItemType),itemData.itemType);
                         

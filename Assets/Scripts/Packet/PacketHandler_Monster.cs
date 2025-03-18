@@ -3,6 +3,7 @@ using Google.Protobuf.Protocol;
 using ServerCore;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -104,6 +105,7 @@ public partial class PacketHandler
         if (mc != null)        
             mc.SetCurrentHp(hitPacket.MonsterCurrentHp);
 
+
         // 일반몬스터의 경우
         NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
         if (nmc != null)
@@ -116,8 +118,21 @@ public partial class PacketHandler
         BossMonsterController bmc = go.GetComponent<BossMonsterController>();
         if (bmc != null)
         {
-            // bmc.SetState(MonsterState.MStun);
+            bmc.SetState(MonsterState.MStun);
             bmc.UpdateHPBarGauge();
+        }
+
+        // 데미지 출력
+        Transform target = go.transform;
+        SpawnManager.Instance.SpawnDamage(hitPacket.Damages, target, false);
+        if (hitPacket.PlayerId != PlayerInformation.playerInfo.PlayerId)
+        {
+            Transform player = ObjectManager.Instance.FindById(hitPacket.PlayerId).transform;
+            GameObject hitEffect = player.GetComponentInChildren<BaseClass>().HitObject;
+            GameObject hitEffectObject = SpawnManager.Instantiate(hitEffect, target.GetComponent<BoxCollider2D>().bounds.center, Quaternion.identity);
+            hitEffectObject.GetComponent<SpriteRenderer>().flipX = (player.position.x > target.position.x);
+            hitEffectObject.GetComponent<Animator>().SetTrigger("Hit");
+            SpawnManager.Destroy(hitEffectObject, 0.45f);
         }
     }
 
@@ -126,7 +141,8 @@ public partial class PacketHandler
         S_BossRegisterDeny bossRegisterDenyPacket = packet as S_BossRegisterDeny;
 
         // 플레이어 하위에 부착된 보스 UI 오브젝트의 EnterFailedUI active
-        BossRoomEnterUI.Instance.ActiveEnterFaileUIdPanel();
+        if (BossRoomEnterUI.Instance != null)
+            BossRoomEnterUI.Instance.ActiveEnterFaileUIdPanel();
     }
 
     public static void S_BossWaitingHandler(PacketSession session, IMessage packet)
@@ -135,7 +151,8 @@ public partial class PacketHandler
         int currentWaitingCount = bossWatingPacket.WaitingCount;
 
         // 플레이어 하위에 부착된 보스 UI 오브젝트의 PartyMatchingUI Update
-        BossRoomEnterUI.Instance.UpdatePartyMatchingUIPanel(currentWaitingCount);
+        if (BossRoomEnterUI.Instance != null)
+            BossRoomEnterUI.Instance.UpdatePartyMatchingUIPanel(currentWaitingCount);
     }
 
     public static void S_GameClearHandler(PacketSession session, IMessage packet)

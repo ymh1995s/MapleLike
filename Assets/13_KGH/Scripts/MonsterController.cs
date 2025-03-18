@@ -44,7 +44,6 @@ public class MonsterController : BaseController
     [SerializeField] protected MonsterAudioClips monsterAudioClips;
 
     [Header("몬스터 체력")]
-    [SerializeField] protected int maxHp;
     [SerializeField] protected GameObject hpBar;
     [SerializeField] protected Image hpBarGauge;
 
@@ -113,8 +112,6 @@ public class MonsterController : BaseController
     // 몬스터의 Die 애니메이션의 끝에서 호출되는 이벤트 함수
     private void Despawn()
     {
-        monsterCollider.enabled = false;
-
         StartCoroutine(DespawnCoroutine());
     }
 

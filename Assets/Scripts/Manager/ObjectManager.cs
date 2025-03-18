@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Google.Protobuf.Protocol;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,119 +44,171 @@ public class ObjectManager : MonoBehaviour
         return (GameObjectType)type;
     }
 
-    
-    public void SpwanItem(S_ItemSpawn itemSpawn)
-    {
-        Addressables.LoadResourceLocationsAsync("ItemObj").Completed += (handle) =>
+
+    #region 아이템 생성
+    public void SpawnItem(S_ItemSpawn itemSpawn, System.Action<GameObject> callback)
         {
-            var locations = handle.Result;
-            if (locations == null || locations.Count == 0)
+            Addressables.LoadResourceLocationsAsync("ItemObj").Completed += (handle) =>
             {
-                Debug.LogError("ItemObj에 대한 리소스를 찾을 수 없습니다.");
-                return;
-            }
-
-            locations = locations.OrderBy(loc => loc.PrimaryKey).ToList();
-
-            // ItemType에 맞는 location 찾기
-            IResourceLocation selectedLocation = null;
-            foreach (var location in locations)
-            {
-                string itemTypeString = itemSpawn.ItemType.ToString();
-                if (location.PrimaryKey.Contains(itemSpawn.ItemType.ToString())) // 아이템 이름 포함 여부 확인
+                var locations = handle.Result;
+                if (locations == null || locations.Count == 0)
                 {
-                    selectedLocation = location;
-                    // 매칭된 경우 디버그 로그 출력
-                    Debug.Log($"✅ 매칭 성공: {location.PrimaryKey} == {itemTypeString}");
-                    break;
+                    Debug.LogError("ItemObj에 대한 리소스를 찾을 수 없습니다.");
+                    callback?.Invoke(null);
+                    return;
                 }
-            }
 
-            if (selectedLocation == null)
-            {
-                return;
-            }
-            // 아이템 생성
-            var obj = Addressables.InstantiateAsync(selectedLocation, 
-                new Vector3(itemSpawn.ItemInfo.PositionX, itemSpawn.ItemInfo.PositionY, 0), 
-                Quaternion.identity);
+                // ItemType에 맞는 location 찾기
+                IResourceLocation selectedLocation = locations.FirstOrDefault(loc => loc.PrimaryKey.Contains(itemSpawn.ItemType.ToString()));
 
-            obj.Completed += (instanceHandle) =>
-            {
-                if (instanceHandle.Status == AsyncOperationStatus.Succeeded)
+                if (selectedLocation == null)
                 {
-                    var spawnedObj = instanceHandle.Result;
-                    _objects.Add(itemSpawn.ItemInfo.ItemId, spawnedObj);
-                    spawnedObj.transform.GetComponentInChildren<InitItem>().Serverid = itemSpawn.ItemInfo.ItemId;
+                    Debug.LogError($"❌ 해당 타입({itemSpawn.ItemType})의 아이템을 찾을 수 없습니다.");
+                    callback?.Invoke(null);
+                    return;
+                }
 
-                    Debug.Log($"x: {itemSpawn.ItemInfo.PositionX}, y: {itemSpawn.ItemInfo.PositionY}");
-                    Debug.Log($"Spawned Object Name: {spawnedObj.gameObject.name}");
-                }
-                else
+                Debug.Log($"✅ 매칭 성공: {selectedLocation.PrimaryKey}");
+
+                // 아이템 생성
+                Addressables.InstantiateAsync(selectedLocation,
+                    new Vector3(itemSpawn.ItemInfo.PositionX, itemSpawn.ItemInfo.PositionY, 0),
+                    Quaternion.identity).Completed += (instanceHandle) =>
                 {
-                    Debug.LogError("아이템 생성 실패!");
-                }
+                    if (instanceHandle.Status == AsyncOperationStatus.Succeeded)
+                    {
+                        var spawnedObj = instanceHandle.Result;
+                        _objects.Add(itemSpawn.ItemInfo.ItemId, spawnedObj);
+                        spawnedObj.transform.GetComponentInChildren<InitItem>().Serverid = itemSpawn.ItemInfo.ItemId;
+                        spawnedObj.transform.GetComponentInChildren<InitItem>().CanOnlyOwnerLootTime = itemSpawn.CanOnlyOwnerLootTime;
+
+                        Debug.Log($"🟢 아이템 생성 완료: {spawnedObj.gameObject.name} | 위치: ({itemSpawn.ItemInfo.PositionX}, {itemSpawn.ItemInfo.PositionY})");
+
+                        // 콜백을 통해 생성된 GameObject 전달
+                        callback?.Invoke(spawnedObj);
+                    }
+                    else
+                    {
+                        Debug.LogError("❌ 아이템 생성 실패!");
+                        callback?.Invoke(null);
+                    }
+                };
             };
-        };
-    
-    }
+        }
+    #endregion
 
-    
+
+    #region Z키 누르면 실행되는 함수 
     public void PickupNearbyItems2()
     {
-        
         var player = FindById(MyPlayer.Id);
-        // 플레이어의 아이템 줍기 범위 및 아이템 레이어 정보 가져오기
         var pickupRange = player.GetComponent<InputManager>().pickupRange;
         var itemLayer = player.GetComponent<InputManager>().itemLayer;
-        //플레이어 가져오기
-       
-        // 특정 범위 내에 있는 아이템 찾기
+
         Collider2D[] items = Physics2D.OverlapCircleAll(player.transform.position, pickupRange, itemLayer);
         Debug.Log("Found " + items.Length + " nearby items");
 
-        C_LootItem lootItem = new C_LootItem();
-        List<InitItem> nearbyItems = new List<InitItem>();
+        if (items.Length == 0) return; // 근처에 아이템이 없으면 종료
+
+        // 가장 가까운 아이템 찾기
+        Collider2D nearestItem = null;
+        float minDistance = float.MaxValue;
 
         foreach (Collider2D item in items)
         {
-            InitItem itemInfo = item.GetComponentInChildren<InitItem>();
-            if (itemInfo != null)
+            float distance = Vector2.Distance(player.transform.position, item.transform.position);
+            if (distance < minDistance)
             {
-                nearbyItems.Add(itemInfo);
+                minDistance = distance;
+                nearestItem = item;
             }
         }
-
-        // 아이템 정보가 있을 경우에만 서버에 전송
-        foreach (var VARIABLE in Instance._objects.Keys)
+        if (nearestItem == null) return; // 근처에 유효한 아이템이 없으면 종료
+        
+        InitItem itemInfo = nearestItem.GetComponentInChildren<InitItem>();
+        if (itemInfo == null) return;
+        
+        C_LootItem lootItem = new C_LootItem();
+        
+        lootItem.ItemId = itemInfo.Serverid;
+        NetworkManager.Instance.Send(lootItem);
+        
+        if (itemInfo.Ownerid != MyPlayer.Id)
         {
-            foreach (var itemInfo in nearbyItems)
-            {
-                if (VARIABLE == itemInfo.Serverid)
-                {
-                    lootItem.ItemId = itemInfo.Serverid;
-                    NetworkManager.Instance.Send(lootItem);
-                    Debug.Log("itemPickup:" + lootItem.ItemId);
-                    break;
-                }
-            }
+            Debug.Log("못먹으면되 ");
+            return;
         }
+        
+        //아이템을 먼저 먹을 권리가 있는 캐릭터 아이디가  == 현재 플레이어 아이디와 같으면
+        // if (itemInfo.Ownerid == MyPlayer.Id|| itemInfo.Ownerid == -1)
+        // {
+        if (itemInfo.Property.ItemType != ItemType.Gold)
+        {
+            // UIManager.Instance.InventoryItems.Add(itemInfo.Serverid,itemInfo);
+        }
+        // }
+        // else if (itemInfo.Ownerid != MyPlayer.Id)
+        // {
+        //     Debug.Log("못먹으면되 ");
+        //     return;
+        // }
+        
+        Debug.Log(FindById(itemInfo.Serverid));
     }
-    
+    #endregion
 
+
+    #region 시간지나면 나오는 DespwanItem
     public void DespwanItem(S_ItemDespawn itemDespawnPkt)
     {
-        Addressables.ReleaseInstance(FindById(itemDespawnPkt.ItemId));
-        _objects.Remove(itemDespawnPkt.ItemId);
-        Debug.Log(FindById(itemDespawnPkt.ItemId)); 
+        var Item = FindById(itemDespawnPkt.ItemId);
+        SpriteRenderer spriteRenderer = Item.GetComponentInChildren<SpriteRenderer>();
+        
+        if (spriteRenderer != null)
+        {
+            StartCoroutine(FadeOutAndDestroy(Item, spriteRenderer, itemDespawnPkt.ItemId));
+        }
+        else
+        {
+            // 스프라이트가 없으면 즉시 삭제
+            RemoveItem(Item, itemDespawnPkt.ItemId);
+        }
     }
+    private IEnumerator FadeOutAndDestroy(GameObject item, SpriteRenderer spriteRenderer, int itemId)
+    {
+        float fadeDuration = 1.0f; // 페이드아웃 지속 시간
+        float elapsedTime = 0f;  // 기본값 초기화  이걸로 시간 누적 구할거임 
+        Color originalColor = spriteRenderer.color;
+
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(originalColor.a, 0, elapsedTime / fadeDuration); //시간 부드럽게 만들기 페이드아웃을 부드럽게 하기위함
+            spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            yield return null;
+        }
+
+        // 완전히 투명해지면 삭제
+        RemoveItem(item, itemId);
+    }
+    private void RemoveItem(GameObject item, int itemId)
+    {
+        Debug.Log($"🗑️ {itemId} 아이템 제거 완료");
+        Addressables.ReleaseInstance(item);
+        _objects.Remove(itemId);
+    }
+    #endregion
+ 
     
+    #region 아이템 z키로 먹을 때 발생하는 DespwanItem2
     public void DespwanItem2(S_LootItem itemDespawnPkt)
     {
+        
+        Debug.Log(FindById(itemDespawnPkt.ItemId)); 
         Addressables.ReleaseInstance(FindById(itemDespawnPkt.ItemId));
         _objects.Remove(itemDespawnPkt.ItemId);
-        Debug.Log(FindById(itemDespawnPkt.ItemId)); 
     }
+    #endregion
 
     public void AddPlayer(PlayerInfo info, bool myPlayer = false)
     {
@@ -179,51 +232,6 @@ public class ObjectManager : MonoBehaviour
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);
                 
-                Debug.Log("이사람의 직업:"+PlayerInformation.playerStatInfo.ClassType);
-
-                // #region weapon아이템 찾기
-                // // --- WeaponItem 찾기 ---
-                // // Transform weaponItem = FindDeepChildLinq(go.transform, "WeaponItem");
-                // var weaponItem = UIManager.Instance.EquipSlots.Find(slot => slot.name == "WeaponItem");
-                // if (weaponItem != null)
-                // {
-                //     Debug.Log("WeaponItem 발견: " + weaponItem.name);
-                //     
-                //     // foreach (var VARIABLE in ItemManager.Instance.ItemList)
-                //     // {
-                //     //     //(경원)임시 현승님 오시면 수정 사항 
-                //     //     //수정을 어떻게 해야되나 직업 클래스 타입으로 받아서 넣어야 한다.
-                //     //     //현재는  WeaponItem의 무기 타입을 보고 넣고있다.
-                //     //     //이렇게 넣으면 무기가 많아지면 무기타입만 보고 넣기에는  오류가 날 것으로 예상 
-                //     //     if (VARIABLE.ItemType == temp.CurrentItemType)
-                //     //     {
-                //     //         temp.CurrentItem = VARIABLE;
-                //     //         temp._image.sprite = VARIABLE.IconSprite;
-                //     //         Color color = temp._image.color;
-                //     //         color.a = 1f;  // 
-                //     //         temp._image.color = color;
-                //     //         
-                //     //         var equipmentstat = PlayerInformation.equipmentStat;
-                //     //         if (temp.CurrentItem is Equipment eq)
-                //     //         {
-                //     //             equipmentstat.AttackPower = eq.attackPower;
-                //     //             equipmentstat.Defense = eq.defensePower;
-                //     //             equipmentstat.MagicPower = eq.magicPower;
-                //     //             Debug.Log("초기값 갱신");
-                //     //             Debug.Log(equipmentstat.AttackPower);
-                //     //         }
-                //     //         
-                //     //         break;
-                //     //     }
-                //     // }
-                //
-                // }
-                // else
-                // {
-                //     Debug.Log("WeaponItem 못찾음 ");
-                // }
-                // #endregion
-
 
                 _objects.Add(info.PlayerId, go);
             }

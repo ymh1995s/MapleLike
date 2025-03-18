@@ -8,33 +8,40 @@ public class Magician : BaseClass
     {
         base.Start();
         InitializeSkill();
-        if (playerStatInfo.ClassType == ClassType.Cnone)
-        {
-            ClassStat();
-        }
     }
 
     /// <summary>
     /// 법사 직업의 고유 특성 부여
     /// </summary>
-    protected override void ClassStat()
+    public override void ClassStat()
     {
-        playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * 0.75f);
-        playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * 1.5f);
-        playerStatInfo.ClassType = ClassType.Magician;
+        PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 0.75f);
+        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 3.5f);
 
-        playerStatInfo.Hp = playerStatInfo.MaxHp;
-        playerStatInfo.Mp = playerStatInfo.MaxMp;
+        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp;
+        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp;
     }
 
     #region 히트박스 관련 코드
     protected override void ActiveHitbox()
     {
+        if (controller == null)
+        {
+            return;
+        }
+
+        if (currentHit != null)
+        {
+            Destroy(currentHit);
+            currentHit = null;
+        }
+
         Vector3 playerPosition = transform.parent.position;
+
         if (Hitbox != null)
         {
-            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-2f), playerPosition.y + 0.5f), Quaternion.identity);
-            currentHit.GetComponent<TriggerScript>().player = playerPosition;
+            currentHit = Instantiate(Hitbox, new Vector3(playerPosition.x + transform.parent.localScale.x * (-1.5f), playerPosition.y + 0.5f), Quaternion.identity);
+            currentHit.GetComponent<TriggerScript>().player = controller.transform.position;
         }
     }
 
@@ -50,6 +57,11 @@ public class Magician : BaseClass
 
     public override void CreateHitEffect()
     {
+        if (controller == null)
+        {
+            return;
+        }
+
         target = currentHit.GetComponent<TriggerScript>().GetTarget();
         if (target == null)
             return;
@@ -64,9 +76,7 @@ public class Magician : BaseClass
             "Magic Clow",
             out totalDamage
             );
-        SpawnManager.Instance.SpawnDamage(damageList, target.transform, false);
-
-        SendHitMonsterPacket(totalDamage);
+        SendHitMonsterPacket(damageList);
 
         GameObject hitGo = Instantiate(HitObject, targetPosition, Quaternion.identity);
         hitGo.GetComponent<Animator>().SetTrigger("Hit");
@@ -89,6 +99,7 @@ public class Magician : BaseClass
         else
         {
             info.SetPlayerMp(-cost);
+            SkillSource.PlayOneShot(skillSound["Magic Clow"]);
             return true;
         }
     }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Google.Protobuf.Collections;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class SpawnManager : MonoBehaviour
 
     public GameObject damagePrefab;
 
+    [SerializeField] Texture2D cursorTexture;
+    
     private void Awake()
     {
         if (instance != null)
@@ -21,8 +24,12 @@ public class SpawnManager : MonoBehaviour
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
+
+        // 커서 텍스처 변경
+        Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.ForceSoftware);
     }
 
+    #region 출력
     /// <summary>
     /// Addressable Group에서 key로 asset을 탐색해 Instantiate하는 메서드
     /// </summary>
@@ -46,8 +53,9 @@ public class SpawnManager : MonoBehaviour
             }
         };
     }
+    #endregion
 
-
+    #region 데미지 출력
     /// <summary>
     /// 데미지를 화면에 띄우는 메서드
     /// </summary>
@@ -58,11 +66,41 @@ public class SpawnManager : MonoBehaviour
         // 이거 SpawnManager의 SpawnAsset이랑 겹치는데;
         Vector3 spawnPosition = target.transform.position;
 
-        float y = target.GetComponent<Collider2D>().bounds.max.y + 0.5f;
+        Collider2D collider = target.GetComponent<Collider2D>();
+        float y = 0f;
+
+        if (collider != null)
+        {
+            y = collider.bounds.max.y + 0.5f;
+        }
+        else
+        {
+            y = target.transform.position.y + 2.0f;
+        }
+        
         spawnPosition.y = y;
 
         // TODO: 데미지 프리팹을 어디에 저장해둘지 (UI Manager로 예상)
         GameObject damage = Instantiate(damagePrefab, spawnPosition, Quaternion.identity);
         damage.GetComponentInChildren<DamageSpawner>().InitAndSpawnDamage(damageList, isPlayerDamaged);
     }
+
+    /// <summary>
+    /// 데미지를 화면에 띄우는 메서드 overload
+    /// </summary>
+    /// <param name="damages"></param>
+    /// <param name="target"></param>
+    /// <param name="isPlayerDamaged"></param>
+    public void SpawnDamage(RepeatedField<int> damages, Transform target, bool isPlayerDamaged = false)
+    {
+        List<int> damageList = new List<int>();
+
+        foreach (var damage in damages)
+        {
+            damageList.Add(damage);
+        }
+
+        SpawnDamage(damageList, target, isPlayerDamaged);
+    }
+    #endregion
 }

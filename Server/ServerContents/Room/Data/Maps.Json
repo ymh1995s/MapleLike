@@ -199,7 +199,7 @@
       "id": 22,
       "mapType": "Boss",
       "mapMaxMonsterCount": 1,
-      "zoneCount": 1,
+      "zoneCount": 2,
       "zones": [
         {
           "id": 1,
@@ -214,6 +214,20 @@
             "maxLevel": 9999
           },
           "zoneMaxMonsterCount": 1
+        },
+        {
+          "id": 2,
+          "monsterType": "Normal",
+          "range": {
+            "minX": -20.03,
+            "maxX": 16.49,
+            "Y": -2.56
+          },
+          "levelRange": {
+            "minLevel": 20,
+            "maxLevel": 20
+          },
+          "zoneMaxMonsterCount": 0
         }
       ]
     }

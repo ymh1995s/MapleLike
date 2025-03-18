@@ -96,6 +96,13 @@ public class NormalMonsterController : MonsterController
         AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
         if (!animatorStateInfo.IsName("die"))
         {
+            isAlreadyDie = true;
+
+            // 모든 트리거 초기화
+            monsterAnimator.ResetTrigger("idle");
+            monsterAnimator.ResetTrigger("hit");
+            monsterAnimator.ResetTrigger("move");
+
             monsterAudioSource.PlayOneShot(monsterAudioClips.dieAudioClip);
             monsterAnimator.SetTrigger("die");
             monsterCollider.enabled = false;
@@ -103,8 +110,6 @@ public class NormalMonsterController : MonsterController
             if (inactiveHPBarCoroutine != null)
                 StopCoroutine(inactiveHPBarCoroutine);
             hpBar.SetActive(false);
-
-            isAlreadyDie = true;
         }
     }
 
@@ -152,7 +157,7 @@ public class NormalMonsterController : MonsterController
         if (inactiveHPBarCoroutine != null)
             StopCoroutine(inactiveHPBarCoroutine);
 
-        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / maxHp;
+        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / (float)info.StatInfo.MaxHp;
 
         inactiveHPBarCoroutine = StartCoroutine(InActiveHPBar());
     }

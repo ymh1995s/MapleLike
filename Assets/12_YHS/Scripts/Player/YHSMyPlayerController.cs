@@ -23,11 +23,13 @@ public class YHSMyPlayerController : PlayerController
     private bool isPressedJump = false;    // 직접 점프를 눌렀는지 여부
 
     private bool isMyOnPortal = false;          // 플레이어가 포탈 위에 있는지
-    private bool isKnockback = false;      // 넉백 상태
-    private bool _invincible;
     private MapName nextMapName;                // 이동할 맵 이름
 
     private bool isMyOnBossPortal = false;      // 플레이어가 보스 입장 포탈 위에 있는지
+    private GameObject bossRoomPortal;     
+
+    private bool isKnockback = false;      // 넉백 상태
+    private bool _invincible;
     private bool invincible                // 무적 상태
     {
         get => _invincible;
@@ -41,7 +43,6 @@ public class YHSMyPlayerController : PlayerController
             }
         }
     }
-    private GameObject bossRoomPortal;     
 
     protected override void Awake()
     {
@@ -53,22 +54,25 @@ public class YHSMyPlayerController : PlayerController
 
         playerInformation = gameObject.AddComponent<PlayerInformation>();
         playerInventory = gameObject.AddComponent<PlayerInventory>();
-        //03-07 추가
         playerEquip = gameObject.AddComponent<PlayerEquip>();
         
         rb = gameObject.AddComponent<Rigidbody2D>();
+
+        gameObject.GetComponentInChildren<SpriteRenderer>().sortingOrder = 50;
+
+        // collider 컴포넌트들 추가
         playerDamagedCollider = gameObject.AddComponent<BoxCollider2D>();
         playerDamagedCollider.isTrigger = true;
         playerTerrainCollider = gameObject.AddComponent<EdgeCollider2D>();
         playerTerrainCollider.excludeLayers = 1 << LayerMask.NameToLayer("Monster") 
                                             | 1 << LayerMask.NameToLayer("BossMonster")
-                                            | 1 << LayerMask.NameToLayer("Probs2")
+                                            | 1 << LayerMask.NameToLayer("Props2")
                                             | 1 << LayerMask.NameToLayer("Player")
                                             | 1 << LayerMask.NameToLayer("MyPlayer");
 
         // 플레이어 스탯 UI 초기화
-        //StatusBarManager sbm = FindFirstObjectByType<StatusBarManager>();
         StatusBarManager.Instance.InitStatusBar(playerInformation);
+        StatWindowManager.Instance.InitStatWindow(playerInformation);
 
         // 사망 처리를 위한 UI 초기화
         DeathManager.Instance.player = this;
@@ -86,20 +90,33 @@ public class YHSMyPlayerController : PlayerController
     {
         base.Start();
 
+        // Rigidbody2D 컴포넌트 세팅
         rb.gravityScale = 3;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.freezeRotation = true;
 
+        // collider 컴포넌트 세팅
         playerDamagedCollider.offset = new Vector2(0f, 0.7f);
         playerDamagedCollider.size = new Vector2(0.4f, 1.4f);
         playerDamagedCollider.isTrigger = true;
         playerTerrainCollider.points = new Vector2[] { new Vector2(0f, 0.01f), new Vector2(0f, 0f) };
 
-        // 카메라 세팅
+        // Cinemachine Camera 컴포넌트 세팅
+        cinemachine.PreviousStateIsValid = false;
         cinemachine.Follow = transform;
         cinemachine.LookAt = transform;
-        
-        // player =  ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
+        cinemachine.transform.position = transform.position;
+        cinemachine.transform.LookAt(transform.position);
+
+        //장비창 인벤토리창 연결 
+        UIManager.Instance.ConnectPlayer();
+        UIManager.Instance.InitItem();
+        UIManager.Instance.InitMpPoitions();
+        UIManager.Instance.InitHpPoitions();
+        UIManager.Instance.hasInitialized = true;
+
+        // 이 코루틴은 Start 최하단에 고정시켜주세요!!!
+        StartCoroutine(FadeInOutManager.Instance.FadeIn());
     }
 
     protected override void Update()
@@ -107,15 +124,20 @@ public class YHSMyPlayerController : PlayerController
         //base.Update();
         playerSM.Execute();
 
-        if (isAttacking == false)
+        if (isAttacking == false && !isDead)
         {
             OperatePlayer();
+        }
+        if (isDead && !DeathManager.Instance.IsPopupActive())
+        {
+            OnDead();
+            return;
         }
     }
 
     protected override void FixedUpdate()
     {
-        if (isAttacking == false)
+        if (isAttacking == false && !isDead)
         {
             MovePlayer();
         }
@@ -125,7 +147,6 @@ public class YHSMyPlayerController : PlayerController
     {
         if (isDead == true)
         {
-            OnDead();
             return;
         }
 
@@ -179,6 +200,7 @@ public class YHSMyPlayerController : PlayerController
         // 플레이어 점프
         if (IsGrounded() == true && Input.GetKey(KeyCode.LeftAlt) && !isKnockback)
         {
+            SoundManager.Instance.PlaySoundOneShot(ConstList.Jump);
             rb.linearVelocityY = PlayerInformation.playerStatInfo.Jump;
             isPressedJump = true;
         }
@@ -188,7 +210,6 @@ public class YHSMyPlayerController : PlayerController
     {
         if (isDead == true)
         {
-            OnDead();
             return;
         }
 
@@ -202,7 +223,8 @@ public class YHSMyPlayerController : PlayerController
                 isDamaged = false;
                 OnIdle();
                 SendChangeMapPacket();
-                // TODO: 맵 이동할 때 페이드인아웃 애니메이션
+
+                SoundManager.Instance.PlaySoundOneShot(ConstList.Portal);
             }
 
             if (isMyOnBossPortal)
@@ -243,9 +265,10 @@ public class YHSMyPlayerController : PlayerController
     /// <summary>
     /// 피격 사실을 서버에 송신한다.
     /// </summary>
-    public void SendPlayerDamaged()
+    public void SendPlayerDamaged(int damage)
     {
         C_PlayerDamaged damagedPacket = new C_PlayerDamaged();
+        damagedPacket.Damage = damage;
         NetworkManager.Instance.Send(damagedPacket);
     }
 
@@ -254,8 +277,8 @@ public class YHSMyPlayerController : PlayerController
     /// </summary>
     public void SendPlayerDiePacket()
     {
+        //Debug.Log("Player Id [ " + Id + " ] has dead.");
         C_PlayerDie diePacket = new C_PlayerDie();
-        Debug.Log("Player Id [ " + Id + " ] has dead.");
         NetworkManager.Instance.Send(diePacket);
     }
 
@@ -264,6 +287,15 @@ public class YHSMyPlayerController : PlayerController
     /// </summary>
     private void SendChangeMapPacket()
     {
+        StartCoroutine(FadeOutAndSendChangeMapPacket());
+    }
+
+    private IEnumerator FadeOutAndSendChangeMapPacket()
+    {
+        yield return StartCoroutine(FadeInOutManager.Instance.FadeOut());
+
+        StatWindowManager.Instance.SetWindowActive(false);  // 스탯창 팝업 닫기
+
         C_ChangeMap changeMapPacket = new C_ChangeMap();
         changeMapPacket.MapId = (int)nextMapName;
         NetworkManager.Instance.Send(changeMapPacket);
@@ -347,10 +379,10 @@ public class YHSMyPlayerController : PlayerController
         for (int i = 0; i < skillHitCount; i++)
         {
             // 데미지 무작위 편차 부여
-            float randomOffset = Random.Range(-0.5f, 0.5f);   // 0.5f 값을 추후에 "숙련도" 스탯으로 대체
+            float randomOffset = Random.Range(-0.25f, 0.25f);
 
             // 공식에 따라 데미지 계산
-            int finalDamage = monsterPower - defense;
+            int finalDamage = (int)((monsterPower - defense) * (1 + randomOffset));
             finalDamage = Mathf.Clamp(finalDamage, 0, finalDamage);
 
             damageList.Add(finalDamage);
@@ -381,10 +413,10 @@ public class YHSMyPlayerController : PlayerController
         for (int i = 0; i < skillHitCount; i++)
         {
             // 데미지 무작위 편차 부여
-            float randomOffset = Random.Range(-0.5f, 0.5f);   // 0.5f 값을 추후에 "숙련도" 스탯으로 대체
+            float randomOffset = Random.Range(-0.25f, 0.25f);
 
             // 공식에 따라 데미지 계산
-            int finalDamage = monsterPower - defense;
+            int finalDamage = (int)((monsterPower - defense) * (1 + randomOffset));
             finalDamage = Mathf.Clamp(finalDamage, 0, finalDamage);
 
             damageList.Add(finalDamage);
@@ -424,11 +456,11 @@ public class YHSMyPlayerController : PlayerController
                 out totalDamage
                 );
 
-            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다.
-            SpawnManager.Instance.SpawnDamage(damageList, transform, true);
+            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다. -> 패킷 수신 시점으로 이동
 
             playerInformation.SetPlayerHp(-totalDamage);
-            SendPlayerDamaged();
+            SendPlayerDamaged(totalDamage);
+
             if (isDead)
             {
                 OnDead();
@@ -459,11 +491,11 @@ public class YHSMyPlayerController : PlayerController
                 out totalDamage
                 );
 
-            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다.
-            SpawnManager.Instance.SpawnDamage(damageList, transform, true);
+            // 플레이어가 공격받았을 때 데미지를 화면에 띄운다. -> 패킷 수신 시점으로 이동
 
             playerInformation.SetPlayerHp(-totalDamage);
-            SendPlayerDamaged();
+            SendPlayerDamaged(totalDamage);
+
             if (isDead)
             {
                 OnDead();
@@ -505,12 +537,24 @@ public class YHSMyPlayerController : PlayerController
         }
     }
 
+    public void SetInvincible()
+    {
+        invincible = true;
+    }
+
     /// <summary>
     /// 플레이어에게 1.5초간 무적시간을 부여한다.
     /// </summary>
     IEnumerator InvincibleTime()
     {
-        yield return new WaitForSeconds(1.5f);
+        float duration = 1.5f;
+        float timer = 0f;
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
         invincible = false;
         yield break;
     }

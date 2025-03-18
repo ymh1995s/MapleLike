@@ -10,7 +10,7 @@ public enum ApName
 
 public class AbilityPoint
 {
-    List<int> ap = new List<int>() { 10, 10, 10, 10 };
+    List<int> ap = new List<int>() { 0, 0, 0, 0 };
     
     public List<int> Ap 
     { 

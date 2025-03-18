@@ -21,6 +21,8 @@ enum BossMonsterSkill
 {
     DarkGenesis = 0,
     DarknessBall = 1,
+    AbyssTornado = 2,
+    SpawnNormalMonster = 3,
 }
 
 public class BossMonsterController : MonsterController
@@ -38,6 +40,7 @@ public class BossMonsterController : MonsterController
     // 스킬 프리팹
     [SerializeField] GameObject darkGenesisSkillProjectilePrefab;
     [SerializeField] GameObject darknessBallSkillProjectilePrefab;
+    [SerializeField] GameObject abyssTornadoSkillProjectilePrefab;
 
     protected override void Update()
     {
@@ -89,9 +92,8 @@ public class BossMonsterController : MonsterController
 
     protected override void Stun()
     {
-        // TODO: 보스몬스터는 히트 애니메이션 존재하지 않음.
-        // monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
-        // monsterAnimator.SetTrigger("hit");
+        // 보스몬스터는 히트 애니메이션 존재하지 않음.
+        monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
     }
 
     protected override void Skill()
@@ -99,7 +101,7 @@ public class BossMonsterController : MonsterController
         if (hasUsedSkill) return;
 
         AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
-        if (!animatorStateInfo.IsName("darkGenesis") && !animatorStateInfo.IsName("darknessBall"))
+        if (!animatorStateInfo.IsName("darkGenesis") && !animatorStateInfo.IsName("darknessBall") && !animatorStateInfo.IsName("abyssTornado") && !animatorStateInfo.IsName("SpawnNormalMonster"))
         {
             switch(currentSkill)
             {
@@ -109,8 +111,15 @@ public class BossMonsterController : MonsterController
                 case BossMonsterSkill.DarknessBall:
                     monsterAnimator.SetTrigger("darknessBall");
                     break;
+                case BossMonsterSkill.AbyssTornado:
+                    monsterAnimator.SetTrigger("abyssTornado");
+                    break;
+                case BossMonsterSkill.SpawnNormalMonster:
+                    monsterAnimator.SetTrigger("spawnNormalMonster");
+                    break;
+
             }
-            monsterAudioSource.PlayOneShot(monsterAudioClips.skillAudioClips[(int)BossMonsterSkill.DarkGenesis]);
+            monsterAudioSource.PlayOneShot(monsterAudioClips.skillAudioClips[(int)currentSkill]);
             hasUsedSkill = true;
         }
     }
@@ -120,13 +129,24 @@ public class BossMonsterController : MonsterController
         AnimatorStateInfo animatorStateInfo = monsterAnimator.GetCurrentAnimatorStateInfo(0);
         if (!animatorStateInfo.IsName("die"))
         {
+            isAlreadyDie = true;
+
+            // 모든 트리거 초기화
+            monsterAnimator.ResetTrigger("idle");
+            monsterAnimator.ResetTrigger("hit");
+            monsterAnimator.ResetTrigger("move");
+
+            monsterAnimator.ResetTrigger("darkGenesis");
+            monsterAnimator.ResetTrigger("darknessBall");
+            monsterAnimator.ResetTrigger("abyssTornado");
+            monsterAnimator.ResetTrigger("spawnNormalMonster");
+
+
             monsterAudioSource.PlayOneShot(monsterAudioClips.dieAudioClip);
             monsterAnimator.SetTrigger("die");
             monsterCollider.enabled = false;
 
             hpBar.SetActive(false);
-
-            isAlreadyDie = true;
         }
     }
 
@@ -169,12 +189,12 @@ public class BossMonsterController : MonsterController
 
     public void UpdateHPBarGauge()
     {
-        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / maxHp;
+        hpBarGauge.fillAmount = (float)info.StatInfo.Hp / (float)info.StatInfo.MaxHp;
     }
 
     #region 스킬
 
-    // attack1 애니메이션에서 이벤트로 호출됨.
+    // darkGenesis 애니메이션에서 이벤트로 호출됨.
     public void DarkGenesis()
     {
         GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
@@ -191,11 +211,12 @@ public class BossMonsterController : MonsterController
         foreach (GameObject player in players)
         {
             GameObject projectile = Instantiate(darkGenesisSkillProjectilePrefab);
+            projectile.GetComponent<MonsterSkill>().SetDamage(info.StatInfo.AttackPower);
             projectile.transform.position = player.transform.position;
         }
     }
 
-    // attack2 애니메이션에서 이벤트로 호출됨.
+    // darknessBall 애니메이션에서 이벤트로 호출됨.
     public void DarknessBall()
     {
         GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
@@ -212,6 +233,7 @@ public class BossMonsterController : MonsterController
         foreach (GameObject player in players)
         {
             GameObject projectile = Instantiate(darknessBallSkillProjectilePrefab);
+            projectile.GetComponent<MonsterSkill>().SetDamage(info.StatInfo.AttackPower);
 
             // flipX에 따라 x 좌표를 반전
             Vector3 spawnPosition = monsterSpriteRenderer.flipX ? darknessBallSpawnPositionRight.transform.position : darknessBallSpawnPositionLeft.transform.position;
@@ -219,6 +241,35 @@ public class BossMonsterController : MonsterController
             projectile.transform.position = spawnPosition;
             projectile.GetComponent<DarknessBall>().target = player;
         }
+    }
+
+    // abyssTornado 애니메이션에서 이벤트로 호출됨.
+    public void AbyssTornado()
+    {
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        List<GameObject> players = new List<GameObject>();
+
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.name.Contains("Player"))
+            {
+                players.Add(obj);
+            }
+        }
+
+        foreach (GameObject player in players)
+        {
+            GameObject projectile = Instantiate(abyssTornadoSkillProjectilePrefab);
+            projectile.GetComponent<MonsterSkill>().SetDamage(info.StatInfo.AttackPower);
+
+            projectile.transform.position = player.transform.position;
+        }
+    }
+
+    // spawnNormalMonster 애니메이션에서 이벤트로 호출됨.
+    public void SpawnNormalMonster()
+    {
+        // 몬스터 소환은 서버에서 클라이언트에서는 아무런 구현 필요 없음.
     }
     #endregion
 }

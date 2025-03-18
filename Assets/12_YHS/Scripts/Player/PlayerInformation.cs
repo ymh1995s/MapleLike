@@ -1,13 +1,12 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
 using System;
-using Google.Protobuf.WellKnownTypes;
 
 public class PlayerInformation : MonoBehaviour
 {
-    public PlayerController playerController;
     public static PlayerInfo playerInfo;            // 게임 실행 동안 유지되는 player info
     public static PlayerStatInfo playerStatInfo;    // 게임 실행 동안 유지되는 player stat info
+    public static PlayerStatInfo equipmentStat = new PlayerStatInfo();     // 착용 장비에 의한 stat info
     #region PlayerInfo 자료형 상세
     /*
     Google.Protobuf.Protocol.PlayerInfo
@@ -46,21 +45,19 @@ public class PlayerInformation : MonoBehaviour
     public static AbilityPoint equipmentAp = new AbilityPoint();        // 장비 착용으로 상승하는 AP(임시)
     public static AbilityPoint finalAp = new AbilityPoint();            // 최종 AP
 
-    public static PlayerStatInfo equipmentStat = new PlayerStatInfo();
-
     private PlayerStatInfo initStatInfo = new PlayerStatInfo()
     {
-        // 임시 (확정일 수도 있는) 스탯 데이터
+        // 캐릭터 초기화 스탯 데이터
         // 아무것도 설정되지 않은 플레이어의 기본 스탯이다.
         Level = 1,
         ClassType = ClassType.Cnone,
         Hp = 100,
         MaxHp = 100,
-        Mp = 100,
-        MaxMp = 100,
+        Mp = 150,
+        MaxMp = 150,
         AttackPower = 10,
         MagicPower = 10,
-        Defense = 10,
+        Defense = 1,
         Speed = 3,
         Jump = 10,
         CurrentExp = 0,
@@ -71,17 +68,27 @@ public class PlayerInformation : MonoBehaviour
     public Action<int, int> UpdateMpAction;
     public Action<int, int> UpdateExpAction;
     public Action<int> UpdateLevelUpAction;
-
-    private void Start()
-    {
-        playerController = GetComponent<PlayerController>();
-    }
+    public Action UpdateStatWindowAction;
 
     /// <summary>
     /// 게임 접속 시 PlayerInfo 초기화
     /// </summary>
     public void InitPlayerInfo(PlayerInfo info)
     {
+        if (playerStatInfo == null)
+        {
+            playerStatInfo = initStatInfo.Clone();
+            playerStatInfo.ClassType = info.StatInfo.ClassType;
+            playerAp.Ap[0] = 4;
+            playerAp.Ap[1] = 4;
+            playerAp.Ap[2] = 4;
+            playerAp.Ap[3] = 4;
+
+            // 각 직업 특성에 맞게 MaxHPMP 세팅
+            BaseClass bc = GetComponentInChildren<BaseClass>();
+            bc.ClassStat();
+        }
+
         playerInfo = new PlayerInfo()
         {
             PlayerId = info.PlayerId,
@@ -92,20 +99,25 @@ public class PlayerInformation : MonoBehaviour
             CreatureState = info.CreatureState,     // fsm은 이미 관리주체가 있는데...
         };
 
-        if (playerInfo.StatInfo == null)
-        {
-            // static 선언된 playerStatInfo는 최초 실행 시 한 번만 초기화한다.
-            playerInfo.StatInfo = playerStatInfo = initStatInfo;
-        }
+        // playerStatInfo에 저장될 데이터를 갱신한다.
+        CalculateStat();
+    }
 
+    #region 스탯 관련 메서드
+    /// <summary>
+    /// 스탯을 갱신하고 UI에 반영하는 메서드
+    /// </summary>
+    public void CalculateStat()
+    {
         CalculateAp();
         CalculateAttackPower();
         CalculateMagicPower();
         CalculateDefense();
         CalculateHpMp();
+
+        UpdateStatWindowAction.Invoke();
     }
 
-    #region 스탯 관련 메서드
     private void CalculateAp()
     {
         finalAp.Ap[(int)ApName.STR] = playerAp.Ap[(int)ApName.STR] + equipmentAp.Ap[(int)ApName.STR];
@@ -122,14 +134,14 @@ public class PlayerInformation : MonoBehaviour
         switch (classType)
         {
             case ClassType.Warrior:
-                mainAp = playerAp.Ap[(int)ApName.STR];
-                subAp = playerAp.Ap[(int)ApName.DEX];
+                mainAp = finalAp.Ap[(int)ApName.STR];
+                subAp = finalAp.Ap[(int)ApName.DEX];
                 break;
             case ClassType.Magician:
                 break;
             case ClassType.Archer:
-                mainAp = playerAp.Ap[(int)ApName.DEX];
-                subAp = playerAp.Ap[(int)ApName.STR];
+                mainAp = finalAp.Ap[(int)ApName.DEX];
+                subAp = finalAp.Ap[(int)ApName.STR];
                 break;
             default:
                 break;
@@ -150,8 +162,8 @@ public class PlayerInformation : MonoBehaviour
             case ClassType.Warrior:
                 break;
             case ClassType.Magician:
-                mainAp = playerAp.Ap[(int)ApName.INT];
-                subAp = playerAp.Ap[(int)ApName.LUK];
+                mainAp = finalAp.Ap[(int)ApName.INT];
+                subAp = finalAp.Ap[(int)ApName.LUK];
                 break;
             case ClassType.Archer:
                 break;
@@ -161,18 +173,20 @@ public class PlayerInformation : MonoBehaviour
 
         float finalMagicPower = (mainAp * 4 + subAp) * equipmentStat.MagicPower * 0.05f;
 
-        playerStatInfo.MagicPower = initStatInfo.MagicPower + (int)((mainAp * 4 + subAp) * 0.05f);
+        playerStatInfo.MagicPower = initStatInfo.MagicPower + (int)finalMagicPower;
     }
 
     private void CalculateDefense()
     {
-        float defense = finalAp.Ap[(int)ApName.STR] * 4
-                    + finalAp.Ap[(int)ApName.DEX] * 2
-                    + finalAp.Ap[(int)ApName.INT] * 1;
+        float finalDefense = finalAp.Ap[(int)ApName.STR] * 4
+                           + finalAp.Ap[(int)ApName.DEX] * 2
+                           + finalAp.Ap[(int)ApName.INT] * 1;
 
-        defense += equipmentStat.Defense;
+        finalDefense = (int)finalDefense * 0.1f;
+        finalDefense += equipmentStat.Defense;
 
-        playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)(defense * 0.1f);
+        //playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)(finalDefense * 0.1f);
+        playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)finalDefense;
     }
 
     private void CalculateHpMp()
@@ -200,12 +214,13 @@ public class PlayerInformation : MonoBehaviour
         if (hp <= 0)
         {
             hp = 0;
-            playerController.OnDead();
+            GetComponent<PlayerController>().OnDead();
         }
 
         playerStatInfo.Hp = hp;
-        UpdateHpAction.Invoke(hp, maxHp);      // UI 동기화
-        Debug.Log("HP: " + hp + " / " + maxHp);
+        UpdateHpAction.Invoke(hp, maxHp);   // HPMPEXP UI 동기화
+        UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
+        //Debug.Log("HP: " + hp + " / " + maxHp);
     }
     #endregion
 
@@ -230,8 +245,9 @@ public class PlayerInformation : MonoBehaviour
         }
 
         playerStatInfo.Mp = mp;
-        UpdateMpAction.Invoke(mp, maxMp);      // UI 동기화
-        Debug.Log("MP: " + mp + " / " + maxMp);
+        UpdateMpAction.Invoke(mp, maxMp);   // HPMPEXP UI 동기화
+        UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
+        //Debug.Log("MP: " + mp + " / " + maxMp);
     }
     #endregion
 
@@ -246,11 +262,13 @@ public class PlayerInformation : MonoBehaviour
         int exp = playerStatInfo.CurrentExp + changeAmount;
         int totalExp = playerStatInfo.TotalExp;
 
-        if (exp >= totalExp)
+        while (exp >= totalExp)
         {
             exp -= totalExp;
 
-            playerStatInfo.TotalExp = (int)(totalExp * 1.25f);     // 다음 레벨업에 필요한 경험치량 상승      
+            totalExp = (int)(totalExp * 1.25f);
+            playerStatInfo.TotalExp = totalExp;     // 다음 레벨업에 필요한 경험치량 상승
+
             playerStatInfo.Level += 1;
             UpdateLevelUpAction.Invoke(playerStatInfo.Level);
 
@@ -261,8 +279,9 @@ public class PlayerInformation : MonoBehaviour
         }
 
         playerStatInfo.CurrentExp = exp;
-        UpdateExpAction.Invoke(exp, totalExp);     // UI 동기화
-        Debug.Log("EXP: " + exp + " / " + totalExp);
+        UpdateExpAction.Invoke(exp, totalExp);  // HPMPEXP UI 동기화
+        UpdateStatWindowAction.Invoke();        // 스탯창 UI 동기화
+        //Debug.Log("EXP: " + exp + " / " + totalExp);
     }
 
     /// <summary>
@@ -280,18 +299,18 @@ public class PlayerInformation : MonoBehaviour
         {
             case ClassType.Warrior:
                 apIndex = (int)ApName.STR;
-                hpExtendRate = 1.25f;
-                mpExtendRate = 1.05f;
+                hpExtendRate = 1.12f;
+                mpExtendRate = 1.07f;
                 break;
             case ClassType.Magician:
-                apIndex = (int)ApName.STR;
-                hpExtendRate = 1.10f;
-                mpExtendRate = 1.35f;
+                apIndex = (int)ApName.INT;
+                hpExtendRate = 1.07f;
+                mpExtendRate = 1.12f;
                 break;
             case ClassType.Archer:
                 apIndex = (int)ApName.DEX;
-                hpExtendRate = 1.15f;
-                mpExtendRate = 1.15f;
+                hpExtendRate = 1.10f;
+                mpExtendRate = 1.10f;
                 break;
         }
 
@@ -299,11 +318,7 @@ public class PlayerInformation : MonoBehaviour
         playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * hpExtendRate);
         playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * mpExtendRate);
 
-        CalculateAp();
-        CalculateAttackPower();
-        CalculateMagicPower();
-        CalculateDefense();
-        CalculateHpMp();
+        CalculateStat();
 
         // HP/MP 모두 회복
         SetPlayerHp(playerStatInfo.MaxHp);

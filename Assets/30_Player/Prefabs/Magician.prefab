@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 10
+  m_SortingOrder: 40
   m_Sprite: {fileID: 21300000, guid: 2fa118f3e9c4b0f4cbf951bb35967308, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -126,6 +126,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   classSkill:
   - {fileID: 11400000, guid: eeb0fb29ab0f8d84e9c37c7015cab03b, type: 2}
+  - {fileID: 11400000, guid: 4df84486917f64049810f16e27808e91, type: 2}
+  SkillSound:
+  - {fileID: 8300000, guid: 17578cd78de45464ea8a47be8aad6734, type: 3}
   Hitbox: {fileID: 5582176609443367122, guid: 73b7aaad2c5c2894980107bad944a1ce, type: 3}
   Effect: {fileID: 6967349773954626239}
   HitObject: {fileID: 5687020230494337370, guid: 322e84243233be640806be8259d35118, type: 3}
@@ -157,7 +160,7 @@ Transform:
   m_GameObject: {fileID: 6967349773954626239}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: 0.8, z: 0}
+  m_LocalPosition: {x: -0.6, y: 0.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -206,8 +209,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 2d3a63cd78a3c8d449a6349c903046d4, type: 3}
+  m_SortingOrder: 81
+  m_Sprite: {fileID: 21300000, guid: 7fe139b34cc111449957e3495c36fd6a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
