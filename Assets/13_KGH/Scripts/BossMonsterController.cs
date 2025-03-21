@@ -4,6 +4,7 @@
 
 using Google.Protobuf.Protocol;
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -90,10 +91,10 @@ public class BossMonsterController : MonsterController
         monsterSpriteRenderer.flipX = isRight ? true : false;
     }
 
-    protected override void Stun()
+    protected override void Stun(int hitCount = 1)
     {
         // 보스몬스터는 히트 애니메이션 존재하지 않음.
-        monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+        StartCoroutine(PlayStunAudio(hitCount));
     }
 
     protected override void Skill()
@@ -151,7 +152,7 @@ public class BossMonsterController : MonsterController
     }
 
     // 패킷 수신 시 핸들러에서 호출. 서버에서 보낸 패킷에 따라 State 설정.
-    public override void SetState(MonsterState newState)
+    public override void SetState(MonsterState newState, int hitCount = 1)
     {
         switch (newState)
         {
@@ -163,7 +164,7 @@ public class BossMonsterController : MonsterController
                 break;
             case MonsterState.MStun:
                 currentState = BossMonsterState.Stun;
-                Stun();
+                Stun(hitCount);
                 break;
             case MonsterState.MSkill:
                 currentState = BossMonsterState.Skill;
@@ -192,6 +193,16 @@ public class BossMonsterController : MonsterController
         hpBarGauge.fillAmount = (float)info.StatInfo.Hp / (float)info.StatInfo.MaxHp;
     }
 
+    private IEnumerator PlayStunAudio(int hitCount)
+    {
+        for (int i = 0; i < hitCount; i++)
+        {
+            monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+            yield return new WaitForSeconds(0.1f); // 0.1초 대기
+        }
+    }
+
+
     #region 스킬
 
     // darkGenesis 애니메이션에서 이벤트로 호출됨.
@@ -202,7 +213,7 @@ public class BossMonsterController : MonsterController
 
         foreach (GameObject obj in allObjects)
         {
-            if (obj.name.Contains("Player"))
+            if (obj.name.Contains("Player_"))
             {
                 players.Add(obj);
             }
@@ -212,7 +223,7 @@ public class BossMonsterController : MonsterController
         {
             GameObject projectile = Instantiate(darkGenesisSkillProjectilePrefab);
             projectile.GetComponent<MonsterSkill>().SetDamage(info.StatInfo.AttackPower);
-            projectile.transform.position = player.transform.position;
+            projectile.transform.position = new Vector2(player.transform.position.x, -2.558871f);
         }
     }
 
@@ -224,7 +235,7 @@ public class BossMonsterController : MonsterController
 
         foreach (GameObject obj in allObjects)
         {
-            if (obj.name.Contains("Player"))
+            if (obj.name.Contains("Player_"))
             {
                 players.Add(obj);
             }
@@ -262,7 +273,7 @@ public class BossMonsterController : MonsterController
             GameObject projectile = Instantiate(abyssTornadoSkillProjectilePrefab);
             projectile.GetComponent<MonsterSkill>().SetDamage(info.StatInfo.AttackPower);
 
-            projectile.transform.position = player.transform.position;
+            projectile.transform.position = new Vector2(player.transform.position.x, -2.558871f);
         }
     }
 

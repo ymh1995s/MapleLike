@@ -11,14 +11,18 @@ public class Skill : ScriptableObject
     public int manaCost;
     public int addManaCost;
     public int hitCount;
+    public int coolTime;
+    public int duration;
 
-    public Skill(string skillName, int maxLevel, int damage, int manaCost, int hitCount)
+    public Skill(string skillName, int maxLevel, int damage, int manaCost, int hitCount, int coolTime, int duration)
     {
         this.skillName = skillName;
         this.maxLevel = maxLevel;
         this.damage = damage;
         this.manaCost = manaCost;
         this.hitCount = hitCount;
+        this.coolTime = coolTime;
+        this.duration = duration;
     }
 
     public int Damage(int skillLevel)

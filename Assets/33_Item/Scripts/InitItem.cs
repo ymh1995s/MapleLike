@@ -8,7 +8,6 @@ using UnityEngine;
 public class InitItem : MonoBehaviour
 {
     [SerializeField] ItemType itemType;
-    [SerializeField] string itemName;
     public Item Property;
     public int Serverid;
     public int Ownerid; // 누가 죽였는지 
@@ -17,17 +16,7 @@ public class InitItem : MonoBehaviour
     
     void Start()
     {
-        itemName = gameObject.name;
-
-        if (Enum.TryParse(itemName, out ItemType parsedType))
-        {
-            itemType = parsedType;
-        }
-        else
-        {
-            Debug.LogWarning($"'{itemName}'은(는) ItemType에 존재하지 않습니다.");
-        }
-
+        
         foreach (var item in ItemManager.Instance.ItemList)
         {
             if (itemType == item.ItemType)

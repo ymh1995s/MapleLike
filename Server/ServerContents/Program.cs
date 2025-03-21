@@ -36,15 +36,23 @@ namespace ServerContents
             Console.WriteLine($"This Server IP is {endPoint.Address.ToString()}");
             Console.WriteLine("Server Listening...");
 
-            while (true)
+            try
             {
-                // TODO. 방을 나누고 각각의 스레드로 배분한다.
-                foreach (var room in rooms)
+                while (true)
                 {
-                    room.Push(room.Flush);
-                }
+                    // TODO. 방을 나누고 각각의 스레드로 배분한다.
+                    foreach (var room in rooms)
+                    {
+                        room.Push(room.Flush);
+                    }
 
-                Thread.Sleep(1);
+                    Thread.Sleep(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"예외 발생: {ex.Message}");
+                Console.ReadKey();
             }
         }
     }

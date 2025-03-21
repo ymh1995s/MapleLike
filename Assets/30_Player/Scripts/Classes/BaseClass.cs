@@ -25,6 +25,7 @@ public abstract class BaseClass : MonoBehaviour
     public AudioClip[] SkillSound;
     public GameObject Hitbox;
     public GameObject Effect;
+    public GameObject BuffEffect;
     public GameObject HitObject;
     protected GameObject currentHit;
     protected AudioSource SkillSource;
@@ -196,4 +197,7 @@ public abstract class BaseClass : MonoBehaviour
 
         return damageList;
     }
+
+    public abstract bool UseBuffSkill();
+    protected abstract void RemoveBuff();
 }

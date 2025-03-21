@@ -11,6 +11,7 @@ using UnityEngine;
 // 기환님이 작업하시는 곳
 public partial class PacketHandler
 {
+    private int lastHitPlayerId;
     public static void S_MonsterSpawnHandler(PacketSession session, IMessage packet)
     {
         S_MonsterSpawn spawnPacket = packet as S_MonsterSpawn;
@@ -62,10 +63,14 @@ public partial class PacketHandler
     public static void S_MonsterDespawnHandler(PacketSession session, IMessage packet)
     {
         S_MonsterDespawn despawnPacket = packet as S_MonsterDespawn;
-        foreach (int monsterId in despawnPacket.MonsterIds)
+
+        SceneLoadManager.Instance.ExecuteOrQueue(() =>
         {
-            ObjectManager.Instance.Remove(monsterId);
-        }
+            foreach (int monsterId in despawnPacket.MonsterIds)
+            {
+                ObjectManager.Instance.Remove(monsterId);
+            }
+        });
     }
 
     public static void S_MonsterSkillHandler(PacketSession session, IMessage packet)
@@ -102,15 +107,17 @@ public partial class PacketHandler
             return;
 
         MonsterController mc = go.GetComponent<MonsterController>();
-        if (mc != null)        
+        if (mc != null)
+        {
             mc.SetCurrentHp(hitPacket.MonsterCurrentHp);
-
+            mc.lastHitPlayerId = hitPacket.PlayerId;
+        }
 
         // 일반몬스터의 경우
         NormalMonsterController nmc = go.GetComponent<NormalMonsterController>();
         if (nmc != null)
         {
-            nmc.SetState(MonsterState.MStun);
+            nmc.SetState(MonsterState.MStun, hitPacket.Damages.Count);
             nmc.UpdateHPBarGauge();
         }
             
@@ -118,13 +125,13 @@ public partial class PacketHandler
         BossMonsterController bmc = go.GetComponent<BossMonsterController>();
         if (bmc != null)
         {
-            bmc.SetState(MonsterState.MStun);
+            bmc.SetState(MonsterState.MStun, hitPacket.Damages.Count);
             bmc.UpdateHPBarGauge();
         }
 
         // 데미지 출력
         Transform target = go.transform;
-        SpawnManager.Instance.SpawnDamage(hitPacket.Damages, target, false);
+        SpawnManager.Instance.SpawnDamage(hitPacket.Damages, target, 0);
         if (hitPacket.PlayerId != PlayerInformation.playerInfo.PlayerId)
         {
             Transform player = ObjectManager.Instance.FindById(hitPacket.PlayerId).transform;

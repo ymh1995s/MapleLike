@@ -12,6 +12,7 @@ public class YHSMyPlayerController : PlayerController
     public PlayerInformation playerInformation;
     public PlayerInventory playerInventory;
     public PlayerEquip playerEquip;
+    public PlayerCanvas playerCanvas;
 
     // 위치 계산에 필요한 컴포넌트
     private Rigidbody2D rb;
@@ -55,7 +56,8 @@ public class YHSMyPlayerController : PlayerController
         playerInformation = gameObject.AddComponent<PlayerInformation>();
         playerInventory = gameObject.AddComponent<PlayerInventory>();
         playerEquip = gameObject.AddComponent<PlayerEquip>();
-        
+        playerCanvas = gameObject.GetComponentInChildren<PlayerCanvas>();
+
         rb = gameObject.AddComponent<Rigidbody2D>();
 
         gameObject.GetComponentInChildren<SpriteRenderer>().sortingOrder = 50;
@@ -204,6 +206,14 @@ public class YHSMyPlayerController : PlayerController
             rb.linearVelocityY = PlayerInformation.playerStatInfo.Jump;
             isPressedJump = true;
         }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            if (playerClass.UseBuffSkill())
+            {
+                OnHit();
+            }
+        }
     }
 
     private void OperatePlayer()
@@ -345,6 +355,9 @@ public class YHSMyPlayerController : PlayerController
             transform.localScale = scale;
             isRight = !isRight;
         }
+
+        // 이름표는 뒤집히지 않게
+        playerCanvas.FlipCanvas(isRight);
     }
 
     /// <summary>

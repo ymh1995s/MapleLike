@@ -91,8 +91,18 @@ MonoBehaviour:
   - {fileID: -6961991885917788207, guid: cfd26878c4bddbb498e2bc8d07014572, type: 3}
   - {fileID: -5451550459006579161, guid: 38ca090e78d89a54aa6f451688afe2f9, type: 3}
   - {fileID: 6555570971336574927, guid: 3cc8aea2694d22540a69468eeb63cacc, type: 3}
+  autoHealDamageSkin:
+  - {fileID: 4055135337270110873, guid: 896eb32409b4d98478f1ed644fdf5294, type: 3}
+  - {fileID: 3092058584489426952, guid: e5b6bf7b22bd2d5409894a9d1e7aa12c, type: 3}
+  - {fileID: -5676692977265144667, guid: ae52aa00ccba11f4cbf3b46a815dcad9, type: 3}
+  - {fileID: -6538469707302302835, guid: cf4dbf2249ec8d9459f4292c50a31994, type: 3}
+  - {fileID: -2014401399936994652, guid: 813254bb22666af43b5497ac01695351, type: 3}
+  - {fileID: 7504554223739123641, guid: 9cf80e1be27ebcf4b8deb96ec852b88d, type: 3}
+  - {fileID: 5696526032278917585, guid: acd4c788e3b2da1448308974c63b90fb, type: 3}
+  - {fileID: -6867883604225928461, guid: 81972ec07b67bb64fa278e415fd876f6, type: 3}
+  - {fileID: 7002315955025974187, guid: 1772e1535c41b1c42aa9c1458ae11968, type: 3}
+  - {fileID: 5909294012490581353, guid: 4f7029a29f8484d4983768cecbeae916, type: 3}
   damageNumberPrefab: {fileID: 7432526554317934202, guid: 7cd643ddd11423b42b5061896bcfc0b9, type: 3}
-  damageList: 
 --- !u!1 &8785008499730038761
 GameObject:
   m_ObjectHideFlags: 0

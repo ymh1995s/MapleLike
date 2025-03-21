@@ -56,9 +56,10 @@ public class DoubleClick : MonoBehaviour
 
     void HandleDoubleClick()
     {
+        Slot inventoyItemSlot = transform.GetComponentInChildren<Slot>();
         if (currentInventoryType == InventoryType.Inventory)
         {
-            Slot inventoyItemSlot = transform.GetComponentInChildren<Slot>();
+            
             
             if (inventoyItemSlot == null)
             {
@@ -100,14 +101,34 @@ public class DoubleClick : MonoBehaviour
         else if (currentInventoryType == InventoryType.Shop)
         {
            var showUI= transform.parent.GetComponent<ShowUI>();
+           
+           var category= showUI.CheckID();
+           
+           
            //부모오브젝트를 가져와서  있다면 
            if (showUI.ownerType == Info.OwnerType.Shop)
            {
-               showUI.BuyItem();
+               if (category == Item.ItemCategory.Equipment )
+               {
+                   showUI.BuyItem();
+               }
+               else
+               {
+                   showUI.buyGroups.SetActive(true);
+                   UIManager.Instance.PlaySoundDlgNotice();
+               }
            }
            else if (showUI.ownerType == Info.OwnerType.Player)
            {
-               showUI.SellItem();
+               if (category == Item.ItemCategory.Equipment )
+               {
+                   showUI.SellItem();
+               }
+               else
+               {
+                   showUI.sellGroups.SetActive(true);
+                   UIManager.Instance.PlaySoundDlgNotice();
+               }
            }
         }
         //장비 벗기

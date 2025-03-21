@@ -1,12 +1,15 @@
 using Google.Protobuf.Protocol;
 using UnityEngine;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerInformation : MonoBehaviour
 {
     public static PlayerInfo playerInfo;            // 게임 실행 동안 유지되는 player info
     public static PlayerStatInfo playerStatInfo;    // 게임 실행 동안 유지되는 player stat info
     public static PlayerStatInfo equipmentStat = new PlayerStatInfo();     // 착용 장비에 의한 stat info
+    public static PlayerStatInfo buffStat = new PlayerStatInfo();
     #region PlayerInfo 자료형 상세
     /*
     Google.Protobuf.Protocol.PlayerInfo
@@ -69,6 +72,8 @@ public class PlayerInformation : MonoBehaviour
     public Action<int, int> UpdateExpAction;
     public Action<int> UpdateLevelUpAction;
     public Action UpdateStatWindowAction;
+
+    private Coroutine autoHealCoroutine;
 
     /// <summary>
     /// 게임 접속 시 PlayerInfo 초기화
@@ -147,7 +152,7 @@ public class PlayerInformation : MonoBehaviour
                 break;
         }
 
-        float finalAttackPower = (mainAp * 4 + subAp) * equipmentStat.AttackPower * 0.05f;
+        float finalAttackPower = (mainAp * 4 + subAp) * equipmentStat.AttackPower * 0.05f + buffStat.AttackPower;
 
         playerStatInfo.AttackPower = initStatInfo.AttackPower + (int)finalAttackPower;
     }
@@ -184,6 +189,7 @@ public class PlayerInformation : MonoBehaviour
 
         finalDefense = (int)finalDefense * 0.1f;
         finalDefense += equipmentStat.Defense;
+        finalDefense += buffStat.Defense;
 
         //playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)(finalDefense * 0.1f);
         playerInfo.StatInfo.Defense = initStatInfo.Defense + (int)finalDefense;
@@ -220,7 +226,7 @@ public class PlayerInformation : MonoBehaviour
         playerStatInfo.Hp = hp;
         UpdateHpAction.Invoke(hp, maxHp);   // HPMPEXP UI 동기화
         UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
-        //Debug.Log("HP: " + hp + " / " + maxHp);
+        Debug.Log("HP: " + hp + " / " + maxHp);
     }
     #endregion
 
@@ -261,6 +267,12 @@ public class PlayerInformation : MonoBehaviour
     {
         int exp = playerStatInfo.CurrentExp + changeAmount;
         int totalExp = playerStatInfo.TotalExp;
+
+        if (playerStatInfo.Level >= 60)
+        {
+            playerStatInfo.CurrentExp = 0;
+            return;
+        }
 
         while (exp >= totalExp)
         {
@@ -304,12 +316,12 @@ public class PlayerInformation : MonoBehaviour
                 break;
             case ClassType.Magician:
                 apIndex = (int)ApName.INT;
-                hpExtendRate = 1.07f;
+                hpExtendRate = 1.10f;
                 mpExtendRate = 1.12f;
                 break;
             case ClassType.Archer:
                 apIndex = (int)ApName.DEX;
-                hpExtendRate = 1.10f;
+                hpExtendRate = 1.12f;
                 mpExtendRate = 1.10f;
                 break;
         }
@@ -323,6 +335,46 @@ public class PlayerInformation : MonoBehaviour
         // HP/MP 모두 회복
         SetPlayerHp(playerStatInfo.MaxHp);
         SetPlayerMp(playerStatInfo.MaxMp);
+    }
+    #endregion
+
+    #region 자동 회복 메서드
+    public void StartAutoHeal()
+    {
+        autoHealCoroutine = StartCoroutine(AutoHeal());
+    }
+
+    public void StopAutoHeal()
+    {
+        StopCoroutine(autoHealCoroutine);
+    }
+
+    /// <summary>
+    /// Idle 상태일 때 일정 시간이 지나면 HP/MP를 자동 회복
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator AutoHeal()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+
+            if (playerStatInfo.Hp < playerStatInfo.MaxHp ||
+                playerStatInfo.Mp < playerStatInfo.MaxMp)
+            {
+                // 최대 HP의 2%, 최대 MP의 2%, 절댓값 10 중 가장 큰 값으로 회복
+                int amount = Mathf.Max(playerStatInfo.MaxHp / 50, playerStatInfo.MaxMp / 50);
+                amount = Mathf.Max(amount, 10);
+                SetPlayerHp(amount);
+                SetPlayerMp(amount);
+
+                SpawnManager.Instance.SpawnDamage(
+                    new List<int>() { amount },
+                    transform,
+                    2
+                    );
+            }
+        }
     }
     #endregion
 

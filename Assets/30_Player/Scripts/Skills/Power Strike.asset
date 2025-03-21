@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Power Strike
   maxLevel: 5
-  damage: 200
+  damage: 250
   addDamage: 15
   manaCost: 5
   addManaCost: 3
   hitCount: 1
+  coolTime: 0
+  duration: 0

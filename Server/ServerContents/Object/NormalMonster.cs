@@ -239,7 +239,7 @@ namespace ServerContents.Object
                 S_GetExp expPacket = new S_GetExp();
                 expPacket.PlayerIds = playerId;
                 expPacket.Exp = Stat.Exp;
-                Room.Broadcast(expPacket);
+                ObjectManager.Instance.Find(playerId).Session.Send(expPacket);
 
                 // 현재 룸에 존재하는 모든 클라이언트에게 알림
                 S_HitMonster hitPacket = new S_HitMonster();

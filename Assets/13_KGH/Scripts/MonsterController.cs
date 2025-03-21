@@ -51,7 +51,9 @@ public class MonsterController : BaseController
     protected bool hasUsedSkill = false;                          
     protected bool isAlreadyDie = false;
 
-    protected void Start()
+    public int lastHitPlayerId;
+
+    protected void OnEnable()
     {
         monsterRigidbody = GetComponent<Rigidbody2D>();
         monsterCollider = GetComponent<Collider2D>();
@@ -69,10 +71,10 @@ public class MonsterController : BaseController
     
     protected virtual void Idle() { }
     protected virtual void Move() { }
-    protected virtual void Stun() { }
+    protected virtual void Stun(int hitCount = 1) { }
     protected virtual void Skill() { }
     protected virtual void Dead() { }
-    public virtual void SetState(MonsterState newState) { }
+    public virtual void SetState(MonsterState newState, int hitCount = 1) { }
     public virtual void SetDirection(bool isRight) { }
 
     //======================================================================================================
@@ -108,9 +110,7 @@ public class MonsterController : BaseController
         monsterRigidbody.bodyType = RigidbodyType2D.Dynamic;
     }
 
-
-    // 몬스터의 Die 애니메이션의 끝에서 호출되는 이벤트 함수
-    private void Despawn()
+    public void Despawn()
     {
         StartCoroutine(DespawnCoroutine());
     }
@@ -119,6 +119,8 @@ public class MonsterController : BaseController
     {
         monsterCollider.enabled = false;
         monsterRigidbody.bodyType = RigidbodyType2D.Kinematic;
+
+        yield return new WaitForSeconds(1.0f);
 
         float duration = 2.0f; // 지속 시간
         float elapsedTime = 0f; // 경과 시간

@@ -9,7 +9,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Heal
+    m_ConditionEvent: Buff
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 8815517907758766975}
@@ -34,7 +34,7 @@ AnimatorController:
   m_Name: HAnimation
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: Heal
+  - m_Name: Buff
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0

@@ -18,12 +18,9 @@ public class ObjectManager : MonoBehaviour
     // 동기화가 필요한 모든 오브젝트를 딕셔너리로 관리한다고 보면 됩니다.
     public Dictionary<int, GameObject> _objects = new Dictionary<int, GameObject>();
 
-    // 원래 제가 했던 거에서는 Resources 폴더로 string으로 접근을 했었는데
-    // 강사님이 비추하기도 했고 해서 Resources 폴더를 삭제하고 임시 프리팹 매칭 코드
-    [SerializeField] GameObject tempPlayer;
-    [SerializeField] GameObject tempMyPlayer;
-
+    // Prefabs
     [SerializeField] List<GameObject> classPrefabList;
+    [SerializeField] GameObject playerCanvasPrefab;
 
     private void Awake()
     {
@@ -61,6 +58,7 @@ public class ObjectManager : MonoBehaviour
                 // ItemType에 맞는 location 찾기
                 IResourceLocation selectedLocation = locations.FirstOrDefault(loc => loc.PrimaryKey.Contains(itemSpawn.ItemType.ToString()));
 
+                Debug.Log(itemSpawn.ItemType.ToString());
                 if (selectedLocation == null)
                 {
                     Debug.LogError($"❌ 해당 타입({itemSpawn.ItemType})의 아이템을 찾을 수 없습니다.");
@@ -223,7 +221,7 @@ public class ObjectManager : MonoBehaviour
                 go.layer = LayerMask.NameToLayer("MyPlayer");
                 go.transform.position = new Vector3(info.PositionX, info.PositionY, 0f);
 
-                InitPlayer(go, (int)info.StatInfo.ClassType);
+                InitPlayer(go, (int)info.StatInfo.ClassType, myPlayer);
 
                 MyPlayer = go.AddComponent<YHSMyPlayerController>();
                 MyPlayer.GetComponent<YHSMyPlayerController>().playerInformation.InitPlayerInfo(info);
@@ -241,7 +239,7 @@ public class ObjectManager : MonoBehaviour
                 go.name = info.Name;
                 go.layer = LayerMask.NameToLayer("Player");
 
-                InitPlayer(go, (int)info.StatInfo.ClassType);
+                InitPlayer(go, (int)info.StatInfo.ClassType, myPlayer);
 
                 PlayerController pc = go.AddComponent<PlayerController>();
                 pc.Id = info.PlayerId;
@@ -304,11 +302,21 @@ public class ObjectManager : MonoBehaviour
         if (go.TryGetComponent<MonsterController>(out MonsterController mc))
         {
             if (go.TryGetComponent<NormalMonsterController>(out NormalMonsterController nmc))
+            {
                 nmc.SetState(MonsterState.MDead);
+                nmc.Despawn();
+            }
             else if (go.TryGetComponent<BossMonsterController>(out BossMonsterController bmc))
+            {
                 bmc.SetState(MonsterState.MDead);
-
+                bmc.Despawn();
+            }
+                
             mc.SetCurrentHp(0);
+
+            // 퀘스트 업데이트
+            if (DeathManager.Instance.player.Id == mc.lastHitPlayerId && QuestManager.Instance.currentQuest != null)
+                QuestManager.Instance.currentQuest.UpdateQuest(mc.name);
         }
         else
             Object.Destroy(go); // Unity 메인 스레드에서 오브젝트 삭제하고
@@ -332,14 +340,22 @@ public class ObjectManager : MonoBehaviour
         MyPlayer = null;
     }
 
-    private void InitPlayer(GameObject go, int classIndex)
+    private void InitPlayer(GameObject go, int classIndex, bool myPlayer)
     {
         // 체력바나 이름표 등도 넣을 수 있지 않을까?
 
         {
             // 직업에 따른 프리팹 인스턴싱
-            GameObject character = Instantiate(classPrefabList[classIndex], go.transform);     // 캐릭터 오브젝트
+            GameObject character = Instantiate(classPrefabList[classIndex], go.transform);
             character.name = "Character";
+        }
+
+        if (myPlayer == true)
+        {
+            // 자신을 식별할 수 있는 이름표 인스턴싱
+            // Player_OOOOOOO 하위 PlayerCanvas로 생성됩니다.
+            GameObject playerCanvas = Instantiate(playerCanvasPrefab, go.transform);
+            playerCanvas.name = "PlayerCanvas";
         }
     }
 }

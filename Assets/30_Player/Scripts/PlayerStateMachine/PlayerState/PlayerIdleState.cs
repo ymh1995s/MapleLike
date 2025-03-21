@@ -16,7 +16,12 @@ public class PlayerIdleState : IPlayerState
         
         YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
         if (mpc != null)
+        {
             mpc.SendPlayerMovePacket();
+
+            // 자동 회복 코루틴 시작
+            mpc.playerInformation.StartAutoHeal();
+        }
     }
 
     public void Execute()
@@ -26,7 +31,12 @@ public class PlayerIdleState : IPlayerState
 
     public void Exit()
     {
-
+        YHSMyPlayerController mpc = playerController as YHSMyPlayerController;
+        if (mpc != null)
+        {
+            // 자동 회복 코루틴 종료
+            mpc.playerInformation.StopAutoHeal();
+        }
     }
 
     public CurrentPlayerState ReturnNowState()

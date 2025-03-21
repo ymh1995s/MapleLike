@@ -6,10 +6,7 @@ using UnityEngine;
 
 
 public class PlayerInventory : MonoBehaviour
-{
-    
-    public List<Item> items = new List<Item>();
-    
+{    
     //자식오브젝트에 들어있는 Slot 스크립트 전부 가져오기 
     public List<Slot> Slots = new List<Slot>();
     
@@ -97,11 +94,13 @@ public class PlayerInventory : MonoBehaviour
             {
                 switch (existingSlot.CurrentItem.ItemType)
                 {
-                    case ItemType.Hppotion:
+                    case ItemType.Hppotion1:
+                    case ItemType.Hppotion2:
                         temp.SetPlayerHp(consume.healAmount);
                         Debug.Log("체력 회복");
                         break;
-                    case ItemType.Mppotion:
+                    case ItemType.Mppotion1:
+                    case ItemType.Mppotion2:
                         temp.SetPlayerMp(consume.MpAmount);
                         Debug.Log("마나 회복");
                         break;

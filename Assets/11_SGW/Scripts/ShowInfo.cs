@@ -37,7 +37,11 @@ public class ShowInfo : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                     UIManager.Instance.tooltipGroup.transform.position = equipSlot.transform.position+ new Vector3(180,0,0);
                     if (equipSlot.CurrentItem is Equipment eq)
                     {
-                        UIManager.Instance.tooltipText.text = "착용레벨: "+ eq.limitLevel + "\n" + eq.description;
+                        UIManager.Instance.tooltipText.text = "착용레벨:"+ eq.limitLevel + "\n"+
+                                                              "공격력:"+ eq.attackPower + "\n"+
+                                                              "마법공격력:"+ eq.magicPower + "\n"+
+                                                              "방어력:"+ eq.defensePower + "\n"+
+                                                              eq.description +"\n"+"더블클릭으로 장착 및 해제가 가능하다";
                         return;
                     }
                     
@@ -56,12 +60,16 @@ public class ShowInfo : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                     
                     if (inventorySlot.CurrentItem is Equipment eq)
                     {
-                        UIManager.Instance.tooltipText.text = "착용레벨:"+ eq.limitLevel + "\n" + eq.description;
+                        UIManager.Instance.tooltipText.text ="착용레벨:"+ eq.limitLevel + "\n"+
+                                                             "공격력:"+ eq.attackPower + "\n"+
+                                                             "마법공격력:"+ eq.magicPower + "\n"+
+                                                             "방어력:"+ eq.defensePower + "\n"+
+                                                             eq.description +"\n"+"더블클릭으로 장착 및 해제가 가능하다.";
                         return;
                     }
                     else if (inventorySlot.CurrentItem is Consumable co)
                     {
-                        UIManager.Instance.tooltipText.text = co.description;
+                        UIManager.Instance.tooltipText.text = co.description +"\n"+"더블클릭으로 사용이 가능하다.";
                         return;
                     }
                    

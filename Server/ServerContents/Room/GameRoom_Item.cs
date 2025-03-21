@@ -11,6 +11,7 @@ namespace ServerContents.Room
     public partial class GameRoom : JobSerializer
     {
         static Random random = new Random();
+        private Dictionary<ItemType, double> dropRates;
 
         public void ItemEnterGame(Player player, float posX, float posY)
         {
@@ -27,13 +28,13 @@ namespace ServerContents.Room
                 S_ItemSpawn spawnPacket = new S_ItemSpawn();
                 spawnPacket.ItemType = GetRandomItem();
                 Console.WriteLine(spawnPacket.ItemType);
-                spawnPacket.CanOnlyOwnerLootTime = 15000; //15초
-                spawnPacket.LifeTime = 30000; //30초
+                spawnPacket.CanOnlyOwnerLootTime = 10000; // 10초
+                spawnPacket.LifeTime = 60000; // 30초
                 spawnPacket.ItemInfo = item.Info;
                 spawnPacket.ItemInfo.OwnerId = player.Id;
                 spawnPacket.ItemInfo.PositionX = posX;
                 spawnPacket.ItemInfo.PositionY = posY;
-                
+
                 Broadcast(spawnPacket);
 
                 // 아이템 N초 후에 사라질 것을 예약함
@@ -41,7 +42,6 @@ namespace ServerContents.Room
                 deSpawnPacket.ItemId = item.Id;
                 PushAfter(spawnPacket.CanOnlyOwnerLootTime, SetItemRootAnyOne, item.Id); // ex) 15초 후
                 PushAfter(spawnPacket.LifeTime, LeaveItem, deSpawnPacket.ItemId); // ex) 30초 후
-                
             }
         }
 
@@ -81,20 +81,20 @@ namespace ServerContents.Room
 
         public void ItemRooting(Player player, int itemId)
         {
-            if(player == null) return;
+            if (player == null) return;
 
             Item item = null;
             if (_items.TryGetValue(itemId, out item) == false)
                 return;
 
             // 모두에게 소유권이 있거나, 소유권이 있는 사람이 아이템 루팅을 요청할 때
-            if((item.Info.CanRootAnyOne) || (!item.Info.CanRootAnyOne && item.Info.OwnerId == player.Id))
+            if ((item.Info.CanRootAnyOne) || (!item.Info.CanRootAnyOne && item.Info.OwnerId == player.Id))
             {
-                if (_items.Remove(itemId, out item)==false)
+                if (_items.Remove(itemId, out item) == false)
                 {
                     return;
                 }
-                
+
                 item.Room = null;
 
                 S_LootItem pkt = new S_LootItem();
@@ -104,19 +104,72 @@ namespace ServerContents.Room
             }
         }
 
-        public static ItemType GetRandomItem()
+        void SetDropItemRates()
+        {
+            dropRates = new Dictionary<ItemType, double>()
+            {
+                { ItemType.Gold, 100.0 },
+
+                { ItemType.Hppotion1, 5.0 },
+                { ItemType.Hppotion2, 2.5 },
+                { ItemType.Mppotion1, 5.0 },
+                { ItemType.Mppotion2, 2.5 },
+                { ItemType.Superpotion1, 2.0 },
+                { ItemType.Superpotion2, 1.0 },
+
+                { ItemType.Helmet1, 0.2 },
+                { ItemType.Helmet2, 0.1 },
+                { ItemType.Armor1, 0.2 },
+                { ItemType.Armor2, 0.1 },
+                { ItemType.Boots1, 0.2 },
+                { ItemType.Boots2, 0.1 },
+
+                { ItemType.Sword1, 0.2 },
+                { ItemType.Sword2, 0.1 },
+                { ItemType.Sword3, 0.05 },
+                { ItemType.Staff1, 0.2 },
+                { ItemType.Staff2, 0.1 },
+                { ItemType.Staff3, 0.05 },
+                { ItemType.Arrow1, 0.2 },
+                { ItemType.Arrow2, 0.1 },
+                { ItemType.Arrow3, 0.05 }
+            };
+
+            double totalBaseRate = dropRates.Values.Sum();
+
+            dropRates = dropRates.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (kvp.Value / totalBaseRate) * 100.0 // 정규화하여 총합이 100이 되도록 조정
+            );
+
+            CheckItemDropRates();
+
+        }
+
+        void CheckItemDropRates()
+        {
+            double sum = 0;
+            foreach (var p in dropRates)
+            {
+                sum += p.Value;
+            }
+            Console.WriteLine($"Item Rrop Rates sum (After normalization) : {sum:F3}");
+        }
+
+        public ItemType GetRandomItem()
         {
             double roll = random.NextDouble() * 100; // 0.0 ~ 99.9999...
 
-            if (roll < 90.0) return ItemType.Gold;      // 90%
-            if (roll < 94.5) return ItemType.Hppotion;  // 4.5%
-            if (roll < 99.0) return ItemType.Mppotion;   // 4.5%
-            // ItemType.Hppotion; 
-            // 나머지 1%를 6개로 균등 배분 (각각 0.1667%)
-            double remainingChance = roll - 99.0;
-            int index = (int)(remainingChance / 0.1667); // 0 ~ 5 범위로 변환
+            double cumulative = 0.0;
 
-            return (ItemType)(index + 1); // HELMET(1) ~ ARROW(6)
+            foreach (var kvp in dropRates)
+            {
+                cumulative += kvp.Value;
+                if (roll < cumulative)
+                    return kvp.Key;
+            }
+
+            return 0; // Dafult Gold (이론상 도달하지 않음)
         }
     }
 }

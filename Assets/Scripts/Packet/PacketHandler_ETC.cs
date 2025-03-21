@@ -10,8 +10,6 @@ using UnityEngine;
 public partial class PacketHandler
 {
     public static event Action OnActivateStartScenePanel;
-    
-    
     public static void S_ConnectedHandler(PacketSession session, IMessage packet)
     {
         OnActivateStartScenePanel?.Invoke();
@@ -67,20 +65,27 @@ public partial class PacketHandler
             return;
         }
 
-        var item =ObjectManager.Instance.FindById(lootItemPkt.ItemId);
-        InitItem initItem = item.GetComponentInChildren<InitItem>();
+        var item = ObjectManager.Instance.FindById(lootItemPkt.ItemId);
+        if (item == null)
+        {
+            Debug.Log("들어옵니다!!!");
+            return;
+        }
+
+        var itemPickup = item.GetComponent<ItemPickup>();
+        itemPickup.StartAttracting2(lootItemPkt);
         
-        Debug.Log($"먹을 아이템 : {lootItemPkt.ItemId}");
-        Debug.Log($"아이템을 먹을 권리가 있는 캐릭 : {initItem.Ownerid}");
-        Debug.Log($"z키 눌러서 먹을려고 시도하는  캐릭 : {lootItemPkt.PlayerId}");
-        Debug.Log($"클라이언트의 마이플레이어  캐릭 : {ObjectManager.Instance.MyPlayer.Id}");
+        //
+        // Debug.Log($"먹을 아이템 : {lootItemPkt.ItemId}");
+        // Debug.Log($"아이템을 먹을 권리가 있는 캐릭 : {initItem.Ownerid}");
+        // Debug.Log($"z키 눌러서 먹을려고 시도하는  캐릭 : {lootItemPkt.PlayerId}");
+        // Debug.Log($"클라이언트의 마이플레이어  캐릭 : {ObjectManager.Instance.MyPlayer.Id}");
         
         //z키 눌러서 먹을려고 시도하는  캐릭 과  아이템을 먹을 권리가 있는 캐릭이 같을 경우 실행  또는 먹을 수있는 조건이 전부인 경우 
         // if (lootItemPkt.PlayerId == initItem.Ownerid || initItem.Ownerid == -1 )
         // {
-            //끌어오기 함수 실행
-            var itemPickup = item.GetComponent<ItemPickup>();
-            itemPickup.StartAttracting2(lootItemPkt);
+      
+      
         // }
         // //z키 눌러서 먹을려고 시도하는  캐릭 과  아이템을 먹을 권리가 있는 캐릭이 다를 경우 실행 
         // else if (lootItemPkt.PlayerId != initItem.Ownerid)
@@ -88,5 +93,4 @@ public partial class PacketHandler
         //     Debug.Log("다르기 때문에 먹을 수없음 ");
         // }
     }
-
 }

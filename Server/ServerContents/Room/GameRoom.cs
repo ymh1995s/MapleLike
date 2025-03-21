@@ -41,6 +41,8 @@ namespace ServerContents.Room
         {
             MonsterManager.Instance.LoadAllData();
             PlayerSpawnPositionManager.Instance.LoadAllData();
+            SetDropItemRates();
+            //TestItemRate();
 
             // Nms초당 에 한 번 서버에 귀속적인 로직을 실행한다.
             // ex. 몬스터의 업데이트
@@ -206,7 +208,7 @@ namespace ServerContents.Room
         /// 이 플레이어가 공격 받았다고 '알리기만' 한다.
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="skillPacket"></param>
+        /// <param name="skillPacket"></param> 
         public void HandleDamaged(Player player, C_PlayerDamaged damagePacket)
         {
             if (player == null)

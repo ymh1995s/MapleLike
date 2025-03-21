@@ -1,4 +1,5 @@
 using Google.Protobuf.Protocol;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -6,10 +7,17 @@ using UnityEngine;
 public class Archer : BaseClass
 {
     [SerializeField] private GameObject arrowPrefab;
-    
+    [SerializeField] protected GameObject SharpEyesBuffBox;
+    protected bool buffOn = true;
+    protected Coroutine bufCoroutine;
+    protected Coroutine bufdurationCoroutine;
+    private int buffAttackPower;
+    private PlayerStatInfo buffstat;
+
     protected override void Start()
     {
         base.Start();
+        buffstat = PlayerInformation.buffStat;
         InitializeSkill();
     }
 
@@ -121,7 +129,7 @@ public class Archer : BaseClass
         Collider2D hitCollider = currentHit.GetComponent<Collider2D>();
         Vector3 min = hitCollider.bounds.min;
         Vector3 max = hitCollider.bounds.max;
-        Vector3 startPoint = GetComponentInParent<PlayerController>().isRight ? max : min;
+        Vector3 startPoint = GetComponentInParent<PlayerController>().isRight ? min : max;
         startPoint.y = hitCollider.bounds.center.y;
 
         GameObject arrowGo = Instantiate(arrowPrefab,
@@ -164,7 +172,7 @@ public class Archer : BaseClass
         int cost = skillList["Double Shot"].GetManaCost();
         if (!CheckMana(cost))
         {
-            Debug.Log("MP 부족");
+            SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
             return false;
         }
         else
@@ -173,6 +181,89 @@ public class Archer : BaseClass
             SkillSource.PlayOneShot(skillSound["Double Shot"]);
             return true;
         }
+    }
+
+    public override bool UseBuffSkill()
+    {
+        int cost = skillList["Sharp Eyes"].GetManaCost();
+        if (!CheckMana(cost) || !buffOn)
+        {
+            if (!CheckMana(cost))
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
+            }
+            if (!buffOn)
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("아직 쿨타임입니다!");
+            }
+            return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            if (bufdurationCoroutine != null)
+            {
+                StopCoroutine(bufdurationCoroutine);
+                bufdurationCoroutine = null;
+                RemoveBuff();
+                BuffManager.instance.RemoveBuff("Sharp Eyes");
+            }
+
+            if (BuffEffect != null)
+            {
+                BuffEffect.SetActive(true);
+                BuffEffect.GetComponent<Animator>().SetTrigger("Buff");
+            }
+            SkillSource.PlayOneShot(skillSound["Sharp Eyes"]);
+            GameObject go = Instantiate(SharpEyesBuffBox, controller.transform.position, Quaternion.identity);
+            BuffManager.instance.AddBuff("Sharp Eyes");
+            bufCoroutine = StartCoroutine(BuffCoolDown());
+            bufdurationCoroutine = StartCoroutine(BuffDuration());
+            Destroy(go, 0.5f);
+            return true;
+        }
+    }
+
+    IEnumerator BuffCoolDown()
+    {
+        if (controller == null)
+        {
+            yield break;
+        }
+
+        buffOn = false;
+        float timer = 0f;
+        while (timer < skillList["Sharp Eyes"].skill.coolTime)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        buffOn = true;
+        bufCoroutine = null;
+        yield break;
+    }
+
+    IEnumerator BuffDuration()
+    {
+        buffAttackPower = (int)(playerInfo.StatInfo.AttackPower * ((float)skillList["Sharp Eyes"].skill.damage / 100));
+        buffstat.AttackPower += buffAttackPower;
+        info.CalculateStat();
+        float timer = 0f;
+        while (timer < skillList["Sharp Eyes"].skill.duration)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        buffstat.AttackPower -= buffAttackPower;
+        info.CalculateStat();
+        bufdurationCoroutine = null;
+        yield break;
+    }
+
+    protected override void RemoveBuff()
+    {
+        buffstat.AttackPower -= buffAttackPower;
+        info.CalculateStat();
     }
     #endregion
 }

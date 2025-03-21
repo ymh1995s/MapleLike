@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
 {
     public GameObject invenotory;
     public GameObject Equipment;
+    public GameObject BuffList;
     
     private static UIManager _instance;
     
@@ -159,7 +160,8 @@ public class UIManager : MonoBehaviour
     public void ConnectPlayer()
     {
         invenotory.SetActive(true);
-        
+        BuffList.SetActive(true);
+
         var playerObj =ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id);
         InventorySlots = new List<Slot>(invenotory.GetComponentsInChildren<Slot>());
         EquipSlots = new List<EquipSlot>(Equipment.GetComponentsInChildren<EquipSlot>());
@@ -345,7 +347,7 @@ public class UIManager : MonoBehaviour
                     switch (playerClass)
                     {
                         case ClassType.Archer:
-                            if (VARIABLE.ItemType == ItemType.Defaultarrow)
+                            if (VARIABLE.ItemType == ItemType.Arrow1)
                             {
                                 updateDefaultWeapon(weaponItem, VARIABLE);
                                 Debug.Log("아쳐 장비 설정: " + VARIABLE.itemName);
@@ -353,7 +355,7 @@ public class UIManager : MonoBehaviour
                             }
                             break;
                         case ClassType.Magician:
-                            if (VARIABLE.ItemType == ItemType.Defaultstaff)
+                            if (VARIABLE.ItemType == ItemType.Staff1)
                             {
                                 updateDefaultWeapon(weaponItem, VARIABLE);
                                 Debug.Log("매지션 장비 설정: " + VARIABLE.itemName);
@@ -361,7 +363,7 @@ public class UIManager : MonoBehaviour
                             }
                             break;
                         case ClassType.Warrior:
-                            if (VARIABLE.ItemType == ItemType.Defaultsword)
+                            if (VARIABLE.ItemType == ItemType.Sword1)
                             {
                                 updateDefaultWeapon(weaponItem, VARIABLE);
                                 Debug.Log("워리어 장비 설정: " + VARIABLE.itemName);
@@ -399,7 +401,7 @@ public class UIManager : MonoBehaviour
         var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
         foreach (var item in ItemManager.Instance.ItemList)
         {
-            if (item.ItemType == ItemType.Mppotion)
+            if (item.ItemType == ItemType.Mppotion1)
             {
                 slot.SetItem(item);
                 slot.Count = 10;
@@ -418,7 +420,7 @@ public class UIManager : MonoBehaviour
         var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
         foreach (var item in ItemManager.Instance.ItemList)
         {
-            if (item.ItemType == ItemType.Hppotion)
+            if (item.ItemType == ItemType.Hppotion1)
             {
                 slot.SetItem(item);
                 slot.Count = 10;
@@ -469,19 +471,28 @@ public class UIManager : MonoBehaviour
              * 사용 했을 시 사용 효과 적용
              */
             PlayerInformation temp = ObjectManager.Instance.FindById(ObjectManager.Instance.MyPlayer.Id).GetComponent<PlayerInformation>();
-
+            
             if (existingSlot.CurrentItem is Consumable consume)
             {
                 switch (existingSlot.CurrentItem.ItemType)
                 {
-                    case ItemType.Hppotion:
+                    case ItemType.Hppotion1:
+                    case ItemType.Hppotion2:
                         temp.SetPlayerHp(consume.healAmount);
-                        
                         Debug.Log("체력 회복");
                         break;
-                    case ItemType.Mppotion:
+                    case ItemType.Mppotion1:
+                    case ItemType.Mppotion2:
                         temp.SetPlayerMp(consume.MpAmount);
                         Debug.Log("마나 회복");
+                        break;
+                    case ItemType.Superpotion1:
+                        temp.SetPlayerHp(PlayerInformation.playerStatInfo.MaxHp/2);
+                        temp.SetPlayerMp(PlayerInformation.playerStatInfo.MaxMp/2);
+                        break;
+                    case ItemType.Superpotion2:
+                        temp.SetPlayerHp(PlayerInformation.playerStatInfo.MaxHp);
+                        temp.SetPlayerMp(PlayerInformation.playerStatInfo.MaxMp);
                         break;
                 }
                 PlaySoundUsePotion();
@@ -500,7 +511,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region 아이템 추가
-    public void AddItem(Item newItem)
+    public void AddItem(Item newItem,int amount)
     {
         if (newItem == null)
         {
@@ -508,6 +519,10 @@ public class UIManager : MonoBehaviour
         }
         // 기존에 있는 아이템인지 확인
         Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
+        if (existingSlot ==null )
+        {
+            Debug.Log("아이템 타입은"+newItem.ItemType);
+        }
         
         if (newItem.ItemType == ItemType.Gold)
         {
@@ -516,6 +531,75 @@ public class UIManager : MonoBehaviour
             Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
             return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
         }
+        
+        
+        if (existingSlot != null)
+        {
+            
+            // 🔥 이미 존재하는 아이템이고 소비 가능한거면 개수 증가 시키기
+            if (existingSlot.CurrentItem is Consumable consume)
+            {
+               
+                existingSlot.Count += amount;
+                existingSlot.UpdateUI();
+                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {existingSlot.Count}");
+            }
+            // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
+            else if (existingSlot.CurrentItem is Equipment equip)
+            {
+                Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
+                if (emptySlot != null)
+                {
+                    emptySlot.Count++;
+                    emptySlot.SetItem(newItem);
+                    emptySlot.UpdateUI();
+                    Debug.Log($"🟢 {newItem.itemName} 새로운 슬롯에 추가됨");
+                }
+                else
+                {
+                    Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
+                }
+            }
+        }
+        else
+        {
+            // 🔥 새로운 아이템이면 빈 슬롯에 추가
+            Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
+            if (emptySlot != null)
+            {
+                emptySlot.Count += amount;
+                emptySlot.SetItem(newItem);
+                emptySlot.UpdateUI();
+                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
+            }
+            else
+            {
+                Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
+            }
+        }
+    }
+    
+    public void AddItem(Item newItem)
+    {
+        if (newItem == null)
+        {
+            return;
+        }
+        // 기존에 있는 아이템인지 확인
+        Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
+        if (existingSlot ==null )
+        {
+            Debug.Log("아이템 타입은"+newItem.ItemType);
+        }
+        
+        if (newItem.ItemType == ItemType.Gold)
+        {
+            Income += 10;
+            TxtGold.text = Income.ToString();
+            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
+            return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
+        }
+        
         
         if (existingSlot != null)
         {

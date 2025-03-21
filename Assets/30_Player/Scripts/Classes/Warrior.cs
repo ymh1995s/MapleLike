@@ -1,14 +1,23 @@
 using Google.Protobuf.Protocol;
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Warrior : BaseClass
 {
+    [SerializeField] protected GameObject IronWallBuffBox;
+    protected bool buffOn = true;
+    protected Coroutine bufCoroutine;
+    protected Coroutine bufdurationCoroutine;
+    private int buffDefense;
+    private PlayerStatInfo buffstat;
     protected override void Start()
     {
         base.Start();
+        buffstat = PlayerInformation.buffStat;
         InitializeSkill();
     }
 
@@ -18,7 +27,7 @@ public class Warrior : BaseClass
     public override void ClassStat()
     {
         PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 4f);
-        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 0.75f);
+        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 1f);
 
         PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp;
         PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp;
@@ -96,7 +105,7 @@ public class Warrior : BaseClass
         int cost = skillList["Power Strike"].GetManaCost();
         if (!CheckMana(cost))
         {
-            Debug.Log("MP 부족");
+            SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
             return false;
         }
         else
@@ -105,6 +114,89 @@ public class Warrior : BaseClass
             SkillSource.PlayOneShot(skillSound["Power Strike"]);
             return true;
         }
+    }
+
+    public override bool UseBuffSkill()
+    {
+        int cost = skillList["Iron Wall"].GetManaCost();
+        if (!CheckMana(cost) || !buffOn)
+        {
+            if (!CheckMana(cost))
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
+            }
+            if (!buffOn)
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("아직 쿨타임입니다!");
+            }
+            return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            if (bufdurationCoroutine != null)
+            {
+                StopCoroutine(bufdurationCoroutine);
+                bufdurationCoroutine = null;
+                RemoveBuff();
+                BuffManager.instance.RemoveBuff("Iron Wall");
+            }
+
+            if (BuffEffect != null)
+            {
+                BuffEffect.SetActive(true);
+                BuffEffect.GetComponent<Animator>().SetTrigger("Buff");
+            }
+            SkillSource.PlayOneShot(skillSound["Iron Wall"]);
+            GameObject go = Instantiate(IronWallBuffBox, controller.transform.position, Quaternion.identity);
+            BuffManager.instance.AddBuff("Iron Wall");
+            bufCoroutine = StartCoroutine(BuffCoolDown());
+            bufdurationCoroutine = StartCoroutine(BuffDuration());
+            Destroy(go, 0.5f);
+            return true;
+        }
+    }
+
+    IEnumerator BuffCoolDown()
+    {
+        if (controller == null)
+        {
+            yield break;
+        }
+
+        buffOn = false;
+        float timer = 0f;
+        while (timer < skillList["Iron Wall"].skill.coolTime)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        buffOn = true;
+        bufCoroutine = null;
+        yield break;
+    }
+
+    IEnumerator BuffDuration()
+    {
+        buffDefense = (int)(playerInfo.StatInfo.Defense * ((float)skillList["Iron Wall"].skill.damage / 100));
+        buffstat.Defense += buffDefense;
+        info.CalculateStat();
+        float timer = 0f;
+        while (timer < skillList["Iron Wall"].skill.duration)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        buffstat.Defense -= buffDefense;
+        info.CalculateStat();
+        bufdurationCoroutine = null;
+        yield break;
+    }
+
+    protected override void RemoveBuff()
+    {
+        buffstat.Defense -= buffDefense;
+        info.CalculateStat();
     }
     #endregion
 }

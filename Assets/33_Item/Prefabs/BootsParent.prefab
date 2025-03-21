@@ -444,7 +444,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56b212e7f39e78a498595cdc9b32b872, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemType: 0
+  itemType: 3001
   itemName: 
   Property: {fileID: 0}
   Serverid: 0

@@ -80,9 +80,9 @@ public class NormalMonsterController : MonsterController
         monsterSpriteRenderer.flipX = isRight ? true : false;
     }
 
-    protected override void Stun()
+    protected override void Stun(int hitCount = 1)
     {
-        monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+        StartCoroutine(PlayStunAudio(hitCount));
         monsterAnimator.SetTrigger("hit");
     }
 
@@ -114,7 +114,7 @@ public class NormalMonsterController : MonsterController
     }
 
     // 패킷 수신 시 핸들러에서 호출. 서버에서 보낸 패킷에 따라 State 설정
-    public override void SetState(MonsterState newState)
+    public override void SetState(MonsterState newState, int hitCount = 1)
     {
         switch (newState)
         {
@@ -126,7 +126,7 @@ public class NormalMonsterController : MonsterController
                 break;
             case MonsterState.MStun:
                 currentState = NormalMonsterState.Stun;
-                Stun();
+                Stun(hitCount);
                 break;
             case MonsterState.MSkill:
                 currentState = NormalMonsterState.Skill;
@@ -167,5 +167,14 @@ public class NormalMonsterController : MonsterController
         yield return new WaitForSeconds(5.0f);
         hpBar.SetActive(false);
         inactiveHPBarCoroutine = null;
+    }
+
+    private IEnumerator PlayStunAudio(int hitCount)
+    {
+        for (int i = 0; i < hitCount; i++)
+        {
+            monsterAudioSource.PlayOneShot(monsterAudioClips.stunAudioClip);
+            yield return new WaitForSeconds(0.1f); // 0.1초 대기
+        }
     }
 }

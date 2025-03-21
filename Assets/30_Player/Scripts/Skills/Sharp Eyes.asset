@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Sharp Eyes
   maxLevel: 5
-  damage: 100
+  damage: 20
   addDamage: 10
-  manaCost: 0
+  manaCost: 20
   addManaCost: 20
   hitCount: 0
+  coolTime: 20
+  duration: 30

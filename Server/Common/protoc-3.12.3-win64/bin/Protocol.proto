@@ -100,9 +100,10 @@ message S_MonsterDespawn {
 
 message S_ItemSpawn{
   ItemInfo itemInfo = 1;
-  ItemType itemType = 2;
-  int32 canOnlyOwnerLootTime = 3;
-  int32 lifeTime  = 4;
+  ItemCategory itemCategory = 2;
+  ItemType itemType = 3;
+  int32 canOnlyOwnerLootTime = 4; // 10
+  int32 lifeTime  = 5; // 60
 }
 
 message C_PlayerSkill{
@@ -266,20 +267,43 @@ enum BossMonsterSkillType {
   BOSSSKILL5 = 4;
 }
 
+// 쓸거면 쓰세요
+enum ItemCategory {
+	IC_GOLD = 0;
+	IC_ICONSUMABLE = 1;
+	IC_IEQUIP = 2;	
+}
+
 // 늘어나면 구분하면 됨
 enum ItemType {
+  // GOLD LINE =====================================
   GOLD = 0;
-  HELMET = 1;
-  ARMOR = 2;
-  BOOTS = 3;
-  SWORD = 4;
-  STAFF = 5;
-  ARROW = 6;
-  HPPOTION = 7;
-  MPPOTION = 8;
-  DEFAULTSWORD = 9;
-  DEFAULTSTAFF = 10;
-  DEFAULTARROW = 11;
+  
+  // CONSUMABLE LINE =====================================
+  HPPOTION1 = 100; // 빨간 포션 포지션
+  HPPOTION2 = 101; // 하얀 포션 포지션
+  MPPOTION1 = 201; // 파란 포션 포지션
+  MPPOTION2 = 202; // 마나 엘릭서 포지션
+  SUPERPOTION1 = 301; // 엘릭서 포지션
+  SUPERPOTION2 = 302; // 파워 엘릭서 포지션
+  
+  // EQUIP LINE =====================================
+  HELMET1 = 1001; // 5렙 헬멧
+  HELMET2 = 1002; // 10렙 헬멧 
+  ARMOR1 = 2001; // 5렙 갑옷
+  ARMOR2 = 2002; // 10렙 갑옷
+  BOOTS1 = 3001; // 5렙 부츠
+  BOOTS2 = 3002; // 10렙 부츠
+  
+  SWORD1 = 10001; // 1렙 칼
+  SWORD2 = 10002; // 5렙 칼
+  SWORD3 = 10003; // 10렙 칼
+  STAFF1 = 20001; // 1렙 스테프
+  STAFF2 = 20002; // 5렙 스테프
+  STAFF3 = 20003; // 10렙 
+  ARROW1 = 30001; // 1렙 활
+  ARROW2 = 30002; // 5렙 활
+  ARROW3 = 30003; // 10렙 활
 }
 
 // 플레이어와 작동방식 ex. FSM? 을 보고 한번 맞추긴 해야겠다.

@@ -4,11 +4,14 @@ using UnityEngine;
 public class TriggerScript : MonoBehaviour
 {
     public Vector2 player;
+    public int TriggerType = 0;
     private List<MonsterController> Monsters;
+    public List<PlayerController> Players;
 
     private void Awake()
     {
         Monsters = new List<MonsterController>();
+        Players = new List<PlayerController>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -17,14 +20,22 @@ public class TriggerScript : MonoBehaviour
         {
             Monsters.Add(collision.GetComponent<MonsterController>());
         }
+        if (collision.gameObject.layer == LayerMask.NameToLayer("MyPlayer") && TriggerType == 1)
+        {
+            Players.Add(collision.GetComponent<PlayerController>());
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Monster"))
-        {
-            Monsters.Remove(collision.GetComponent<MonsterController>());
-        }
+        //if (collision.CompareTag("Monster"))
+        //{
+        //    Monsters.Remove(collision.GetComponent<MonsterController>());
+        //}
+        //if (collision.gameObject.layer == LayerMask.NameToLayer("MyPlayer") && TriggerType == 1)
+        //{
+        //    Players.Remove(collision.GetComponent<PlayerController>());
+        //}
     }
 
     /// <summary>
@@ -52,6 +63,18 @@ public class TriggerScript : MonoBehaviour
         //monster.SetState(Google.Protobuf.Protocol.MonsterState.MStun);
 
         return nearestMon;
+    }
+
+    public YHSMyPlayerController GetPlayer()
+    {
+        foreach(PlayerController player in Players)
+        {
+            if (player is YHSMyPlayerController client)
+            {
+                return client;
+            }
+        }
+        return null;
     }
 
     public MonsterController GetTarget()

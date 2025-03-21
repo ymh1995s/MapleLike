@@ -1,9 +1,13 @@
 using Google.Protobuf.Protocol;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Magician : BaseClass
 {
+    [SerializeField] protected GameObject HealBuffBox;
+    protected bool buffOn = true;
+    protected Coroutine bufCoroutine;
     protected override void Start()
     {
         base.Start();
@@ -93,7 +97,7 @@ public class Magician : BaseClass
         int cost = skillList["Magic Clow"].GetManaCost();
         if (!CheckMana(cost))
         {
-            Debug.Log("MP 부족");
+            SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
             return false;
         }
         else
@@ -102,6 +106,61 @@ public class Magician : BaseClass
             SkillSource.PlayOneShot(skillSound["Magic Clow"]);
             return true;
         }
+    }
+
+    public override bool UseBuffSkill()
+    {
+        int cost = skillList["Heal"].GetManaCost();
+        if (!CheckMana(cost) || !buffOn)
+        {
+            if (!CheckMana(cost))
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("MP가 부족합니다!");
+            }
+            if (!buffOn)
+            {
+                SmallNoticeManager.Instance.SpawnSmallNotice("아직 쿨타임입니다!");
+            }
+            return false;
+        }
+        else
+        {
+            info.SetPlayerMp(-cost);
+            if (BuffEffect != null)
+            {
+                BuffEffect.SetActive(true);
+                BuffEffect.GetComponent<Animator>().SetTrigger("Buff");
+            }
+            SkillSource.PlayOneShot(skillSound["Heal"]);
+            GameObject go = Instantiate(HealBuffBox, controller.transform.position, Quaternion.identity);
+            bufCoroutine = StartCoroutine(BuffCoolDown());
+            Destroy(go, 0.5f);
+            return true;
+        }
+    }
+
+    IEnumerator BuffCoolDown()
+    {
+        if (controller == null)
+        {
+            yield break;
+        }
+
+        buffOn = false;
+        info.SetPlayerHp((int)(playerInfo.StatInfo.MaxHp * ((float)skillList["Heal"].skill.damage / 100)));
+        float timer = 0f;
+        while (timer < skillList["Heal"].skill.coolTime)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        buffOn = true;
+        yield break;
+    }
+
+    protected override void RemoveBuff()
+    {
+        return;
     }
     #endregion
 }

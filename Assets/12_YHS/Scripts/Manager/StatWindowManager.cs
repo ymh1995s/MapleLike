@@ -1,6 +1,5 @@
 using Google.Protobuf.Protocol;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class StatWindowManager : MonoBehaviour
@@ -23,8 +22,6 @@ public class StatWindowManager : MonoBehaviour
     [SerializeField] TMP_Text dexValue;
     [SerializeField] TMP_Text intValue;
     [SerializeField] TMP_Text lukValue;
-    
-
 
     private static StatWindowManager instance;
     public static StatWindowManager Instance { get { return instance; } }
@@ -51,7 +48,24 @@ public class StatWindowManager : MonoBehaviour
     {
         PlayerStatInfo statInfo = PlayerInformation.playerStatInfo;
         levelValue.text = statInfo.Level.ToString();
-        classTypeValue.text = statInfo.ClassType.ToString();
+
+        switch (statInfo.ClassType)
+        {
+            case ClassType.Warrior:
+                classTypeValue.text = "전사";
+                break;
+            case ClassType.Magician:
+                classTypeValue.text = "마법사";
+                break;
+            case ClassType.Archer:
+                classTypeValue.text = "궁수";
+                break;
+            default:
+                classTypeValue.text = "초보자";
+                break;
+
+        }
+
         currentHpValue.text = statInfo.Hp.ToString();
         maxHpValue.text = statInfo.MaxHp.ToString();
         currentMpValue.text = statInfo.Mp.ToString();

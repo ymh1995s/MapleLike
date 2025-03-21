@@ -50,7 +50,6 @@ public class Info : MonoBehaviour
         {
             case OwnerType.Player:
                 Price.text = $"판매 가격: {item.sellprice} G";
-                
                 break;
             case OwnerType.Shop:
                 Price.text = $"구매 가격: {item.buyprice} G";

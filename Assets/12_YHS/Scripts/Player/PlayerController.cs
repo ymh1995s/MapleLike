@@ -8,10 +8,10 @@ public class PlayerController : BaseController
     protected PlayerStateMachine playerSM;
     public Animator animator;
     GameObject character;
-    BaseClass playerClass;
+    protected BaseClass playerClass;
     protected Coroutine DeadTime;
 
-    public bool isRight = true;          // 플레이어가 바라보는 방향
+    public bool isRight = false;         // 플레이어가 바라보는 방향
     private bool _isAttacking = false;
     public bool isAttacking              // 플레이어가 공격 중인지
     {
@@ -89,6 +89,12 @@ public class PlayerController : BaseController
         }
 
         playerSM.TransitionByEnum(currentState);
+    }
+
+    public CurrentPlayerState GetPlayerState()
+    {
+        // 플레이어의 FSM 상태 반환
+        return playerSM.NowState;
     }
 
     #region FSM 상태 변환 메서드

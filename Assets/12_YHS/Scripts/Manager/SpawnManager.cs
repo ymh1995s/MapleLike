@@ -3,15 +3,16 @@ using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Google.Protobuf.Collections;
+using TMPro;
 
 public class SpawnManager : MonoBehaviour
 {
     private static SpawnManager instance;
     public static SpawnManager Instance { get { return instance; } }
 
-    public GameObject damagePrefab;
-
     [SerializeField] Texture2D cursorTexture;
+    [SerializeField] GameObject damagePrefab;
+    [SerializeField] GameObject smallNoticePrefab;
     
     private void Awake()
     {
@@ -61,7 +62,7 @@ public class SpawnManager : MonoBehaviour
     /// </summary>
     /// <param name="damageList">연산이 끝난 데미지 리스트</param>
     /// <param name="target">공격 대상의 Transform</param>
-    public void SpawnDamage(List<int> damageList, Transform target, bool isPlayerDamaged = false)
+    public void SpawnDamage(List<int> damageList, Transform target, int damageSkinIndex)
     {
         // 이거 SpawnManager의 SpawnAsset이랑 겹치는데;
         Vector3 spawnPosition = target.transform.position;
@@ -80,9 +81,8 @@ public class SpawnManager : MonoBehaviour
         
         spawnPosition.y = y;
 
-        // TODO: 데미지 프리팹을 어디에 저장해둘지 (UI Manager로 예상)
         GameObject damage = Instantiate(damagePrefab, spawnPosition, Quaternion.identity);
-        damage.GetComponentInChildren<DamageSpawner>().InitAndSpawnDamage(damageList, isPlayerDamaged);
+        damage.GetComponentInChildren<DamageSpawner>().InitAndSpawnDamage(damageList, damageSkinIndex);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class SpawnManager : MonoBehaviour
     /// <param name="damages"></param>
     /// <param name="target"></param>
     /// <param name="isPlayerDamaged"></param>
-    public void SpawnDamage(RepeatedField<int> damages, Transform target, bool isPlayerDamaged = false)
+    public void SpawnDamage(RepeatedField<int> damages, Transform target, int damageSkinIndex)
     {
         List<int> damageList = new List<int>();
 
@@ -100,7 +100,15 @@ public class SpawnManager : MonoBehaviour
             damageList.Add(damage);
         }
 
-        SpawnDamage(damageList, target, isPlayerDamaged);
+        SpawnDamage(damageList, target, damageSkinIndex);
+    }
+    #endregion
+
+    #region 화면 우하단 안내 출력
+    public void SpawnSmallNotice(string notice, Transform transform)
+    {
+        GameObject smallNotice = Instantiate(smallNoticePrefab, transform);
+        smallNotice.GetComponent<SmallNoticeSpawner>().InitAndSpawnSmallNotice(notice);
     }
     #endregion
 }
