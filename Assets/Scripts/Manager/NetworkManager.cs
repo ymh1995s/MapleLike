@@ -32,9 +32,7 @@ public class NetworkManager : MonoBehaviour
         // DNS (Domain Name System)
         string host = Dns.GetHostName();
         IPHostEntry ipHost = Dns.GetHostEntry(host);
-        // AWS 전용 하드 코딩
-        // string ipAddressString = "127.0.0.1";
-        string ipAddressString = "15.164.213.236"; // aws
+        string ipAddressString = "127.0.0.1";
         IPAddress ipAddr = IPAddress.Parse(ipAddressString);
         //IPAddress ipAddr = ipHost.AddressList[0];
         IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
