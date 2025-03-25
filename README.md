@@ -24,4 +24,4 @@
 멋쟁이 사자처럼 유니티 게임 개발 과정에서 "대상" 수상
 
 ## 관련 영상
-[[유튜브]] (https://www.youtube.com/watch?v=iOf8Z1hjhwE)
+[[유튜브]](https://www.youtube.com/watch?v=iOf8Z1hjhwE)
