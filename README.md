@@ -1,6 +1,6 @@
 # 메이플 라이크
 
-핵심 코드는 [[서버 코드]](https://github.com/ymh1995s/MapleLike/tree/main/Server), [[클라이언트 코드]](https://github.com/ymh1995s/MapleLike/tree/main/Assets)에서 확인할 수 있습니다.
+핵심 코드는 [[서버 코드]](https://github.com/ymh1995s/MapleLike/tree/main/Server), [[클라이언트 코드]](https://github.com/ymh1995s/MapleLike/tree/main/Assets/Scripts)에서 확인할 수 있습니다.
 
 데모 프로그램은 [[구글 드라이브]](https://drive.google.com/drive/folders/11amSt-Txy58wqSZDafHEjqCg6LXh4cUv?usp=sharing)에서 확인할 수 있습니다.
 
