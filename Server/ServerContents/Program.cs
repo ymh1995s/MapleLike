@@ -6,6 +6,7 @@ using ServerContents.Session;
 using ServerCore;
 using System.Net;
 using System.Threading;
+using ServerContents.DB;
 
 namespace ServerContents
 {
@@ -35,6 +36,19 @@ namespace ServerContents
 
             Console.WriteLine($"This Server IP is {endPoint.Address.ToString()}");
             Console.WriteLine("Server Listening...");
+
+
+            // DB 테스트
+            Thread thread = new Thread(() =>
+            {
+                using (AppDbContext db = new AppDbContext())
+                {
+                    db.Accounts.Add(new AccountDb() { AccountName = "TestAccount" });
+                    db.SaveChanges();
+                    Console.WriteLine( "Test Account Added!" );
+                }
+            });
+            thread.Start();
 
             try
             {

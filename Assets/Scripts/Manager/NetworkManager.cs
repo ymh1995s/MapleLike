@@ -52,7 +52,7 @@ public class NetworkManager : MonoBehaviour
         //dummyMovePacket.PosInfo = dummyPosition;
         //_session.Send(dummyMovePacket);
 
-        Screen.SetResolution(1920, 1080, false);
+        Screen.SetResolution(640, 480, false);
         Application.targetFrameRate = 60; // 60프레임 고정
     }
 
