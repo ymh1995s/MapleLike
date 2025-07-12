@@ -34,6 +34,8 @@ namespace ServerContents.DB
         public float MoveSpeed { get; set; }
         public float JumpPower { get; set; }
 
+        public int Gold { get; set; }
+
         public ICollection<InventoryDb> Inventory { get; set; }
     }
 }

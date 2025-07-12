@@ -39,16 +39,7 @@ namespace ServerContents
 
 
             // DB 테스트
-            //Thread thread = new Thread(() =>
-            //{
-            //    using (AppDbContext db = new AppDbContext())
-            //    {
-            //        db.Accounts.Add(new AccountDb() { AccountName = "TestAccount" });
-            //        db.SaveChanges();
-            //        Console.WriteLine( "Test Account Added!" );
-            //    }
-            //});
-            //thread.Start();
+            DbCommands.InitializeDB(forceReset: false);
 
             try
             {

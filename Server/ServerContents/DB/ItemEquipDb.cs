@@ -16,8 +16,12 @@ namespace ServerContents.DB
 
         public string RequiredJob { get; set; }
 
-        public int BonusAttack { get; set; }
-        public int BonusDefense { get; set; }
+        public int AttackPower { get; set; }
+        public int MagicPower { get; set; }
+        public int Defense { get; set; }
+
+        public int LimitLevel { get; set; }
+        public string Part { get; set; }
 
         public ItemDb Item { get; set; }
     }
