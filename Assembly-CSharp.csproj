@@ -122,6 +122,7 @@
     <Compile Include="Assets\12_YHS\Scripts\Manager\SmallNoticeManager.cs" />
     <Compile Include="Assets\12_YHS\Scripts\Player\YHSMyPlayerController.cs" />
     <Compile Include="Assets\Scripts\Manager\MonsterManager.cs" />
+    <Compile Include="Assets\Scripts\Manager\WebCommManager.cs" />
     <Compile Include="Assets\33_Item\Scripts\InitItem.cs" />
     <Compile Include="Assets\30_Player\Scripts\UI\PlayerCanvas\PlayerCanvas.cs" />
     <Compile Include="Assets\13_KGH\Scripts\BossRoomEnterUI\BossRoomEnterUI.cs" />

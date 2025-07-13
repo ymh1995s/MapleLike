@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 // DB 등록
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// TODO 게임서버 DB 등록 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
