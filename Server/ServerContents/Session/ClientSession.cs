@@ -1,5 +1,8 @@
 using Google.Protobuf;
 using Google.Protobuf.Protocol;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using ServerContents.DB;
 using ServerContents.Object;
 using ServerContents.Room;
 using ServerCore;
@@ -15,6 +18,7 @@ namespace ServerContents.Session
 {
     public class ClientSession : PacketSession
     {
+        public string AccountDbId { get; private set; }
         public Player MyPlayer { get; set; }
 
         public int SessionId { get; set; }
@@ -96,7 +100,109 @@ namespace ServerContents.Session
                 room.Push(room.LeavePlayer, MyPlayer.Info.PlayerId);
             }
 
+            MyPlayer = null;
             SessionManager.Instance.Remove(this);
+        }
+
+        public void HandleLogin(C_Login loginPacket)
+        {
+            // TODO : 레디스에서 추가 검증해서 로그인 성공 / 실패 2중 검사
+
+            // AccountDbId 메모리에 기억
+            AccountDbId = loginPacket.DBId;
+
+            using (AppDbContext db = new AppDbContext())
+            {
+                UserDb findAccount = db.Users.Where(a => a.UserDbId == loginPacket.DBId).FirstOrDefault();
+
+                if (findAccount != null)
+                {
+                    // DB의 데이터로부터 캐릭터 생성
+
+
+                    // TODO 기존의 데이터 대입하기
+
+                    // 생성 및 입장
+                    LoadOrCreatePlayer((ClassType)findAccount.Job, AccountDbId);
+                }
+                else
+                {
+                    // 캐릭터 생성창으로 유도
+                    S_Login loginOk = new S_Login() { IsOk = 1 };
+                    Send(loginOk);
+                }
+            }
+        }
+
+        public void LoadOrCreatePlayer(ClassType classType, string DbId)
+        {
+            using (AppDbContext db = new AppDbContext())
+            {
+                UserDb findAccount = db.Users.Where(a => a.UserDbId == DbId).FirstOrDefault();
+
+                if (findAccount == null)
+                {
+                    var newUser = new UserDb
+                    {
+                        UserDbId = DbId,
+
+                        Level = 1,
+                        Job = 0,              // 예: 0 = 무직
+                        MapNo = 1001,         // 시작 맵 번호
+
+                        Exp = 0,
+                        MaxExp = 100,
+
+                        CurrentHp = 100,
+                        MaxHp = 100,
+
+                        CurrentMp = 50,
+                        MaxMp = 50,
+
+                        Attack = 10,
+                        Defense = 5,
+
+                        MoveSpeed = 5.0f,
+                        JumpPower = 3.5f,
+
+                        Gold = 100,
+
+                        Inventory = new List<InventoryDb>() // 비어 있는 인벤토리 초기화
+                    };
+
+                    db.Users.Add(newUser);
+                    db.SaveChanges();
+                }
+            }
+
+            if (MyPlayer != null)
+            {
+                Console.WriteLine("이미 캐릭터를 생성한 클라이언트 입니다");
+                return;
+            }
+            MyPlayer = ObjectManager.Instance.Add<Player>();
+            {
+                MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
+                MyPlayer.Session = this;
+            }
+
+            if (classType == ClassType.Cnone || !Enum.IsDefined(typeof(ClassType), classType))
+            {
+                Console.WriteLine(" 허용되지 않은 클래스 타입. 클라이언트 오류 ");
+                return;
+            }
+
+            MyPlayer.Info.StatInfo.ClassType = classType;
+
+            GameRoom room = RoomManager.Instance.Find((int)MapName.Tutorial);
+            if (room == null)
+            {
+                Console.WriteLine($"{(int)MapName.Tutorial}번 방이 존재하지 않습니다. 클라이언트 접속 종료");
+                Disconnect();
+                return;
+            }
+
+            room.Push(room.PlayerEnterGame, MyPlayer, 0);
         }
 
         public override void OnRecvPacket(ArraySegment<byte> buffer)

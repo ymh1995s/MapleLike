@@ -6,41 +6,24 @@ using ServerContents.Room;
 using ServerContents.Session;
 using ServerCore;
 using System.Numerics;
+using Microsoft.Identity.Client;
+using ServerContents.DB;
 
 public partial class PacketHandler
 {
+
+    public static void C_LoginHandler(PacketSession session, IMessage packet)
+    {
+        C_Login loginPacket = packet as C_Login;
+        ClientSession clientSession = session as ClientSession;
+        clientSession.HandleLogin(loginPacket);
+    }
+
     public static void C_ClassChoiceHandler(PacketSession session, IMessage packet)
     {
         C_ClassChoice pkt = packet as C_ClassChoice;
         ClientSession clientSession = session as ClientSession;
-
-        if (clientSession.MyPlayer != null)
-        {
-            Console.WriteLine("이미 캐릭터를 생성한 클라이언트 입니다");
-            return;
-        }
-        clientSession.MyPlayer = ObjectManager.Instance.Add<Player>();
-        {
-            clientSession.MyPlayer.Info.Name = $"Player_{clientSession.MyPlayer.Info.PlayerId}";
-            clientSession.MyPlayer.Session = clientSession;
-        }
-
-        if (pkt.ClassType == ClassType.Cnone || !Enum.IsDefined(typeof(ClassType), pkt.ClassType))
-        {
-            Console.WriteLine(" 허용되지 않은 클래스 타입. 클라이언트 오류 ");
-            return;
-        }
-        clientSession.MyPlayer.Info.StatInfo.ClassType = pkt.ClassType;
-
-        GameRoom room = RoomManager.Instance.Find((int)MapName.Tutorial); 
-        if (room == null)
-        {
-            Console.WriteLine($"{(int)MapName.Tutorial}번 방이 존재하지 않습니다. 클라이언트 접속 종료");
-            clientSession.Disconnect();
-            return;
-        }
-
-        room.Push(room.PlayerEnterGame, clientSession.MyPlayer, 0);
+        clientSession.LoadOrCreatePlayer(pkt.ClassType, clientSession.AccountDbId);
     }
 
     public static void C_PlayerMoveHandler(PacketSession session, IMessage packet)

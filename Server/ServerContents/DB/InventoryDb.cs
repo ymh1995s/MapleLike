@@ -18,7 +18,7 @@ namespace ServerContents.DB
         public int ItemDbId { get; set; }
 
         [ForeignKey("User")]
-        public int UserDbId { get; set; }
+        public string UserDbId { get; set; }
 
         public int Count { get; set; }
         public bool IsEquipped { get; set; }

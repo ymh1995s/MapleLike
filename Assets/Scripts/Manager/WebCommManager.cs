@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -100,7 +101,8 @@ public class WebCommManager : MonoBehaviour
     {
         // 웹서버가 Message = "###", ID = ### 꼴로 주기 때문에 아래처럼 2개로 구성됨
         public string Message;
-        public string ID;
+        public string Id;
+        public string SecretValue;
     }
 
     public void OnCheckButtonClicked()
@@ -118,7 +120,7 @@ public class WebCommManager : MonoBehaviour
         SendPostRequest(Destination, res, (uwr) =>
         {
             var json = uwr.downloadHandler.text;
-            var response = JsonUtility.FromJson<ServerResponse>(json);
+            var response = JsonConvert.DeserializeObject<ServerResponse>(json);
 
             if (response == null)
             {
@@ -126,24 +128,26 @@ public class WebCommManager : MonoBehaviour
                 return;
             }
 
-            if (response.Message == "RegisterSuccess")
+            if (response.Message == "RegisterSuccess" || response.Message == "LoginSuccess")
             {
-                Debug.Log("회원가입 성공: " + response.ID);
-                // 회원가입 성공 처리
-            }
-            else if (response.Message == "LoginSuccess")
-            {
-                Debug.Log("로그인 성공: " + response.ID);
-                // 로그인 성공 처리
+                Debug.Log("인증 성공: " + response.Id);
+
+                C_Login loginPacket = new C_Login();
+                loginPacket.DBId = response.Id;
+                loginPacket.SecretValue = response.SecretValue;
+                NetworkManager.Instance.Send(loginPacket);
             }
             else
             {
-                Debug.LogWarning("알 수 없는 메시지: " + response.Message);
+                Debug.LogWarning("웹 서버에서 정의되지 않은 메시지: " + response.Message);
             }
-
-            //Canvas.SetActive(false);
         });
 
         Debug.Log($"ID : {IDInputField.text}, PW : {PWInputField.text}");
+    }
+
+    public void LoginCanvasDeActivated()
+    {
+        Canvas.SetActive(false);
     }
 }

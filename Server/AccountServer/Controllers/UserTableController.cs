@@ -38,6 +38,9 @@ namespace AccountServer.Controllers
             {
                 var existingUser = _context.Users.FirstOrDefault(u => u.ID == input.ID);
 
+                // 랜덤 난수(토큰) 생성
+                string secretValue = GenerateToken();
+
                 if (existingUser == null)
                 {
                     // 새 아이디 생성
@@ -56,7 +59,13 @@ namespace AccountServer.Controllers
                     _context.Users.Add(newUser);
                     _context.SaveChanges();
 
-                    return Ok(new { Message = "RegisterSuccess", ID = newUser.ID });
+
+                    return Ok(new 
+                    {
+                        Message = "RegisterSuccess", 
+                        ID = newUser.ID,
+                        SecretValue = secretValue
+                    });
                 }
                 else
                 {
@@ -70,7 +79,12 @@ namespace AccountServer.Controllers
                     existingUser.LastLogin = DateTime.UtcNow;
                     _context.SaveChanges();
 
-                    return Ok(new { Message = "LoginSuccess", ID = existingUser.ID });
+                    return Ok(new 
+                    { Message = 
+                        "LoginSuccess", 
+                        ID = existingUser.ID,
+                        SecretValue = secretValue
+                    });
                 }
             }
             catch (Exception ex)
@@ -176,6 +190,17 @@ namespace AccountServer.Controllers
         {
             string inputHash = HashPassword(inputPw, saltBase64);
             return storedHash == inputHash;
+        }
+
+        private string GenerateToken()
+        {
+            byte[] tokenBytes = new byte[32]; // 256비트 토큰
+            // RandomNumberGenerator : Cryptographic클래스의 난수 생성기(보안용 랜덤값)
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(tokenBytes);
+            }
+            return Convert.ToBase64String(tokenBytes);
         }
     }
 }

@@ -36,6 +36,8 @@ enum MsgId {
   C_LOOT_ITEM = 27;
   S_LOOT_ITEM = 28;
   S_ITEM_DESPAWN = 29;
+  C_LOGIN = 30;
+  S_LOGIN = 31;
 }
 
 message S_Connected {}
@@ -179,6 +181,15 @@ message S_LootItem {
 
 message S_ItemDespawn {
   int32 ItemId = 1;
+}
+
+message C_Login {
+  string DBId = 1;
+  string SecretValue = 2;
+}
+
+message S_Login {
+  int32 isOk = 1;
 }
 
 message PlayerInfo {

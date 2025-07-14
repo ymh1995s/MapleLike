@@ -24,4 +24,5 @@ class PacketHandler
     public static void S_GetExpHandler(PacketSession session, IMessage packet) { }
     public static void S_LootItemHandler(PacketSession session, IMessage packet) { }
     public static void S_ItemDespawnHandler(PacketSession session, IMessage packet) { }
+    public static void S_LoginHandler(PacketSession session, IMessage packet) { }
 }

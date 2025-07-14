@@ -11,6 +11,13 @@ using UnityEngine;
 // 충돌이 우려되면 또 파셜로 나누면 됩니다.
 public partial class PacketHandler
 {
+    public static void S_LoginHandler(PacketSession session, IMessage packet)
+    {
+        S_EnterGame enterPacket = packet as S_EnterGame;
+
+        WebCommManager.Instance.LoginCanvasDeActivated();
+    }
+
     public static void S_EnterGameHandler(PacketSession session, IMessage packet)
     {
         S_EnterGame enterPacket = packet as S_EnterGame;
@@ -24,6 +31,7 @@ public partial class PacketHandler
         SceneLoadManager.Instance.ExecuteOrQueue(() =>
         {
             ObjectManager.Instance.AddPlayer(enterPacket.PlayerInfo, myPlayer: true);
+            WebCommManager.Instance.LoginCanvasDeActivated();
         });
     }
 

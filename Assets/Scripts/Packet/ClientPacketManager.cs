@@ -65,7 +65,9 @@ class PacketManager
 		_onRecv.Add((ushort)MsgId.SLootItem, MakePacket<S_LootItem>);
 		_handler.Add((ushort)MsgId.SLootItem, PacketHandler.S_LootItemHandler);		
 		_onRecv.Add((ushort)MsgId.SItemDespawn, MakePacket<S_ItemDespawn>);
-		_handler.Add((ushort)MsgId.SItemDespawn, PacketHandler.S_ItemDespawnHandler);
+		_handler.Add((ushort)MsgId.SItemDespawn, PacketHandler.S_ItemDespawnHandler);		
+		_onRecv.Add((ushort)MsgId.SLogin, MakePacket<S_Login>);
+		_handler.Add((ushort)MsgId.SLogin, PacketHandler.S_LoginHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

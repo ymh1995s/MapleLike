@@ -12,10 +12,10 @@ namespace ServerContents.DB
     public class UserDb
     {
         [Key]
-        public int UserDbId { get; set; } // PK
+        public string UserDbId { get; set; } // 편의상 string으로 만들었는데 속도면에서 int가 유리
 
         public int Level { get; set; }
-        public string Job { get; set; }
+        public int Job { get; set; }
 
         public int MapNo { get; set; }
 
