@@ -35,10 +35,10 @@ namespace ServerContents.DB
         public float Speed { get; set; }
         public float Jump { get; set; }
 
-        public float STR { get; set; }
-        public float DEX { get; set; }
-        public float INT { get; set; }
-        public float LUK { get; set; }
+        public int STR { get; set; }
+        public int DEX { get; set; }
+        public int INT { get; set; }
+        public int LUK { get; set; }
 
         public int Gold { get; set; }
 

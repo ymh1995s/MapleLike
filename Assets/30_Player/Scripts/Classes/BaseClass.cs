@@ -44,7 +44,14 @@ public abstract class BaseClass : MonoBehaviour
     /// <summary>
     /// 직업의 스펙을 조정한다.
     /// </summary>
-    public abstract void ClassStat(PlayerStatInfo info);
+    public virtual void ClassStat(PlayerStatInfo statInfo)
+    {
+        PlayerInformation.playerStatInfo.MaxHp = statInfo.MaxHp;
+        PlayerInformation.playerStatInfo.MaxMp = statInfo.MaxMp;
+
+        PlayerInformation.playerStatInfo.CurrentHp = statInfo.CurrentHp;
+        PlayerInformation.playerStatInfo.CurrentMp = statInfo.CurrentMp;
+    }
 
     /// <summary>
     /// 스킬을 사용할 때 사용한다. Bool타입으로 스킬 사용에 성공했는지 여부를 리턴한다.

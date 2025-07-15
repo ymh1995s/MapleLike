@@ -63,7 +63,6 @@ public class StatWindowManager : MonoBehaviour
             default:
                 classTypeValue.text = "초보자";
                 break;
-
         }
 
         currentHpValue.text = statInfo.CurrentHp.ToString();
@@ -76,11 +75,10 @@ public class StatWindowManager : MonoBehaviour
         magicPowerValue.text = statInfo.MagicPower.ToString();
         defenceValue.text = statInfo.Defense.ToString();
 
-        AbilityPoint ap = PlayerInformation.playerAp;
-        strValue.text = ap.Ap[0].ToString();
-        dexValue.text = ap.Ap[1].ToString();
-        intValue.text = ap.Ap[2].ToString();
-        lukValue.text = ap.Ap[3].ToString();
+        strValue.text = PlayerInformation.playerStatInfo.STR.ToString();
+        dexValue.text = PlayerInformation.playerStatInfo.DEX.ToString();
+        intValue.text = PlayerInformation.playerStatInfo.INT.ToString();
+        lukValue.text = PlayerInformation.playerStatInfo.LUK.ToString();
     }
 
     public void SetWindowActive()

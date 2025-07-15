@@ -199,8 +199,7 @@ namespace ServerContents.Session
             }
         }
 
-        // 기존에 있는 유저면 기존의 값을,
-        // 그렇지 않으면 직업별로 기본 스텟을 부여한다.
+        // 기존에 있는 유저면 DB 값을, 최초 유저는 그렇지 않으면 직업별로 기본 값을 부여
         public void LoadPlayerInfoToDb(ClassType classType, string DbId)
         {
             using (AppDbContext db = new AppDbContext())
@@ -209,6 +208,7 @@ namespace ServerContents.Session
 
                 if (findAccount != null)
                 {
+                    // 기존 사용자 => DB에서 가져오기
                     // MyPlayer.Info.PlayerId = findAccount.PlayerId?; // ID 는 게임 내 발급으로, DB가 관리하지 않음
                     MyPlayer.Info.DbId = findAccount.UserDbId;
                     // MyPlayer.Info.Name = findAccount.name; // name 는 게임 내 발급으로, DB가 관리하지 않음
@@ -226,11 +226,15 @@ namespace ServerContents.Session
                     MyPlayer.Info.StatInfo.Jump = findAccount.Jump;
                     MyPlayer.Info.StatInfo.CurrentExp = findAccount.Exp;
                     MyPlayer.Info.StatInfo.MaxExp = findAccount.MaxExp;
-
+                    MyPlayer.Info.StatInfo.STR = findAccount.STR;
+                    MyPlayer.Info.StatInfo.DEX = findAccount.DEX;
+                    MyPlayer.Info.StatInfo.INT = findAccount.INT;
+                    MyPlayer.Info.StatInfo.LUK = findAccount.LUK;
                     MyPlayer.Info.Gold = findAccount.Gold;
                 }
                 else
                 {
+                    // 새로운 사용자 => 기본 값 부여
                     MyPlayer.Info.StatInfo = initStatInfo.Clone();
                     switch (classType)
                     {
@@ -250,6 +254,9 @@ namespace ServerContents.Session
 
                     MyPlayer.Info.StatInfo.CurrentHp = MyPlayer.Info.StatInfo.MaxHp;
                     MyPlayer.Info.StatInfo.CurrentMp = MyPlayer.Info.StatInfo.MaxMp;
+
+                    // 기타 최초 캐릭터 생성 시 초기화 하는 값들
+                    MyPlayer.Info.Gold = 1000;
                 }
             }
         }
@@ -267,7 +274,6 @@ namespace ServerContents.Session
             {
                 MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
                 MyPlayer.Info.DbId = DbId;
-                MyPlayer.Info.Gold = -1; // 플레이어쪽 초기화 회피용 꼼수
                 MyPlayer.Session = this;
             }
             

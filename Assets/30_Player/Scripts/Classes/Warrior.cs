@@ -21,23 +21,6 @@ public class Warrior : BaseClass
         InitializeSkill();
     }
 
-    /// <summary>
-    /// 전사 직업의 고유 특성 부여
-    /// </summary>
-    public override void ClassStat(PlayerStatInfo statInfo)
-    {
-        //PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 4f);
-        //PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 1f);
-
-        //PlayerInformation.playerStatInfo.CurrentHp = PlayerInformation.playerStatInfo.MaxHp;
-        //PlayerInformation.playerStatInfo.CurrentMp = PlayerInformation.playerStatInfo.MaxMp;
-        PlayerInformation.playerStatInfo.MaxHp = statInfo.MaxHp;
-        PlayerInformation.playerStatInfo.MaxMp = statInfo.MaxMp;
-
-        PlayerInformation.playerStatInfo.CurrentHp = statInfo.CurrentHp;
-        PlayerInformation.playerStatInfo.CurrentMp = statInfo.CurrentMp;
-    }
-
     #region 히트박스 관련 코드
     protected override void ActiveHitbox()
     {

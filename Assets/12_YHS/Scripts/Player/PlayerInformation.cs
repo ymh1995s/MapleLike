@@ -44,7 +44,7 @@ public class PlayerInformation : MonoBehaviour
     */
     #endregion
 
-    public static AbilityPoint playerAp = new AbilityPoint();           // 플레이어가 직접 투자한 AP
+    //public static AbilityPoint playerAp = new AbilityPoint();           // 플레이어가 직접 투자한 AP
     public static AbilityPoint equipmentAp = new AbilityPoint();        // 장비 착용으로 상승하는 AP(임시)
     public static AbilityPoint finalAp = new AbilityPoint();            // 최종 AP
 
@@ -86,15 +86,8 @@ public class PlayerInformation : MonoBehaviour
     {
         if (playerStatInfo == null)
         {
-             playerStatInfo = info.StatInfo.Clone();
+            playerStatInfo = info.StatInfo.Clone();
             playerStatInfo.ClassType = info.StatInfo.ClassType;
-
-            int[] inputStats = { info.StatInfo.STR, info.StatInfo.DEX, info.StatInfo.INT, info.StatInfo.LUK };
-
-            for (int i = 0; i < inputStats.Length; i++)
-            {
-                playerAp.Ap[i] = (inputStats[i] == 0) ? 4 : inputStats[i];
-            }
 
             // 각 직업 특성에 맞게 MaxHPMP 세팅
             BaseClass bc = GetComponentInChildren<BaseClass>();
@@ -129,14 +122,15 @@ public class PlayerInformation : MonoBehaviour
         CalculateHpMp();
 
         UpdateStatWindowAction.Invoke();
+        UpdateLevelUpAction.Invoke(playerStatInfo.Level);
     }
 
     private void CalculateAp()
     {
-        finalAp.Ap[(int)ApName.STR] = playerAp.Ap[(int)ApName.STR] + equipmentAp.Ap[(int)ApName.STR];
-        finalAp.Ap[(int)ApName.DEX] = playerAp.Ap[(int)ApName.DEX] + equipmentAp.Ap[(int)ApName.DEX];
-        finalAp.Ap[(int)ApName.INT] = playerAp.Ap[(int)ApName.INT] + equipmentAp.Ap[(int)ApName.INT];
-        finalAp.Ap[(int)ApName.LUK] = playerAp.Ap[(int)ApName.LUK] + equipmentAp.Ap[(int)ApName.LUK];
+        finalAp.Ap[(int)ApName.STR] = playerStatInfo.STR + equipmentAp.Ap[(int)ApName.STR];
+        finalAp.Ap[(int)ApName.DEX] = playerStatInfo.DEX + equipmentAp.Ap[(int)ApName.DEX];
+        finalAp.Ap[(int)ApName.INT] = playerStatInfo.INT + equipmentAp.Ap[(int)ApName.INT];
+        finalAp.Ap[(int)ApName.LUK] = playerStatInfo.LUK + equipmentAp.Ap[(int)ApName.LUK];
     }
 
     private void CalculateAttackPower()
@@ -311,30 +305,27 @@ public class PlayerInformation : MonoBehaviour
     {
         ClassType classType = playerStatInfo.ClassType;
 
-        int apIndex = 0;
         float hpExtendRate = 1f;
         float mpExtendRate = 1f;
 
         switch (classType)
         {
             case ClassType.Warrior:
-                apIndex = (int)ApName.STR;
+                playerStatInfo.STR += 5;
                 hpExtendRate = 1.12f;
                 mpExtendRate = 1.07f;
                 break;
             case ClassType.Magician:
-                apIndex = (int)ApName.INT;
+                playerStatInfo.INT += 5;
                 hpExtendRate = 1.10f;
                 mpExtendRate = 1.12f;
                 break;
             case ClassType.Archer:
-                apIndex = (int)ApName.DEX;
+                playerStatInfo.DEX += 5;
                 hpExtendRate = 1.12f;
                 mpExtendRate = 1.10f;
                 break;
         }
-
-        playerAp.Ap[apIndex] += 5;
         playerStatInfo.MaxHp = (int)(playerStatInfo.MaxHp * hpExtendRate);
         playerStatInfo.MaxMp = (int)(playerStatInfo.MaxMp * mpExtendRate);
 

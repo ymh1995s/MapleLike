@@ -247,8 +247,8 @@ public class ObjectManager : MonoBehaviour
                         Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
                         StatInfo = new PlayerStatInfo()
                         {
-                            Level = info.StatInfo.Level,
-                            ClassType = info.StatInfo.ClassType,
+                            Level = PlayerInformation.playerStatInfo.Level,
+                            ClassType = PlayerInformation.playerStatInfo.ClassType,
                             CurrentHp = PlayerInformation.playerStatInfo.CurrentHp,
                             MaxHp = PlayerInformation.playerStatInfo.MaxHp,
                             CurrentMp = PlayerInformation.playerStatInfo.CurrentMp,

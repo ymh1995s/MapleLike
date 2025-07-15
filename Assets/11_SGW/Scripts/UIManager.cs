@@ -43,7 +43,7 @@ public class UIManager : MonoBehaviour
    
     
     //플레이어가 가지고 있는 돈을 확인
-    public int Income = 1000;
+    public int Income = -9999; // 서버가 초기화 해주면서 이 값은 필요 없어짐
     
     
     
