@@ -47,7 +47,9 @@ class PacketManager
 		_onRecv.Add((ushort)MsgId.CLootItem, MakePacket<C_LootItem>);
 		_handler.Add((ushort)MsgId.CLootItem, PacketHandler.C_LootItemHandler);		
 		_onRecv.Add((ushort)MsgId.CLogin, MakePacket<C_Login>);
-		_handler.Add((ushort)MsgId.CLogin, PacketHandler.C_LoginHandler);
+		_handler.Add((ushort)MsgId.CLogin, PacketHandler.C_LoginHandler);		
+		_onRecv.Add((ushort)MsgId.CPlayerinfo, MakePacket<C_Playerinfo>);
+		_handler.Add((ushort)MsgId.CPlayerinfo, PacketHandler.C_PlayerinfoHandler);
 	}
 
 	// 지금 수신한 이 패킷을 딕셔너리에서 찾고

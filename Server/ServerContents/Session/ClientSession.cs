@@ -134,57 +134,136 @@ namespace ServerContents.Session
             }
         }
 
-        public void LoadOrCreatePlayer(ClassType classType, string DbId)
+        public void SavePlayerInfoToDb(PlayerInfo playerInfo)
         {
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.UserDbId == DbId).FirstOrDefault();
+                UserDb findAccount = db.Users.Where(a => a.UserDbId == playerInfo.DbId).FirstOrDefault();
 
                 if (findAccount == null)
                 {
                     var newUser = new UserDb
                     {
-                        UserDbId = DbId,
-
-                        Level = 1,
-                        Job = 0,              // 예: 0 = 무직
-                        MapNo = 1001,         // 시작 맵 번호
-
-                        Exp = 0,
-                        MaxExp = 100,
-
-                        CurrentHp = 100,
-                        MaxHp = 100,
-
-                        CurrentMp = 50,
-                        MaxMp = 50,
-
-                        Attack = 10,
-                        Defense = 5,
-
-                        MoveSpeed = 5.0f,
-                        JumpPower = 3.5f,
-
-                        Gold = 100,
-
-                        Inventory = new List<InventoryDb>() // 비어 있는 인벤토리 초기화
+                        UserDbId = playerInfo.DbId,
+                        Level = playerInfo.StatInfo.Level,
+                        Job = (int)playerInfo.StatInfo.ClassType,
+                        MapNo = playerInfo.MapNo,
+                        Exp = playerInfo.StatInfo.CurrentExp,
+                        MaxExp = playerInfo.StatInfo.TotalExp,
+                        CurrentHp = playerInfo.StatInfo.Hp,
+                        MaxHp = playerInfo.StatInfo.MaxHp,
+                        CurrentMp = playerInfo.StatInfo.Mp,
+                        MaxMp = playerInfo.StatInfo.MaxMp,
+                        AttackPower = playerInfo.StatInfo.AttackPower,
+                        MagicPower = playerInfo.StatInfo.MagicPower,
+                        Defense = playerInfo.StatInfo.Defense,
+                        MoveSpeed = playerInfo.StatInfo.Speed,
+                        JumpPower = playerInfo.StatInfo.Jump,
+                        Gold = playerInfo.Gold,
+                        Inventory = new List<InventoryDb>() // 초기값
                     };
-
                     db.Users.Add(newUser);
-                    db.SaveChanges();
+                }
+                else
+                {
+                    // 기존 유저 정보 수정
+                    findAccount.Level = playerInfo.StatInfo.Level;
+                    findAccount.Job = (int)playerInfo.StatInfo.ClassType;
+                    findAccount.MapNo = playerInfo.MapNo;
+                    findAccount.Exp = playerInfo.StatInfo.CurrentExp;
+                    findAccount.MaxExp = playerInfo.StatInfo.TotalExp;
+                    findAccount.CurrentHp = playerInfo.StatInfo.Hp;
+                    findAccount.MaxHp = playerInfo.StatInfo.MaxHp;
+                    findAccount.CurrentMp = playerInfo.StatInfo.Mp;
+                    findAccount.MaxMp = playerInfo.StatInfo.MaxMp;
+                    findAccount.AttackPower = playerInfo.StatInfo.AttackPower;
+                    findAccount.MagicPower = playerInfo.StatInfo.MagicPower;
+                    findAccount.Defense = playerInfo.StatInfo.Defense;
+                    findAccount.MoveSpeed = playerInfo.StatInfo.Speed;
+                    findAccount.JumpPower = playerInfo.StatInfo.Jump;
+                    findAccount.Gold = playerInfo.Gold;
+                }
+                db.SaveChanges();
+            }
+        }
+        public void LoadPlayerInfoToDb(string DbId)
+        {
+            using (AppDbContext db = new AppDbContext())
+            {
+                UserDb findAccount = db.Users.Where(a => a.UserDbId == DbId).FirstOrDefault();
+
+                if (findAccount != null)
+                {
+                    // MyPlayer.Info.PlayerId = findAccount.PlayerId?; // ID 는 게임 내 발급으로, DB가 관리하지 않음
+                    MyPlayer.Info.DbId = findAccount.UserDbId;
+                    // MyPlayer.Info.Name = findAccount.name; // name 는 게임 내 발급으로, DB가 관리하지 않음
+                    MyPlayer.Info.MapNo = findAccount.MapNo;
+                    MyPlayer.Info.StatInfo.Level = findAccount.Level;
+                    MyPlayer.Info.StatInfo.ClassType = (ClassType)findAccount.Job;
+                    MyPlayer.Info.StatInfo.Hp = findAccount.CurrentHp;
+                    MyPlayer.Info.StatInfo.MaxHp = findAccount.MaxHp;
+                    MyPlayer.Info.StatInfo.Mp = findAccount.CurrentMp;
+                    MyPlayer.Info.StatInfo.MaxMp = findAccount.MaxMp;
+                    MyPlayer.Info.StatInfo.AttackPower = findAccount.AttackPower;
+                    MyPlayer.Info.StatInfo.MagicPower = findAccount.MagicPower;
+                    MyPlayer.Info.StatInfo.Defense = findAccount.Defense;
+                    MyPlayer.Info.StatInfo.Speed = findAccount.MoveSpeed;
+                    MyPlayer.Info.StatInfo.Jump = findAccount.JumpPower;
+                    MyPlayer.Info.StatInfo.CurrentExp = findAccount.Exp;
+                    MyPlayer.Info.StatInfo.TotalExp = findAccount.MaxExp;
+
+                    MyPlayer.Info.Gold = findAccount.Gold;
                 }
             }
+        }
+
+        public void LoadOrCreatePlayer(ClassType classType, string DbId)
+        {
+            //using (AppDbContext db = new AppDbContext())
+            //{
+            //    UserDb findAccount = db.Users.Where(a => a.UserDbId == DbId).FirstOrDefault();
+
+            //    // TODO 여기위치에 있는게 맞는지?
+            //    if (findAccount == null)
+            //    {
+            //        var newUser = new UserDb
+            //        {
+            //            UserDbId = DbId,
+            //            Level = findAccount.Level,
+            //            Job = findAccount.Job,              // 예: 0 = 무직
+            //            MapNo = findAccount.MapNo,         // 시작 맵 번호
+            //            Exp = findAccount.Exp,
+            //            MaxExp = findAccount.MaxExp,
+            //            CurrentHp = findAccount.CurrentHp,
+            //            MaxHp = findAccount.MaxHp,
+            //            CurrentMp = findAccount.CurrentMp,
+            //            MaxMp = findAccount.MaxMp,
+            //            Attack = findAccount.Attack,
+            //            Defense = findAccount.Defense,
+            //            MoveSpeed = findAccount.MoveSpeed,
+            //            JumpPower = findAccount.JumpPower,
+            //            Gold = findAccount.Gold,
+            //            Inventory = new List<InventoryDb>() // 비어 있는 인벤토리 초기화
+            //        };
+            //        db.Users.Add(newUser);
+            //        db.SaveChanges();
+            //    }
+            //}
 
             if (MyPlayer != null)
             {
                 Console.WriteLine("이미 캐릭터를 생성한 클라이언트 입니다");
                 return;
             }
+
             MyPlayer = ObjectManager.Instance.Add<Player>();
             {
                 MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
                 MyPlayer.Session = this;
             }
+            
+            // MyPlayer에 필요한 정보를 채움 => 패킷으로 전송(DB 데이터 로드)
+            LoadPlayerInfoToDb(DbId);
 
             if (classType == ClassType.Cnone || !Enum.IsDefined(typeof(ClassType), classType))
             {

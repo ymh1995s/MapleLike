@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +43,7 @@ namespace ServerContents.Job
                 Flush();
         }
 
-        void Flush()
+        public void Flush()
         {
             _timer.Flush();
 

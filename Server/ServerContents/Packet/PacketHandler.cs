@@ -111,4 +111,11 @@ public partial class PacketHandler
 
         room.Push(room.HandleChangeMap, player, movePacket);
     }
+
+    public static void C_PlayerinfoHandler(PacketSession session, IMessage packet)
+    {
+        C_Playerinfo playerInfoPkt = packet as C_Playerinfo;
+        ClientSession clientSession = session as ClientSession;
+        clientSession.SavePlayerInfoToDb(playerInfoPkt.PlayerInfo);
+    }
 }

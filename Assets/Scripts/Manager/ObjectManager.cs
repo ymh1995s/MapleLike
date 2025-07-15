@@ -229,7 +229,38 @@ public class ObjectManager : MonoBehaviour
 
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);
-                
+
+                /////////////////TO DB/////////////////////////
+                C_Playerinfo toDbPlayerInfo = new C_Playerinfo()
+                {
+                    PlayerInfo = new PlayerInfo()
+                    {
+                        PlayerId = info.PlayerId,
+                        DbId = info.DbId,
+                        Name = info.Name,
+                        MapNo = info.MapNo,
+                        Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
+                        StatInfo = new PlayerStatInfo()
+                        {
+                            Level = info.StatInfo.Level,
+                            ClassType = info.StatInfo.ClassType,
+                            Hp = PlayerInformation.playerStatInfo.Hp,
+                            MaxHp = PlayerInformation.playerStatInfo.MaxHp,
+                            Mp = PlayerInformation.playerStatInfo.Mp,
+                            MaxMp = PlayerInformation.playerStatInfo.MaxMp,
+                            AttackPower = PlayerInformation.playerStatInfo.AttackPower,
+                            MagicPower = PlayerInformation.playerStatInfo.MagicPower,
+                            Defense = PlayerInformation.playerStatInfo.Defense,
+                            Speed = PlayerInformation.playerStatInfo.Speed,
+                            Jump = PlayerInformation.playerStatInfo.Jump,
+                            CurrentExp = PlayerInformation.playerStatInfo.CurrentExp,
+                            TotalExp = PlayerInformation.playerStatInfo.TotalExp
+                        }
+                    }
+                };
+
+                NetworkManager.Instance.Send(toDbPlayerInfo);
+                ///////////////////////////////////////////////
 
                 _objects.Add(info.PlayerId, go);
             }

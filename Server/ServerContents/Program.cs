@@ -5,7 +5,6 @@ using ServerContents.Room;
 using ServerContents.Session;
 using ServerCore;
 using System.Net;
-using System.Threading;
 using ServerContents.DB;
 
 namespace ServerContents
@@ -14,6 +13,15 @@ namespace ServerContents
     {
         static Listener _listener = new Listener();
         static List<GameRoom> rooms = new List<GameRoom>();
+
+        static void DbTask()
+        {
+            while (true)
+            {
+                DbTransaction.Instance.Flush();
+                Thread.Sleep(0);
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -41,16 +49,22 @@ namespace ServerContents
             // DB 테스트
             DbCommands.InitializeDB(forceReset: false);
 
+            // DbTask
+            {
+                Thread t = new Thread(DbTask);
+                t.Name = "DB";
+                t.Start();
+            }
+
             try
             {
                 while (true)
                 {
-                    // TODO. 방을 나누고 각각의 스레드로 배분한다.
+                    // 메인스레드는 전체 게임로직 담당
                     foreach (var room in rooms)
                     {
                         room.Push(room.Flush);
                     }
-
                     Thread.Sleep(1);
                 }
             }

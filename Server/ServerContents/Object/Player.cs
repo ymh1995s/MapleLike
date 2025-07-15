@@ -1,4 +1,5 @@
 using Google.Protobuf.Protocol;
+using ServerContents.DB;
 using ServerContents.Object;
 using ServerContents.Session;
 using System;
@@ -29,6 +30,11 @@ namespace ServerContents.Object
         {
             ObjectType = GameObjectType.Player;
             Info.StatInfo = Stat;
+        }
+
+        public void OnLeaveGame()
+        {
+
         }
     }
 }

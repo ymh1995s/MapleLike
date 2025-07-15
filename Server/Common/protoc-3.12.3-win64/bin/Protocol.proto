@@ -38,6 +38,7 @@ enum MsgId {
   S_ITEM_DESPAWN = 29;
   C_LOGIN = 30;
   S_LOGIN = 31;
+  C_PLAYERINFO = 32;
 }
 
 message S_Connected {}
@@ -192,13 +193,21 @@ message S_Login {
   int32 isOk = 1;
 }
 
+message C_Playerinfo {
+  int32 isOk = 1;
+  PlayerInfo playerInfo = 2;
+}
+
 message PlayerInfo {
   int32 playerId = 1;
-  string name = 2;
-  float positionX = 3;
-  float positionY = 4;
-  PlayerStatInfo statInfo = 5;
-  PlayerState CreatureState = 6;
+  string DbId = 2;
+  string name = 3;
+  int32 mapNo = 4;
+  float positionX = 5;
+  float positionY = 6;
+  PlayerStatInfo statInfo = 7;
+  PlayerState CreatureState = 8;
+  int32 gold = 9; // TODO : 인벤토리 하위로 빼기?
 }
 
 message MonsterInfo {

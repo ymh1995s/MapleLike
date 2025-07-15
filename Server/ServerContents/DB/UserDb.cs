@@ -28,7 +28,8 @@ namespace ServerContents.DB
         public int CurrentMp { get; set; }
         public int MaxMp { get; set; }
 
-        public int Attack { get; set; }
+        public int AttackPower { get; set; }
+        public int MagicPower { get; set; }
         public int Defense { get; set; }
 
         public float MoveSpeed { get; set; }
