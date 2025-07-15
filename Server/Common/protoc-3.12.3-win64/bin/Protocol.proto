@@ -194,8 +194,7 @@ message S_Login {
 }
 
 message C_Playerinfo {
-  int32 isOk = 1;
-  PlayerInfo playerInfo = 2;
+  PlayerInfo playerInfo = 1;
 }
 
 message PlayerInfo {
@@ -222,9 +221,9 @@ message MonsterInfo {
 message PlayerStatInfo {
   int32 level = 1;
   ClassType classType = 2; // 직업명
-  int32 hp = 3;
+  int32 currentHp = 3;
   int32 maxHp = 4;
-  int32 mp = 5;
+  int32 currentMp = 5;
   int32 maxMp = 6;
   int32 attackPower = 7;
   int32 magicPower = 8;
@@ -232,7 +231,11 @@ message PlayerStatInfo {
   float speed = 10;
   float jump = 11;
   int32 currentExp = 12;
-  int32 totalExp = 13;
+  int32 MaxExp = 13;
+  int32 STR = 14;
+  int32 DEX = 15;
+  int32 INT = 16;
+  int32 LUK = 17;
 }
 
 message MonsterStatInfo {

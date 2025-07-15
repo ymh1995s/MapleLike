@@ -15,7 +15,7 @@ namespace ServerContents.DB
         public string UserDbId { get; set; } // 편의상 string으로 만들었는데 속도면에서 int가 유리
 
         public int Level { get; set; }
-        public int Job { get; set; }
+        public int ClassType { get; set; }
 
         public int MapNo { get; set; }
 
@@ -32,8 +32,13 @@ namespace ServerContents.DB
         public int MagicPower { get; set; }
         public int Defense { get; set; }
 
-        public float MoveSpeed { get; set; }
-        public float JumpPower { get; set; }
+        public float Speed { get; set; }
+        public float Jump { get; set; }
+
+        public float STR { get; set; }
+        public float DEX { get; set; }
+        public float INT { get; set; }
+        public float LUK { get; set; }
 
         public int Gold { get; set; }
 

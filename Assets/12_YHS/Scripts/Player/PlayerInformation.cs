@@ -54,9 +54,9 @@ public class PlayerInformation : MonoBehaviour
         // 아무것도 설정되지 않은 플레이어의 기본 스탯이다.
         Level = 1,
         ClassType = ClassType.Cnone,
-        Hp = 100,
+        CurrentHp = 100,
         MaxHp = 100,
-        Mp = 150,
+        CurrentMp = 150,
         MaxMp = 150,
         AttackPower = 10,
         MagicPower = 10,
@@ -64,7 +64,11 @@ public class PlayerInformation : MonoBehaviour
         Speed = 3,
         Jump = 10,
         CurrentExp = 0,
-        TotalExp = 100,
+        MaxExp = 100,
+        STR = 4,
+        DEX = 4,
+        INT = 4,
+        LUK = 4
     };
 
     public Action<int, int> UpdateHpAction;     // UI 동기화를 위한 Action
@@ -82,16 +86,20 @@ public class PlayerInformation : MonoBehaviour
     {
         if (playerStatInfo == null)
         {
-            playerStatInfo = initStatInfo.Clone();
+             playerStatInfo = info.StatInfo.Clone();
             playerStatInfo.ClassType = info.StatInfo.ClassType;
-            playerAp.Ap[0] = 4;
-            playerAp.Ap[1] = 4;
-            playerAp.Ap[2] = 4;
-            playerAp.Ap[3] = 4;
+
+            int[] inputStats = { info.StatInfo.STR, info.StatInfo.DEX, info.StatInfo.INT, info.StatInfo.LUK };
+
+            for (int i = 0; i < inputStats.Length; i++)
+            {
+                playerAp.Ap[i] = (inputStats[i] == 0) ? 4 : inputStats[i];
+            }
 
             // 각 직업 특성에 맞게 MaxHPMP 세팅
             BaseClass bc = GetComponentInChildren<BaseClass>();
-            bc.ClassStat();
+
+            bc.ClassStat(info.StatInfo);
         }
 
         playerInfo = new PlayerInfo()
@@ -197,20 +205,20 @@ public class PlayerInformation : MonoBehaviour
 
     private void CalculateHpMp()
     {
-        UpdateHpAction.Invoke(playerStatInfo.Hp, playerStatInfo.MaxHp);
-        UpdateMpAction.Invoke(playerStatInfo.Mp, playerStatInfo.MaxMp);
+        UpdateHpAction.Invoke(playerStatInfo.CurrentHp, playerStatInfo.MaxHp);
+        UpdateMpAction.Invoke(playerStatInfo.CurrentMp, playerStatInfo.MaxMp);
     }
     #endregion
 
     #region 체력 관련 메서드
     public int GetPlayerHp()
     {
-        return playerStatInfo.Hp;
+        return playerStatInfo.CurrentHp;
     }
 
     public void SetPlayerHp(int changeAmount)
     {
-        int hp = playerStatInfo.Hp + changeAmount;
+        int hp = playerStatInfo.CurrentHp + changeAmount;
         int maxHp = playerStatInfo.MaxHp;
 
         if (hp > maxHp)
@@ -223,7 +231,7 @@ public class PlayerInformation : MonoBehaviour
             GetComponent<PlayerController>().OnDead();
         }
 
-        playerStatInfo.Hp = hp;
+        playerStatInfo.CurrentHp = hp;
         UpdateHpAction.Invoke(hp, maxHp);   // HPMPEXP UI 동기화
         UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
         Debug.Log("HP: " + hp + " / " + maxHp);
@@ -233,12 +241,12 @@ public class PlayerInformation : MonoBehaviour
     #region 마나 관련 메서드
     public int GetPlayerMp()
     {
-        return playerStatInfo.Mp;
+        return playerStatInfo.CurrentMp;
     }
 
     public void SetPlayerMp(int changeAmount)
     {
-        int mp = playerStatInfo.Mp + changeAmount;
+        int mp = playerStatInfo.CurrentMp + changeAmount;
         int maxMp = playerStatInfo.MaxMp;
 
         if (mp > maxMp)
@@ -250,7 +258,7 @@ public class PlayerInformation : MonoBehaviour
             mp = 0;
         }
 
-        playerStatInfo.Mp = mp;
+        playerStatInfo.CurrentMp = mp;
         UpdateMpAction.Invoke(mp, maxMp);   // HPMPEXP UI 동기화
         UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
         //Debug.Log("MP: " + mp + " / " + maxMp);
@@ -266,7 +274,7 @@ public class PlayerInformation : MonoBehaviour
     public void SetPlayerExp(int changeAmount)
     {
         int exp = playerStatInfo.CurrentExp + changeAmount;
-        int totalExp = playerStatInfo.TotalExp;
+        int totalExp = playerStatInfo.MaxExp;
 
         if (playerStatInfo.Level >= 60)
         {
@@ -279,7 +287,7 @@ public class PlayerInformation : MonoBehaviour
             exp -= totalExp;
 
             totalExp = (int)(totalExp * 1.25f);
-            playerStatInfo.TotalExp = totalExp;     // 다음 레벨업에 필요한 경험치량 상승
+            playerStatInfo.MaxExp = totalExp;     // 다음 레벨업에 필요한 경험치량 상승
 
             playerStatInfo.Level += 1;
             UpdateLevelUpAction.Invoke(playerStatInfo.Level);
@@ -359,8 +367,8 @@ public class PlayerInformation : MonoBehaviour
         {
             yield return new WaitForSeconds(10f);
 
-            if (playerStatInfo.Hp < playerStatInfo.MaxHp ||
-                playerStatInfo.Mp < playerStatInfo.MaxMp)
+            if (playerStatInfo.CurrentHp < playerStatInfo.MaxHp ||
+                playerStatInfo.CurrentMp < playerStatInfo.MaxMp)
             {
                 // 최대 HP의 2%, 최대 MP의 2%, 절댓값 10 중 가장 큰 값으로 회복
                 int amount = Mathf.Max(playerStatInfo.MaxHp / 50, playerStatInfo.MaxMp / 50);
@@ -383,9 +391,9 @@ public class PlayerInformation : MonoBehaviour
     {
         Debug.Log("Level: " + playerStatInfo.Level);
         Debug.Log("Class: " + playerStatInfo.ClassType);
-        Debug.Log("Hp: " + playerStatInfo.Hp);
+        Debug.Log("Hp: " + playerStatInfo.CurrentHp);
         Debug.Log("MaxHp: " + playerStatInfo.MaxHp);
-        Debug.Log("Mp: " + playerStatInfo.Mp);
+        Debug.Log("Mp: " + playerStatInfo.CurrentMp);
         Debug.Log("MaxMp: " + playerStatInfo.MaxMp);
         Debug.Log("AttackPower: " + playerStatInfo.AttackPower);
         Debug.Log("MagicPower: " + playerStatInfo.MagicPower);
@@ -393,7 +401,7 @@ public class PlayerInformation : MonoBehaviour
         Debug.Log("Speed: " + playerStatInfo.Speed);
         Debug.Log("Jump: " + playerStatInfo.Jump);
         Debug.Log("CurExp: " + playerStatInfo.CurrentExp);
-        Debug.Log("TotalExp: " + playerStatInfo.TotalExp);
+        Debug.Log("TotalExp: " + playerStatInfo.MaxExp);
     }
 
     #endregion

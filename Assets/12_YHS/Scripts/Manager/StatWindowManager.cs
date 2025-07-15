@@ -66,12 +66,12 @@ public class StatWindowManager : MonoBehaviour
 
         }
 
-        currentHpValue.text = statInfo.Hp.ToString();
+        currentHpValue.text = statInfo.CurrentHp.ToString();
         maxHpValue.text = statInfo.MaxHp.ToString();
-        currentMpValue.text = statInfo.Mp.ToString();
+        currentMpValue.text = statInfo.CurrentMp.ToString();
         maxMpValue.text = statInfo.MaxMp.ToString();
         expValue.text = statInfo.CurrentExp.ToString();
-        expPercentageValue.text = ((float)statInfo.CurrentExp / statInfo.TotalExp * 100f).ToString("F2");
+        expPercentageValue.text = ((float)statInfo.CurrentExp / statInfo.MaxExp * 100f).ToString("F2");
         attackPowerValue.text = statInfo.AttackPower.ToString();
         magicPowerValue.text = statInfo.MagicPower.ToString();
         defenceValue.text = statInfo.Defense.ToString();

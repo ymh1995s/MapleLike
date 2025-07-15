@@ -24,13 +24,18 @@ public class Archer : BaseClass
     /// <summary>
     /// 궁수 직업의 고유 특성 부여
     /// </summary>
-    public override void ClassStat()
+    public override void ClassStat(PlayerStatInfo statInfo)
     {
-        PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 0.9f);
-        PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 2.5f);
+        //PlayerInformation.playerStatInfo.MaxHp = (int)(PlayerInformation.playerStatInfo.MaxHp * 0.9f);
+        //PlayerInformation.playerStatInfo.MaxMp = (int)(PlayerInformation.playerStatInfo.MaxMp * 2.5f);
 
-        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp;
-        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp;
+        //PlayerInformation.playerStatInfo.CurrentHp = PlayerInformation.playerStatInfo.MaxHp;
+        //PlayerInformation.playerStatInfo.CurrentMp = PlayerInformation.playerStatInfo.MaxMp;
+        PlayerInformation.playerStatInfo.MaxHp = statInfo.MaxHp;
+        PlayerInformation.playerStatInfo.MaxMp = statInfo.MaxMp;
+
+        PlayerInformation.playerStatInfo.CurrentHp = statInfo.CurrentHp;
+        PlayerInformation.playerStatInfo.CurrentMp = statInfo.CurrentMp;
     }
 
     #region 히트박스 관련 코드

@@ -80,8 +80,8 @@ public class DeathManager : MonoBehaviour
         player.OnIdle();
 
         // 부활 후 HPMP 패널티
-        PlayerInformation.playerStatInfo.Hp = PlayerInformation.playerStatInfo.MaxHp / 20;
-        PlayerInformation.playerStatInfo.Mp = PlayerInformation.playerStatInfo.MaxMp / 20;
+        PlayerInformation.playerStatInfo.CurrentHp = PlayerInformation.playerStatInfo.MaxHp / 20;
+        PlayerInformation.playerStatInfo.CurrentMp = PlayerInformation.playerStatInfo.MaxMp / 20;
     }
 
     /// <summary>

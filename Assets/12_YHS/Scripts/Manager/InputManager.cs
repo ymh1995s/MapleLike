@@ -208,7 +208,7 @@ public class InputManager : MonoBehaviour
             {
                 // "U"p
                 // 1레벨 업
-                playerInfo.SetPlayerExp(PlayerInformation.playerStatInfo.TotalExp);
+                playerInfo.SetPlayerExp(PlayerInformation.playerStatInfo.MaxExp);
             }
             if (Input.GetKeyDown(KeyCode.LeftBracket))
             {

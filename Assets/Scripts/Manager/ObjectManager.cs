@@ -227,6 +227,11 @@ public class ObjectManager : MonoBehaviour
                 MyPlayer.GetComponent<YHSMyPlayerController>().playerInformation.InitPlayerInfo(info);
                 MyPlayer.Id = info.PlayerId;
 
+                // DB추가하면서 메모리에 저장해줘야 하는 인자들
+                PlayerInformation.playerInfo.DbId = info.DbId;
+                PlayerInformation.playerInfo.MapNo = info.MapNo;
+                UIManager.Instance.Income = info.Gold; // 송경원씨가 예외적으로 UIManager로 관리함
+
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);
 
@@ -244,9 +249,9 @@ public class ObjectManager : MonoBehaviour
                         {
                             Level = info.StatInfo.Level,
                             ClassType = info.StatInfo.ClassType,
-                            Hp = PlayerInformation.playerStatInfo.Hp,
+                            CurrentHp = PlayerInformation.playerStatInfo.CurrentHp,
                             MaxHp = PlayerInformation.playerStatInfo.MaxHp,
-                            Mp = PlayerInformation.playerStatInfo.Mp,
+                            CurrentMp = PlayerInformation.playerStatInfo.CurrentMp,
                             MaxMp = PlayerInformation.playerStatInfo.MaxMp,
                             AttackPower = PlayerInformation.playerStatInfo.AttackPower,
                             MagicPower = PlayerInformation.playerStatInfo.MagicPower,
@@ -254,7 +259,11 @@ public class ObjectManager : MonoBehaviour
                             Speed = PlayerInformation.playerStatInfo.Speed,
                             Jump = PlayerInformation.playerStatInfo.Jump,
                             CurrentExp = PlayerInformation.playerStatInfo.CurrentExp,
-                            TotalExp = PlayerInformation.playerStatInfo.TotalExp
+                            MaxExp = PlayerInformation.playerStatInfo.MaxExp,
+                            STR = PlayerInformation.playerStatInfo.STR,
+                            DEX = PlayerInformation.playerStatInfo.DEX,
+                            INT = PlayerInformation.playerStatInfo.INT,
+                            LUK = PlayerInformation.playerStatInfo.LUK
                         }
                     }
                 };
