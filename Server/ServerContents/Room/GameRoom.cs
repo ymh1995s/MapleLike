@@ -113,9 +113,6 @@ namespace ServerContents.Room
                     }
                     
                 }
-                //죽인사람을 알기 위해  테스트용 신경 x 
-                //나온 위치 
-                // ItemEnterGame(player,0,0);
             }
         }
 

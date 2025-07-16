@@ -328,7 +328,6 @@ public class UIManager : MonoBehaviour
     {
         if (hasInitialized)
         {
-            Debug.Log("이미 한번 초기화 했음");
             return;
         }
         Equipment.SetActive(true);
@@ -395,7 +394,6 @@ public class UIManager : MonoBehaviour
     {
         if (hasInitialized)
         {
-            Debug.Log("이미 한번 초기화 했음");
             return;
         }
         var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
@@ -414,7 +412,6 @@ public class UIManager : MonoBehaviour
     {
         if (hasInitialized)
         {
-            Debug.Log("이미 한번 초기화 했음");
             return;
         }
         var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);

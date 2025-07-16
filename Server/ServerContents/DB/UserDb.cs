@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,14 +13,14 @@ namespace ServerContents.DB
     public class UserDb
     {
         [Key]
-        public string UserDbId { get; set; } // 편의상 string으로 만들었는데 속도면에서 int가 유리
+        public string DbId { get; set; } // 편의상 string으로 만들었는데 속도면에서 int가 유리
 
         public int Level { get; set; }
-        public int ClassType { get; set; }
+        public ClassType ClassType { get; set; }
 
         public int MapNo { get; set; }
 
-        public int Exp { get; set; }
+        public int CurrentExp { get; set; }
         public int MaxExp { get; set; }
 
         public int CurrentHp { get; set; }

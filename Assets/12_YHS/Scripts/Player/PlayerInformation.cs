@@ -123,6 +123,7 @@ public class PlayerInformation : MonoBehaviour
 
         UpdateStatWindowAction.Invoke();
         UpdateLevelUpAction.Invoke(playerStatInfo.Level);
+        UpdateExpAction.Invoke(playerStatInfo.CurrentExp, playerStatInfo.MaxExp);
     }
 
     private void CalculateAp()

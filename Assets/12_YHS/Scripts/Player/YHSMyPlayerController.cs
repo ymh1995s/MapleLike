@@ -300,8 +300,47 @@ public class YHSMyPlayerController : PlayerController
         StartCoroutine(FadeOutAndSendChangeMapPacket());
     }
 
+    void DbChangeReq()
+    {
+        C_Playerinfo toDbPlayerInfo = new C_Playerinfo()
+        {
+            PlayerInfo = new PlayerInfo()
+            {
+                PlayerId = PlayerInformation.playerInfo.PlayerId,
+                DbId = PlayerInformation.playerInfo.DbId,
+                Name = PlayerInformation.playerInfo.Name,
+                MapNo = (int)nextMapName,
+                Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
+                StatInfo = new PlayerStatInfo()
+                {
+                    Level = PlayerInformation.playerStatInfo.Level,
+                    ClassType = PlayerInformation.playerStatInfo.ClassType,
+                    CurrentHp = PlayerInformation.playerStatInfo.CurrentHp,
+                    MaxHp = PlayerInformation.playerStatInfo.MaxHp,
+                    CurrentMp = PlayerInformation.playerStatInfo.CurrentMp,
+                    MaxMp = PlayerInformation.playerStatInfo.MaxMp,
+                    AttackPower = PlayerInformation.playerStatInfo.AttackPower,
+                    MagicPower = PlayerInformation.playerStatInfo.MagicPower,
+                    Defense = PlayerInformation.playerStatInfo.Defense,
+                    Speed = PlayerInformation.playerStatInfo.Speed,
+                    Jump = PlayerInformation.playerStatInfo.Jump,
+                    CurrentExp = PlayerInformation.playerStatInfo.CurrentExp,
+                    MaxExp = PlayerInformation.playerStatInfo.MaxExp,
+                    STR = PlayerInformation.playerStatInfo.STR,
+                    DEX = PlayerInformation.playerStatInfo.DEX,
+                    INT = PlayerInformation.playerStatInfo.INT,
+                    LUK = PlayerInformation.playerStatInfo.LUK
+                }
+            }
+        };
+
+        NetworkManager.Instance.Send(toDbPlayerInfo);
+    }
+
     private IEnumerator FadeOutAndSendChangeMapPacket()
     {
+        DbChangeReq();
+
         yield return StartCoroutine(FadeInOutManager.Instance.FadeOut());
 
         StatWindowManager.Instance.SetWindowActive(false);  // 스탯창 팝업 닫기
@@ -309,6 +348,9 @@ public class YHSMyPlayerController : PlayerController
         C_ChangeMap changeMapPacket = new C_ChangeMap();
         changeMapPacket.MapId = (int)nextMapName;
         NetworkManager.Instance.Send(changeMapPacket);
+
+
+
     }
     #endregion
 

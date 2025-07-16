@@ -23,7 +23,7 @@ public partial class PacketHandler
     {
         C_ClassChoice pkt = packet as C_ClassChoice;
         ClientSession clientSession = session as ClientSession;
-        clientSession.LoadOrCreatePlayer(pkt.ClassType, clientSession.AccountDbId);
+        clientSession.LoadOrCreatePlayer(pkt.ClassType, clientSession.DbId_Forward);
     }
 
     public static void C_PlayerMoveHandler(PacketSession session, IMessage packet)
@@ -116,6 +116,6 @@ public partial class PacketHandler
     {
         C_Playerinfo playerInfoPkt = packet as C_Playerinfo;
         ClientSession clientSession = session as ClientSession;
-        clientSession.SavePlayerInfoToDb(playerInfoPkt.PlayerInfo);
+        clientSession.SavePlayerInfo(playerInfoPkt.PlayerInfo);
     }
 }

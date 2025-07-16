@@ -8,6 +8,7 @@ using ServerContents.Room;
 using ServerCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Numerics;
@@ -18,9 +19,8 @@ namespace ServerContents.Session
 {
     public class ClientSession : PacketSession
     {
-        public string AccountDbId { get; private set; }
+        public string DbId_Forward; // 기본적으로 MyPlayer 객체 생성 전 '임시'로 DBId를 저장하는 프로퍼티
         public Player MyPlayer { get; set; }
-
         public int SessionId { get; set; }
 
         private PlayerStatInfo initStatInfo = new PlayerStatInfo()
@@ -113,21 +113,17 @@ namespace ServerContents.Session
         {
             // TODO : 레디스에서 추가 검증해서 로그인 성공 / 실패 2중 검사
 
-            // AccountDbId 메모리에 기억
-            AccountDbId = loginPacket.DBId;
+            DbId_Forward = loginPacket.DBId;
 
+            // 기존 캐릭터 로드 Or 캐릭터 생성창 유도
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.UserDbId == loginPacket.DBId).FirstOrDefault();
+                UserDb findAccount = db.Users.Where(a => a.DbId == loginPacket.DBId).FirstOrDefault();
 
                 if (findAccount != null)
                 {
-                    // DB의 데이터로부터 캐릭터 생성
-
-                    // TODO 기존의 데이터 대입하기
-
-                    // 생성 및 입장
-                    LoadOrCreatePlayer((ClassType)findAccount.ClassType, AccountDbId);
+                    // 기존 캐릭터 로드(From DB) 및 입장
+                    LoadOrCreatePlayer((ClassType)findAccount.ClassType, DbId_Forward);
                 }
                 else
                 {
@@ -138,21 +134,35 @@ namespace ServerContents.Session
             }
         }
 
+        public void SavePlayerInfo(PlayerInfo playerInfo)
+        {
+            // 사망했을 시는 예외적으로 HP MP 조정
+            if(playerInfo.StatInfo.CurrentHp == 0)
+            {
+                playerInfo.StatInfo.CurrentHp = 50;
+                playerInfo.StatInfo.CurrentMp = 50;
+            }
+
+            SavePlayerInfoToMem(playerInfo);
+            SavePlayerInfoToDb(playerInfo);
+        }
+
+
         public void SavePlayerInfoToDb(PlayerInfo playerInfo)
         {
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.UserDbId == playerInfo.DbId).FirstOrDefault();
+                UserDb findAccount = db.Users.Where(a => a.DbId == playerInfo.DbId).FirstOrDefault();
 
                 if (findAccount == null)
                 {
                     var newUser = new UserDb
                     {
-                        UserDbId = playerInfo.DbId,
+                        DbId = playerInfo.DbId,
                         Level = playerInfo.StatInfo.Level,
-                        ClassType = (int)playerInfo.StatInfo.ClassType,
+                        ClassType = playerInfo.StatInfo.ClassType,
                         MapNo = playerInfo.MapNo,
-                        Exp = playerInfo.StatInfo.CurrentExp,
+                        CurrentExp = playerInfo.StatInfo.CurrentExp,
                         MaxExp = playerInfo.StatInfo.MaxExp,
                         CurrentHp = playerInfo.StatInfo.CurrentHp,
                         MaxHp = playerInfo.StatInfo.MaxHp,
@@ -168,17 +178,17 @@ namespace ServerContents.Session
                         INT = playerInfo.StatInfo.INT,
                         LUK = playerInfo.StatInfo.LUK,
                         Gold = playerInfo.Gold,
-                        Inventory = new List<InventoryDb>() // 초기값
                     };
                     db.Users.Add(newUser);
                 }
                 else
                 {
                     // 기존 유저 정보 수정
+                    findAccount.DbId = playerInfo.DbId;
                     findAccount.Level = playerInfo.StatInfo.Level;
-                    findAccount.ClassType = (int)playerInfo.StatInfo.ClassType;
+                    findAccount.ClassType = playerInfo.StatInfo.ClassType;
                     findAccount.MapNo = playerInfo.MapNo;
-                    findAccount.Exp = playerInfo.StatInfo.CurrentExp;
+                    findAccount.CurrentExp = playerInfo.StatInfo.CurrentExp;
                     findAccount.MaxExp = playerInfo.StatInfo.MaxExp;
                     findAccount.CurrentHp = playerInfo.StatInfo.CurrentHp;
                     findAccount.MaxHp = playerInfo.StatInfo.MaxHp;
@@ -199,71 +209,99 @@ namespace ServerContents.Session
             }
         }
 
-        // 기존에 있는 유저면 DB 값을, 최초 유저는 그렇지 않으면 직업별로 기본 값을 부여
-        public void LoadPlayerInfoToDb(ClassType classType, string DbId)
+        public void SavePlayerInfoToMem(PlayerInfo playerInfo)
         {
+            // 기존 유저 정보 수정
+            MyPlayer.Info.DbId = playerInfo.DbId;
+            MyPlayer.Stat.Level = playerInfo.StatInfo.Level;
+            MyPlayer.Stat.ClassType = playerInfo.StatInfo.ClassType;
+            MyPlayer.Info.MapNo = playerInfo.MapNo;
+            MyPlayer.Stat.CurrentExp = playerInfo.StatInfo.CurrentExp;
+            MyPlayer.Stat.MaxExp = playerInfo.StatInfo.MaxExp;
+            MyPlayer.Stat.CurrentHp = playerInfo.StatInfo.CurrentHp;
+            MyPlayer.Stat.MaxHp = playerInfo.StatInfo.MaxHp;
+            MyPlayer.Stat.CurrentMp = playerInfo.StatInfo.CurrentMp;
+            MyPlayer.Stat.MaxMp = playerInfo.StatInfo.MaxMp;
+            MyPlayer.Stat.AttackPower = playerInfo.StatInfo.AttackPower;
+            MyPlayer.Stat.MagicPower = playerInfo.StatInfo.MagicPower;
+            MyPlayer.Stat.Defense = playerInfo.StatInfo.Defense;
+            MyPlayer.Stat.Speed = playerInfo.StatInfo.Speed;
+            MyPlayer.Stat.Jump = playerInfo.StatInfo.Jump;
+            MyPlayer.Stat.STR = playerInfo.StatInfo.STR;
+            MyPlayer.Stat.DEX = playerInfo.StatInfo.DEX;
+            MyPlayer.Stat.INT = playerInfo.StatInfo.INT;
+            MyPlayer.Stat.LUK = playerInfo.StatInfo.LUK;
+            MyPlayer.Info.Gold = playerInfo.Gold;
+        }
+
+        // 기존에 있는 유저면 DB 값을, 최초 유저는 그렇지 않으면 직업별로 기본 값을 부여
+        public Player LoadPlayerInfoFromDb(ClassType classType, string DbId)
+        {
+            Player retPlayer = MyPlayer;
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.UserDbId == DbId).FirstOrDefault();
+                UserDb findAccount = db.Users.Where(a => a.DbId == DbId).FirstOrDefault();
 
                 if (findAccount != null)
                 {
                     // 기존 사용자 => DB에서 가져오기
                     // MyPlayer.Info.PlayerId = findAccount.PlayerId?; // ID 는 게임 내 발급으로, DB가 관리하지 않음
-                    MyPlayer.Info.DbId = findAccount.UserDbId;
+                    retPlayer.Info.DbId = findAccount.DbId;
                     // MyPlayer.Info.Name = findAccount.name; // name 는 게임 내 발급으로, DB가 관리하지 않음
-                    MyPlayer.Info.MapNo = findAccount.MapNo;
-                    MyPlayer.Info.StatInfo.Level = findAccount.Level;
-                    MyPlayer.Info.StatInfo.ClassType = (ClassType)findAccount.ClassType;
-                    MyPlayer.Info.StatInfo.CurrentHp = findAccount.CurrentHp;
-                    MyPlayer.Info.StatInfo.MaxHp = findAccount.MaxHp;
-                    MyPlayer.Info.StatInfo.CurrentMp = findAccount.CurrentMp;
-                    MyPlayer.Info.StatInfo.MaxMp = findAccount.MaxMp;
-                    MyPlayer.Info.StatInfo.AttackPower = findAccount.AttackPower;
-                    MyPlayer.Info.StatInfo.MagicPower = findAccount.MagicPower;
-                    MyPlayer.Info.StatInfo.Defense = findAccount.Defense;
-                    MyPlayer.Info.StatInfo.Speed = findAccount.Speed;
-                    MyPlayer.Info.StatInfo.Jump = findAccount.Jump;
-                    MyPlayer.Info.StatInfo.CurrentExp = findAccount.Exp;
-                    MyPlayer.Info.StatInfo.MaxExp = findAccount.MaxExp;
-                    MyPlayer.Info.StatInfo.STR = findAccount.STR;
-                    MyPlayer.Info.StatInfo.DEX = findAccount.DEX;
-                    MyPlayer.Info.StatInfo.INT = findAccount.INT;
-                    MyPlayer.Info.StatInfo.LUK = findAccount.LUK;
-                    MyPlayer.Info.Gold = findAccount.Gold;
+                    retPlayer.Info.MapNo = findAccount.MapNo;
+                    retPlayer.Info.StatInfo.Level = findAccount.Level;
+                    retPlayer.Info.StatInfo.ClassType = (ClassType)findAccount.ClassType;
+                    retPlayer.Info.StatInfo.CurrentHp = findAccount.CurrentHp;
+                    retPlayer.Info.StatInfo.MaxHp = findAccount.MaxHp;
+                    retPlayer.Info.StatInfo.CurrentMp = findAccount.CurrentMp;
+                    retPlayer.Info.StatInfo.MaxMp = findAccount.MaxMp;
+                    retPlayer.Info.StatInfo.AttackPower = findAccount.AttackPower;
+                    retPlayer.Info.StatInfo.MagicPower = findAccount.MagicPower;
+                    retPlayer.Info.StatInfo.Defense = findAccount.Defense;
+                    retPlayer.Info.StatInfo.Speed = findAccount.Speed;
+                    retPlayer.Info.StatInfo.Jump = findAccount.Jump;
+                    retPlayer.Info.StatInfo.CurrentExp = findAccount.CurrentExp;
+                    retPlayer.Info.StatInfo.MaxExp = findAccount.MaxExp;
+                    retPlayer.Info.StatInfo.STR = findAccount.STR;
+                    retPlayer.Info.StatInfo.DEX = findAccount.DEX;
+                    retPlayer.Info.StatInfo.INT = findAccount.INT;
+                    retPlayer.Info.StatInfo.LUK = findAccount.LUK;
+                    retPlayer.Info.Gold = findAccount.Gold;
                 }
                 else
                 {
                     // 새로운 사용자 => 기본 값 부여
-                    MyPlayer.Info.StatInfo = initStatInfo.Clone();
+                    retPlayer.Info.StatInfo = initStatInfo.Clone();
                     switch (classType)
                     {
                         case ClassType.Warrior:
-                            MyPlayer.Info.StatInfo.MaxHp = (int)(MyPlayer.Info.StatInfo.MaxHp * 4f);
-                            MyPlayer.Info.StatInfo.MaxMp = (int)(MyPlayer.Info.StatInfo.MaxMp * 1f);
+                            retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 4f);
+                            retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 1f);
                             break;
                         case ClassType.Magician:
-                            MyPlayer.Info.StatInfo.MaxHp = (int)(MyPlayer.Info.StatInfo.MaxHp * 0.75f);
-                            MyPlayer.Info.StatInfo.MaxMp = (int)(MyPlayer.Info.StatInfo.MaxMp * 3.5f);
+                            retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 0.75f);
+                            retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 3.5f);
                             break;
                         case ClassType.Archer:
-                            MyPlayer.Info.StatInfo.MaxHp = (int)(MyPlayer.Info.StatInfo.MaxHp * 0.9f);
-                            MyPlayer.Info.StatInfo.MaxMp = (int)(MyPlayer.Info.StatInfo.MaxMp * 2.5f);
+                            retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 0.9f);
+                            retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 2.5f);
                             break;
                     }
 
-                    MyPlayer.Info.StatInfo.CurrentHp = MyPlayer.Info.StatInfo.MaxHp;
-                    MyPlayer.Info.StatInfo.CurrentMp = MyPlayer.Info.StatInfo.MaxMp;
+                    retPlayer.Info.StatInfo.CurrentHp = retPlayer.Info.StatInfo.MaxHp;
+                    retPlayer.Info.StatInfo.CurrentMp = retPlayer.Info.StatInfo.MaxMp;
 
                     // 기타 최초 캐릭터 생성 시 초기화 하는 값들
-                    MyPlayer.Info.Gold = 1000;
+                    retPlayer.Info.StatInfo.ClassType = classType;
+                    retPlayer.Info.Gold = 1000;
+                    // TODO 여기에 기본 아이템과 포션 넣어줘야겠지?
                 }
             }
+            return retPlayer;
         }
 
         public void LoadOrCreatePlayer(ClassType classType, string DbId)
         {
-
             if (MyPlayer != null)
             {
                 Console.WriteLine("이미 캐릭터를 생성한 클라이언트 입니다");
@@ -274,19 +312,18 @@ namespace ServerContents.Session
             {
                 MyPlayer.Info.Name = $"Player_{MyPlayer.Info.PlayerId}";
                 MyPlayer.Info.DbId = DbId;
+                MyPlayer.Info.StatInfo.ClassType = classType;
                 MyPlayer.Session = this;
             }
-            
+
             // MyPlayer에 필요한 정보를 채움 => 패킷으로 전송(DB 데이터 로드)
-            LoadPlayerInfoToDb(classType, DbId);
+            MyPlayer = LoadPlayerInfoFromDb(classType, DbId);
 
             if (classType == ClassType.Cnone || !Enum.IsDefined(typeof(ClassType), classType))
             {
                 Console.WriteLine(" 허용되지 않은 클래스 타입. 클라이언트 오류 ");
                 return;
             }
-
-            MyPlayer.Info.StatInfo.ClassType = classType;
 
             GameRoom room = RoomManager.Instance.Find(MyPlayer.Info.MapNo);
             if (room == null)

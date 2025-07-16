@@ -235,42 +235,6 @@ public class ObjectManager : MonoBehaviour
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);
 
-                /////////////////TO DB/////////////////////////
-                C_Playerinfo toDbPlayerInfo = new C_Playerinfo()
-                {
-                    PlayerInfo = new PlayerInfo()
-                    {
-                        PlayerId = info.PlayerId,
-                        DbId = info.DbId,
-                        Name = info.Name,
-                        MapNo = info.MapNo,
-                        Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
-                        StatInfo = new PlayerStatInfo()
-                        {
-                            Level = PlayerInformation.playerStatInfo.Level,
-                            ClassType = PlayerInformation.playerStatInfo.ClassType,
-                            CurrentHp = PlayerInformation.playerStatInfo.CurrentHp,
-                            MaxHp = PlayerInformation.playerStatInfo.MaxHp,
-                            CurrentMp = PlayerInformation.playerStatInfo.CurrentMp,
-                            MaxMp = PlayerInformation.playerStatInfo.MaxMp,
-                            AttackPower = PlayerInformation.playerStatInfo.AttackPower,
-                            MagicPower = PlayerInformation.playerStatInfo.MagicPower,
-                            Defense = PlayerInformation.playerStatInfo.Defense,
-                            Speed = PlayerInformation.playerStatInfo.Speed,
-                            Jump = PlayerInformation.playerStatInfo.Jump,
-                            CurrentExp = PlayerInformation.playerStatInfo.CurrentExp,
-                            MaxExp = PlayerInformation.playerStatInfo.MaxExp,
-                            STR = PlayerInformation.playerStatInfo.STR,
-                            DEX = PlayerInformation.playerStatInfo.DEX,
-                            INT = PlayerInformation.playerStatInfo.INT,
-                            LUK = PlayerInformation.playerStatInfo.LUK
-                        }
-                    }
-                };
-
-                NetworkManager.Instance.Send(toDbPlayerInfo);
-                ///////////////////////////////////////////////
-
                 _objects.Add(info.PlayerId, go);
             }
             else
