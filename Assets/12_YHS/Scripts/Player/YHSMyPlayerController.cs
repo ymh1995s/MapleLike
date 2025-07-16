@@ -111,10 +111,11 @@ public class YHSMyPlayerController : PlayerController
         cinemachine.transform.LookAt(transform.position);
 
         //장비창 인벤토리창 연결 
-        UIManager.Instance.ConnectPlayer();
+        UIManager.Instance.ConnectPlayer(); // 여기랑 아래는 서버가 개입하면서 ObjectManager.cs에서 선행됨
         UIManager.Instance.InitItem();
-        UIManager.Instance.InitMpPoitions();
-        UIManager.Instance.InitHpPoitions();
+        //UIManager.Instance.InitMpPoitions(); // 여기랑 아래는 서버가 개입하면서 삭제 예정
+        //UIManager.Instance.InitHpPoitions();
+        UIManager.Instance.InitPreItem(playerInventory.inventory);
         UIManager.Instance.hasInitialized = true;
 
         // 이 코루틴은 Start 최하단에 고정시켜주세요!!!

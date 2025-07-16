@@ -78,6 +78,7 @@ namespace ServerContents.Room
                     S_EnterGame enterPacket = new S_EnterGame();
                     enterPacket.MapId = RoomId;
                     enterPacket.PlayerInfo = player.Info;
+                    enterPacket.PlayerInfo.Inventory = player.Info.Inventory;
                     enterPacket.PlayerInfo.MapNo = RoomId;
                     enterPacket.PlayerInfo.PositionX = enterPacket.SpawnPointX = PlayerSpawnPositionManager.Instance.GetPlayerSpawnPosition(prevMapId, RoomId).X;
                     enterPacket.PlayerInfo.PositionY = enterPacket.SpawnPointY = PlayerSpawnPositionManager.Instance.GetPlayerSpawnPosition(prevMapId, RoomId).Y;

@@ -21,6 +21,7 @@ namespace ServerContents.DB
         public string UserDbId { get; set; }
 
         public int Count { get; set; }
+        public int MaxCount { get; set; }
         public bool IsEquipped { get; set; }
 
         public ItemDb Item { get; set; }

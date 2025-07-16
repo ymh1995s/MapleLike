@@ -23,9 +23,6 @@ public class ShowInfo : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
     {
         GameObject hoveredObject = eventData.pointerEnter;
         
-        Debug.Log("내가 본거"+hoveredObject);
-        
-        
         if (hoveredObject.TryGetComponent<EquipSlot>(out EquipSlot equipSlot))
         {
             foreach (var itemData in ItemManager.Instance.ItemList)

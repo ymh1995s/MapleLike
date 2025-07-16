@@ -38,7 +38,6 @@ public class FadeInOutManager : MonoBehaviour
             float alpha = Mathf.Lerp(0, 1, elapsedTime / fadeInOutDuration);
             panelImage.color = new Color(panelColor.r, panelColor.g, panelColor.b, alpha);
             elapsedTime += Time.deltaTime;
-            Debug.Log(elapsedTime);
             yield return null;
         }
 

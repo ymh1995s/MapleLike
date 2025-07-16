@@ -137,7 +137,7 @@ public class DoubleClick : MonoBehaviour
             EquipSlot currentEquipSlot = transform.GetComponentInChildren<EquipSlot>();
             if (currentEquipSlot != null)
             {
-                UIManager.Instance.AddItem(currentEquipSlot.CurrentItem);
+                UIManager.Instance.AddItem(currentEquipSlot.CurrentItem, 1);
                 if (currentEquipSlot.CurrentItem is Equipment eq)
                 {
                     if (PlayerInformation.equipmentStat == null)

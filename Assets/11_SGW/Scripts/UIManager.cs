@@ -387,8 +387,18 @@ public class UIManager : MonoBehaviour
         {
             Debug.Log("WeaponItem 못찾음 ");
         }
+
     }
-   
+
+    public void InitPreItem(Inventory inventory)
+    {
+        foreach (var item in inventory.ItemInfo)
+        {
+            Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.id == item.ItemId);
+            AddItem(itemToAdd, item.ItemCount);
+        }
+    }
+
 
     public void InitMpPoitions()
     {
@@ -565,74 +575,6 @@ public class UIManager : MonoBehaviour
             if (emptySlot != null)
             {
                 emptySlot.Count += amount;
-                emptySlot.SetItem(newItem);
-                emptySlot.UpdateUI();
-                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
-            }
-            else
-            {
-                Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
-            }
-        }
-    }
-    
-    public void AddItem(Item newItem)
-    {
-        if (newItem == null)
-        {
-            return;
-        }
-        // 기존에 있는 아이템인지 확인
-        Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
-        if (existingSlot ==null )
-        {
-            Debug.Log("아이템 타입은"+newItem.ItemType);
-        }
-        
-        if (newItem.ItemType == ItemType.Gold)
-        {
-            Income += 10;
-            TxtGold.text = Income.ToString();
-            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
-            return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
-        }
-        
-        
-        if (existingSlot != null)
-        {
-            
-            // 🔥 이미 존재하는 아이템이고 소비 가능한거면 개수 증가 시키기
-            if (existingSlot.CurrentItem is Consumable consume)
-            {
-               
-                existingSlot.Count++;
-                existingSlot.UpdateUI();
-                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {existingSlot.Count}");
-            }
-            // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
-            else if (existingSlot.CurrentItem is Equipment equip)
-            {
-                Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-                if (emptySlot != null)
-                {
-                    emptySlot.Count++;
-                    emptySlot.SetItem(newItem);
-                    emptySlot.UpdateUI();
-                    Debug.Log($"🟢 {newItem.itemName} 새로운 슬롯에 추가됨");
-                }
-                else
-                {
-                    Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
-                }
-            }
-        }
-        else
-        {
-            // 🔥 새로운 아이템이면 빈 슬롯에 추가
-            Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-            if (emptySlot != null)
-            {
-                emptySlot.Count++;
                 emptySlot.SetItem(newItem);
                 emptySlot.UpdateUI();
                 Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");

@@ -1,3 +1,4 @@
+using Google.Protobuf.Protocol;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -92,7 +93,7 @@ namespace ServerContents.DB
                 {
                     ItemDbId = id, // 명시적 PK 삽입
                     Name = name,
-                    Type = Enum.TryParse<ItemType>(item.GetProperty("itemType").GetString(), out var typeVal) ? typeVal : ItemType.Etc,
+                    Type = Enum.TryParse<ItemType>(item.GetProperty("itemType").GetString(), out var typeVal) ? typeVal : ItemType.Inone,
                     Description = desc,
                     SellPrice = sell,
                     BuyPrice = buy,

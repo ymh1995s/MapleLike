@@ -26,14 +26,15 @@ namespace ServerContents.Room
 
                 // 아이템이 게임룸에 입장한 사실을 모든 클라이언트에게 전송
                 S_ItemSpawn spawnPacket = new S_ItemSpawn();
-                spawnPacket.ItemType = GetRandomItem();
-                Console.WriteLine(spawnPacket.ItemType);
                 spawnPacket.CanOnlyOwnerLootTime = 10000; // 10초
-                spawnPacket.LifeTime = 60000; // 30초
+                spawnPacket.LifeTime = 60000; // 60초
                 spawnPacket.ItemInfo = item.Info;
+                spawnPacket.ItemInfo.ItemType = GetRandomItem();
+                spawnPacket.ItemInfo.ItemCount = 1;
                 spawnPacket.ItemInfo.OwnerId = player.Id;
                 spawnPacket.ItemInfo.PositionX = posX;
                 spawnPacket.ItemInfo.PositionY = posY;
+                Console.WriteLine(spawnPacket.ItemInfo.ItemType);
 
                 Broadcast(spawnPacket);
 

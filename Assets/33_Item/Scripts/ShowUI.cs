@@ -486,7 +486,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             }
             UIManager.Instance.Income -= itemToAdd.buyprice;
             // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
-            UIManager.Instance.AddItem(itemToAdd);
+            UIManager.Instance.AddItem(itemToAdd,1);
             playerInventory.UpdateIncome();
         }
         else

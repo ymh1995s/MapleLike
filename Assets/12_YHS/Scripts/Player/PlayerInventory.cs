@@ -11,7 +11,8 @@ public class PlayerInventory : MonoBehaviour
     public List<Slot> Slots = new List<Slot>();
     
     public TextMeshProUGUI TxtGold;
-    
+
+    public Inventory inventory; // 내가 추가 시도중인 인벤토리 
    
 
     

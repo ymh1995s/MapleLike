@@ -294,6 +294,11 @@ namespace ServerContents.Session
                     // 기타 최초 캐릭터 생성 시 초기화 하는 값들
                     retPlayer.Info.StatInfo.ClassType = classType;
                     retPlayer.Info.Gold = 1000;
+                    
+                    if (retPlayer.Info.Inventory == null)
+                        retPlayer.Info.Inventory = new Inventory();
+                    retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemId = (int)ItemType.Hppotion1, ItemCount = 99 });
+                    retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemId = (int)ItemType.Mppotion1, ItemCount = 99 });
                     // TODO 여기에 기본 아이템과 포션 넣어줘야겠지?
                 }
             }

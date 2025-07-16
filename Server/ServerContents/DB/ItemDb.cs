@@ -5,17 +5,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf.Protocol;
 
 namespace ServerContents.DB
 {
-    public enum ItemType
-    {
-        Weapon,
-        Armor,
-        Consumable,
-        Etc
-    }
-
     [Table("Items")]
     public class ItemDb
     {

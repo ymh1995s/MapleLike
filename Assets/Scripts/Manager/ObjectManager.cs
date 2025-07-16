@@ -9,6 +9,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using Object = UnityEngine.Object;
+using static UnityEditor.Timeline.Actions.MenuPriority;
 
 public class ObjectManager : MonoBehaviour
 {
@@ -56,12 +57,12 @@ public class ObjectManager : MonoBehaviour
                 }
 
                 // ItemType에 맞는 location 찾기
-                IResourceLocation selectedLocation = locations.FirstOrDefault(loc => loc.PrimaryKey.Contains(itemSpawn.ItemType.ToString()));
+                IResourceLocation selectedLocation = locations.FirstOrDefault(loc => loc.PrimaryKey.Contains(itemSpawn.ItemInfo.ItemType.ToString()));
 
-                Debug.Log(itemSpawn.ItemType.ToString());
+                Debug.Log(itemSpawn.ItemInfo.ItemType.ToString());
                 if (selectedLocation == null)
                 {
-                    Debug.LogError($"❌ 해당 타입({itemSpawn.ItemType})의 아이템을 찾을 수 없습니다.");
+                    Debug.LogError($"❌ 해당 타입({itemSpawn.ItemInfo.ItemType})의 아이템을 찾을 수 없습니다.");
                     callback?.Invoke(null);
                     return;
                 }
@@ -225,6 +226,12 @@ public class ObjectManager : MonoBehaviour
 
                 MyPlayer = go.AddComponent<YHSMyPlayerController>();
                 MyPlayer.GetComponent<YHSMyPlayerController>().playerInformation.InitPlayerInfo(info);
+                MyPlayer.GetComponent<YHSMyPlayerController>().playerInventory.inventory = info.Inventory;
+                //foreach (var item in info.Inventory.ItemInfo)
+                //{
+                //    Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.id == item.ItemId);
+                //    UIManager.Instance.AddItem(itemToAdd, item.ItemCount);
+                //}
                 MyPlayer.Id = info.PlayerId;
 
                 // DB추가하면서 메모리에 저장해줘야 하는 인자들
