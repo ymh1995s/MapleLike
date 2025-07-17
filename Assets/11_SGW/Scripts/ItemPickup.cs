@@ -23,7 +23,6 @@ public class ItemPickup : MonoBehaviour
        
        // 새로운 코루틴 시작
        attractCoroutine = StartCoroutine(AttractCoroutine(lootItem));
-        
     }
 
     

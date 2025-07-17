@@ -3,6 +3,7 @@ using System.Linq;
 using Google.Protobuf.Protocol;
 using UnityEngine;
 using TMPro;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 
 
 public class UIManager : MonoBehaviour 
@@ -395,44 +396,7 @@ public class UIManager : MonoBehaviour
         foreach (var item in inventory.ItemInfo)
         {
             Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.id == item.ItemId);
-            AddItem(itemToAdd, item.ItemCount);
-        }
-    }
-
-
-    public void InitMpPoitions()
-    {
-        if (hasInitialized)
-        {
-            return;
-        }
-        var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-        foreach (var item in ItemManager.Instance.ItemList)
-        {
-            if (item.ItemType == ItemType.Mppotion1)
-            {
-                slot.SetItem(item);
-                slot.Count = 10;
-                slot.UpdateUI();
-            }
-        }
-    }
-    
-    public void InitHpPoitions()
-    {
-        if (hasInitialized)
-        {
-            return;
-        }
-        var slot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-        foreach (var item in ItemManager.Instance.ItemList)
-        {
-            if (item.ItemType == ItemType.Hppotion1)
-            {
-                slot.SetItem(item);
-                slot.Count = 10;
-                slot.UpdateUI();
-            }
+            SetItem(itemToAdd, item.ItemCount);
         }
     }
     #endregion
@@ -486,12 +450,12 @@ public class UIManager : MonoBehaviour
                     case ItemType.Hppotion1:
                     case ItemType.Hppotion2:
                         temp.SetPlayerHp(consume.healAmount);
-                        Debug.Log("체력 회복");
+                        //Debug.Log("체력 회복");
                         break;
                     case ItemType.Mppotion1:
                     case ItemType.Mppotion2:
                         temp.SetPlayerMp(consume.MpAmount);
-                        Debug.Log("마나 회복");
+                        //Debug.Log("마나 회복");
                         break;
                     case ItemType.Superpotion1:
                         temp.SetPlayerHp(PlayerInformation.playerStatInfo.MaxHp/2);
@@ -518,73 +482,165 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region 아이템 추가
-    public void AddItem(Item newItem,int amount)
+    public void SetItem(Item newItem, int amount)
     {
-        if (newItem == null)
-        {
-            return;
-        }
+        if (newItem == null) return;
+
         // 기존에 있는 아이템인지 확인
         Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
-        if (existingSlot ==null )
-        {
-            Debug.Log("아이템 타입은"+newItem.ItemType);
-        }
-        
+
         if (newItem.ItemType == ItemType.Gold)
         {
-            Income += 10;
-            TxtGold.text = Income.ToString();
-            Debug.Log($"🟡 골드 획득! 현재 보유 골드: {Income}");
-            return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
+            HandleGold(amount, isReset: true);
+            return;
         }
-        
-        
+
         if (existingSlot != null)
         {
-            
-            // 🔥 이미 존재하는 아이템이고 소비 가능한거면 개수 증가 시키기
+            // 이미 존재하는 아이템이고 소비 가능한거면 재설정
             if (existingSlot.CurrentItem is Consumable consume)
             {
-               
-                existingSlot.Count += amount;
-                existingSlot.UpdateUI();
-                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {existingSlot.Count}");
+                UpdateConsumableSlot(existingSlot, amount, isReset: true);
             }
-            // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
-            else if (existingSlot.CurrentItem is Equipment equip)
+            else 
             {
-                Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-                if (emptySlot != null)
-                {
-                    emptySlot.Count++;
-                    emptySlot.SetItem(newItem);
-                    emptySlot.UpdateUI();
-                    Debug.Log($"🟢 {newItem.itemName} 새로운 슬롯에 추가됨");
-                }
-                else
-                {
-                    Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
-                }
+                Debug.Log($"아이템 설정 : 이론상 여기 도달하면 안됨1");
             }
         }
         else
         {
-            // 🔥 새로운 아이템이면 빈 슬롯에 추가
-            Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
-            if (emptySlot != null)
+            AddToEmptySlot(newItem, amount);
+        }
+    }
+
+    public void AddItem(Item newItem,int amount)
+    {
+        if (newItem == null) return;
+
+        // 기존에 있는 아이템인지 확인
+        Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
+        
+        if (newItem.ItemType == ItemType.Gold)
+        {
+            HandleGold(amount);
+            return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
+        }
+        
+        if (existingSlot != null)
+        {
+            // 🔥 이미 존재하는 아이템이고 소비 가능한거면 개수 증가 시키기
+            if (existingSlot.CurrentItem is Consumable consume)
             {
-                emptySlot.Count += amount;
-                emptySlot.SetItem(newItem);
-                emptySlot.UpdateUI();
-                Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
+                UpdateConsumableSlot(existingSlot, amount);
+            }
+            // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
+            else if (existingSlot.CurrentItem is Equipment equip)
+            {
+                AddToEmptySlot(newItem, amount: 1);
+            }
+        }
+        else
+        {
+            AddToEmptySlot(newItem, amount);
+        }
+    }
+
+    private void HandleGold(int amount, bool isReset = false)
+    {
+        if (isReset) Income = amount;
+        else Income += amount;
+
+        TxtGold.text = Income.ToString();
+        Debug.Log($"💰 골드 {(isReset ? "설정" : "획득")}! 현재 보유 골드: {Income}");
+    }
+
+    private void UpdateConsumableSlot(Slot slot, int amount, bool isReset = false)
+    {
+        if (isReset) slot.Count = amount;
+        else slot.Count += amount;
+        UpdateInventoryProto(slot.CurrentItem, amount, isReset);
+        slot.UpdateUI();
+
+        Debug.Log($"🟢 {slot.CurrentItem.itemName} 개수 {(isReset ? "재설정" : "증가")}: {slot.Count}");
+    }
+
+    private void AddToEmptySlot(Item newItem, int amount)
+    {
+        Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
+        if (emptySlot != null)
+        {
+            emptySlot.Count += amount;
+            emptySlot.SetItem(newItem);
+            UpdateInventoryProto(newItem, amount, true);
+            emptySlot.UpdateUI();
+            Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
+        }
+        else
+        {
+            Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
+        }
+    }
+
+    void UpdateInventoryProto(Item newItem, int amount, bool isReset = false)
+    {
+        var inventoryList = PlayerInformation.playerInfo.Inventory.ItemInfo;
+
+        // 아이템 타입별 처리
+        if (newItem.ItemType == ItemType.Hppotion1 || newItem.ItemType == ItemType.Hppotion2 || newItem.ItemType == ItemType.Mppotion1 || newItem.ItemType == ItemType.Mppotion2 ||
+            newItem.ItemType == ItemType.Superpotion1 || newItem.ItemType == ItemType.Superpotion2)
+        {
+            // 기존 동일한 아이템 있는지 확인
+            var existingProtoItem = inventoryList.FirstOrDefault(item => item.ItemId == newItem.id);
+
+            if (existingProtoItem != null)
+            {
+                // 이미 있는 경우
+                if (isReset) existingProtoItem.ItemCount = amount;
+                else  existingProtoItem.ItemCount += amount;
+
+                Debug.Log($"🧪 프로토 인벤토리 소비아이템 수량 증가: {newItem.itemName}, 개수: {existingProtoItem.ItemCount}");
             }
             else
             {
-                Debug.LogWarning("❌ 인벤토리에 빈 슬롯이 없습니다!");
+                // 없으면 새로 생성
+                var newProtoItem = CreateProtoItem(newItem, amount);
+                inventoryList.Add(newProtoItem);
+                Debug.Log($"🧪 프로토 인벤토리 소비아이템 새로 생성: {newItem.itemName}, 개수: {amount}");
             }
         }
+        else if (newItem.ItemType == ItemType.Helmet1 || newItem.ItemType == ItemType.Helmet2 || newItem.ItemType == ItemType.Armor1 || newItem.ItemType == ItemType.Armor2 ||
+            newItem.ItemType == ItemType.Boots1 || newItem.ItemType == ItemType.Boots2 || newItem.ItemType == ItemType.Sword1 || newItem.ItemType == ItemType.Sword2 || newItem.ItemType == ItemType.Sword3 ||
+             newItem.ItemType == ItemType.Staff1 || newItem.ItemType == ItemType.Staff2 || newItem.ItemType == ItemType.Staff3 ||
+             newItem.ItemType == ItemType.Arrow1 || newItem.ItemType == ItemType.Arrow2 || newItem.ItemType == ItemType.Arrow3
+            )
+        {
+            // 장비는 무조건 새로 생성
+            var newProtoItem = CreateProtoItem(newItem, amount);
+            inventoryList.Add(newProtoItem);
+            Debug.Log($"🗡️ 프로토 인벤토리 장비 추가: {newItem.itemName}");
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ 알 수 없는 아이템 타입: {newItem.ItemType}");
+        }
     }
+
+    ItemInfo CreateProtoItem(Item item, int amount)
+    {
+        return new ItemInfo
+        {
+            ItemId = item.id,
+            ItemCategory = 0, // TODO
+            ItemType = item.ItemType,
+            ItemStatus = 0, // TODO
+            ItemCount = amount,
+            OwnerId = PlayerInformation.playerInfo.PlayerId, // NOT USED
+            CanRootAnyOne = false, // NOT USED
+            PositionX = 0, // NOT USED
+            PositionY = 0 // NOT USED
+        };
+    }
+
     #endregion
 
     #region 타입별 정렬

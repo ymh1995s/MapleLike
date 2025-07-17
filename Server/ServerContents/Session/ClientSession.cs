@@ -137,7 +137,7 @@ namespace ServerContents.Session
         public void SavePlayerInfo(PlayerInfo playerInfo)
         {
             // 사망했을 시는 예외적으로 HP MP 조정
-            if(playerInfo.StatInfo.CurrentHp == 0)
+            if (playerInfo.StatInfo.CurrentHp == 0)
             {
                 playerInfo.StatInfo.CurrentHp = 50;
                 playerInfo.StatInfo.CurrentMp = 50;
@@ -147,12 +147,35 @@ namespace ServerContents.Session
             SavePlayerInfoToDb(playerInfo);
         }
 
+        // 1개의 아이템 저장 요청이 왔을 때
+        public void SaveItemInfo(ItemInfo itemInfo)
+        {
+            SaveItemInfoToMem(itemInfo);
+
+            using (AppDbContext db = new AppDbContext())
+            {
+                // 1. DbId가 있는 유저 테이블을 찾고
+                // 2. 인벤토리까지 함께 로드함
+                UserDb findAccount = db.Users
+                    .Include(u => u.Inventory)
+                    .FirstOrDefault(a => a.DbId == MyPlayer.Info.DbId);
+
+                SaveItemInfoToDb(db, findAccount, itemInfo);
+
+                db.SaveChanges();
+            }
+        }
+
 
         public void SavePlayerInfoToDb(PlayerInfo playerInfo)
         {
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.DbId == playerInfo.DbId).FirstOrDefault();
+                // 1. DbId가 있는 유저 테이블을 찾고
+                // 2. 인벤토리까지 함께 로드함
+                UserDb findAccount = db.Users
+                    .Include(u => u.Inventory)
+                    .FirstOrDefault(a => a.DbId == MyPlayer.Info.DbId);
 
                 if (findAccount == null)
                 {
@@ -178,7 +201,21 @@ namespace ServerContents.Session
                         INT = playerInfo.StatInfo.INT,
                         LUK = playerInfo.StatInfo.LUK,
                         Gold = playerInfo.Gold,
+                        Inventory = new List<InventoryDb>()
                     };
+
+                    foreach (var item in playerInfo.Inventory.ItemInfo)
+                    {
+                        newUser.Inventory.Add(new InventoryDb
+                        {
+                            ItemDbId = item.ItemId,
+                            Count = item.ItemCount,
+                            MaxCount = 9999, // 필요하면 설정
+                            IsEquipped = false, // 기본값
+                            UserDbId = playerInfo.DbId
+                        });
+                    }
+
                     db.Users.Add(newUser);
                 }
                 else
@@ -204,6 +241,11 @@ namespace ServerContents.Session
                     findAccount.INT = playerInfo.StatInfo.INT;
                     findAccount.LUK = playerInfo.StatInfo.LUK;
                     findAccount.Gold = playerInfo.Gold;
+
+                    foreach (var item in playerInfo.Inventory.ItemInfo)
+                    {
+                        SaveItemInfoToDb(db, findAccount, item);
+                    }
                 }
                 db.SaveChanges();
             }
@@ -232,6 +274,58 @@ namespace ServerContents.Session
             MyPlayer.Stat.INT = playerInfo.StatInfo.INT;
             MyPlayer.Stat.LUK = playerInfo.StatInfo.LUK;
             MyPlayer.Info.Gold = playerInfo.Gold;
+
+            foreach (var item in playerInfo.Inventory.ItemInfo)
+            {
+                SaveItemInfoToMem(item);
+            }
+        }
+
+        public void SaveItemInfoToMem(ItemInfo itemInfo)
+        {
+            var item = MyPlayer.Info.Inventory.ItemInfo
+                .FirstOrDefault(i => i.ItemType == itemInfo.ItemType);
+
+            if (item != null)
+            {
+                item.ItemCount = itemInfo.ItemCount;
+            }
+            else
+            {                                  
+                // 없으면 새로 추가
+                MyPlayer.Info.Inventory.ItemInfo.Add(itemInfo);
+            }
+        }
+
+        public void SaveItemInfoToDb(AppDbContext db, UserDb user, ItemInfo itemInfo)
+        {
+            if (user == null)
+                return;
+
+            // 동일한 아이템이 이미 있는지 검사
+            var existingItem = user.Inventory
+                .FirstOrDefault(i => i.ItemDbId == itemInfo.ItemId);
+
+            if (existingItem != null)
+            {
+                // 이미 있으면 수량 재설정
+                existingItem.Count = itemInfo.ItemCount;
+            }
+            else
+            {
+                // 없으면 새 인벤토리 엔트리 생성
+                InventoryDb newInventoryItem = new InventoryDb
+                {
+                    UserDbId = user.DbId,
+                    ItemDbId = itemInfo.ItemId,
+                    Count = itemInfo.ItemCount,
+                    MaxCount = 99, // 필요에 따라 설정
+                    IsEquipped = false
+                };
+
+
+                db.Inventories.Add(newInventoryItem);
+            }
         }
 
         // 기존에 있는 유저면 DB 값을, 최초 유저는 그렇지 않으면 직업별로 기본 값을 부여
@@ -240,7 +334,13 @@ namespace ServerContents.Session
             Player retPlayer = MyPlayer;
             using (AppDbContext db = new AppDbContext())
             {
-                UserDb findAccount = db.Users.Where(a => a.DbId == DbId).FirstOrDefault();
+                // 1. DbId가 있는 유저 테이블을 찾고
+                // 2. 인벤토리까지 함께 로드함
+                // 3. 필요 시 item 테이블도 로드? => 보류
+                UserDb findAccount = db.Users
+                    .Include(u => u.Inventory)         // User의 Inventory까지 미리 로드
+                    //.ThenInclude(inv => inv.Item)     // 여긴 필요한가?
+                    .FirstOrDefault(a => a.DbId == DbId);
 
                 if (findAccount != null)
                 {
@@ -267,6 +367,18 @@ namespace ServerContents.Session
                     retPlayer.Info.StatInfo.INT = findAccount.INT;
                     retPlayer.Info.StatInfo.LUK = findAccount.LUK;
                     retPlayer.Info.Gold = findAccount.Gold;
+
+                    retPlayer.Info.Inventory = new Inventory();
+
+                    foreach (var dbItem in findAccount.Inventory)  // InventoryDb 리스트 순회
+                    {
+                        retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo
+                        {
+                            ItemId = dbItem.ItemDbId,   // 아이템 고유 ID
+                            // ItemType = dbItem.Item.ItemType,  // 아이템 종류 (Item 테이블에서 불러온 값) => 보류
+                            ItemCount = dbItem.Count      // 소지 개수
+                        });
+                    }
                 }
                 else
                 {
@@ -295,8 +407,7 @@ namespace ServerContents.Session
                     retPlayer.Info.StatInfo.ClassType = classType;
                     retPlayer.Info.Gold = 1000;
                     
-                    if (retPlayer.Info.Inventory == null)
-                        retPlayer.Info.Inventory = new Inventory();
+                    if (retPlayer.Info.Inventory == null) retPlayer.Info.Inventory = new Inventory();
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemId = (int)ItemType.Hppotion1, ItemCount = 99 });
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemId = (int)ItemType.Mppotion1, ItemCount = 99 });
                     // TODO 여기에 기본 아이템과 포션 넣어줘야겠지?
@@ -338,6 +449,7 @@ namespace ServerContents.Session
                 return;
             }
 
+            SavePlayerInfoToDb(MyPlayer.Info);
             room.Push(room.PlayerEnterGame, MyPlayer, 0);
         }
 

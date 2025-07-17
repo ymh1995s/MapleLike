@@ -118,4 +118,11 @@ public partial class PacketHandler
         ClientSession clientSession = session as ClientSession;
         clientSession.SavePlayerInfo(playerInfoPkt.PlayerInfo);
     }
+
+    public static void C_IteminfoHandler(PacketSession session, IMessage packet)
+    {
+        C_Iteminfo itemInfoPkt = packet as C_Iteminfo;
+        ClientSession clientSession = session as ClientSession;
+        clientSession.SaveItemInfo(itemInfoPkt.ItemInfo);
+    }
 }

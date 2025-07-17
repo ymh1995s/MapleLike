@@ -39,6 +39,7 @@ enum MsgId {
 	C_LOGIN = 30;
 	S_LOGIN = 31;
 	C_PLAYERINFO = 32;
+	C_ITEMINFO = 33;
 }
 
 message S_Connected {}
@@ -193,6 +194,10 @@ message S_Login {
 
 message C_Playerinfo {
 	PlayerInfo playerInfo = 1;
+}
+
+message C_Iteminfo {
+	ItemInfo itemInfo = 1;
 }
 
 message PlayerInfo {

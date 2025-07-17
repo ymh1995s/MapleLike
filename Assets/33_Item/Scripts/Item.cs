@@ -22,6 +22,9 @@ public abstract class Item : ScriptableObject
     public int buyprice;
     public ItemCategory category; // Consumable or Equipment
     public ItemType ItemType; //서버에 관한 아이템 타입
+
+    public Google.Protobuf.Protocol.ItemCategory serverCategory; // 서버 아이템 카테고리.. TODO ItemCategory 없애고 합쳐야함
+
     public Sprite IconSprite;
     public string iconAddress; // Addressables에서 사용할 아이콘 주소
 }

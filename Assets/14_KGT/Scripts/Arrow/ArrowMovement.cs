@@ -75,7 +75,7 @@ public class ArrowMovement : MonoBehaviour
                     (transform.GetComponent<BoxCollider2D>().bounds.center.x > targetPosition.x);
                 // Archer로부터 함수를 받아 데미지 처리 패킷을 보내고, 데미지스킨이 출력되도록 한다.
                 hitGo.GetComponent<Animator>().SetTrigger("Hit");
-                Debug.Log("히트 이펙트 생성");
+                //Debug.Log("히트 이펙트 생성");
                 onHit?.Invoke();
                 Destroy(hitGo, 0.45f);
             }

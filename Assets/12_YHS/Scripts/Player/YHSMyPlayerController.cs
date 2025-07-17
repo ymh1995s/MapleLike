@@ -9,6 +9,7 @@ using UnityEngine;
 public class YHSMyPlayerController : PlayerController
 {
     // 플레이어 데이터 컴포넌트
+    // TODO : DB가 생기면서 PlayerInfo 안에 Inventory가 생겨서 PlayerInventory 클래스랑 이중 관리 되는 중. 합치면 좋음
     public PlayerInformation playerInformation;
     public PlayerInventory playerInventory;
     public PlayerEquip playerEquip;
@@ -113,9 +114,7 @@ public class YHSMyPlayerController : PlayerController
         //장비창 인벤토리창 연결 
         UIManager.Instance.ConnectPlayer(); // 여기랑 아래는 서버가 개입하면서 ObjectManager.cs에서 선행됨
         UIManager.Instance.InitItem();
-        //UIManager.Instance.InitMpPoitions(); // 여기랑 아래는 서버가 개입하면서 삭제 예정
-        //UIManager.Instance.InitHpPoitions();
-        UIManager.Instance.InitPreItem(playerInventory.inventory);
+        UIManager.Instance.InitPreItem(PlayerInformation.playerInfo.Inventory);
         UIManager.Instance.hasInitialized = true;
 
         // 이 코루틴은 Start 최하단에 고정시켜주세요!!!
@@ -312,26 +311,8 @@ public class YHSMyPlayerController : PlayerController
                 Name = PlayerInformation.playerInfo.Name,
                 MapNo = (int)nextMapName,
                 Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
-                StatInfo = new PlayerStatInfo()
-                {
-                    Level = PlayerInformation.playerStatInfo.Level,
-                    ClassType = PlayerInformation.playerStatInfo.ClassType,
-                    CurrentHp = PlayerInformation.playerStatInfo.CurrentHp,
-                    MaxHp = PlayerInformation.playerStatInfo.MaxHp,
-                    CurrentMp = PlayerInformation.playerStatInfo.CurrentMp,
-                    MaxMp = PlayerInformation.playerStatInfo.MaxMp,
-                    AttackPower = PlayerInformation.playerStatInfo.AttackPower,
-                    MagicPower = PlayerInformation.playerStatInfo.MagicPower,
-                    Defense = PlayerInformation.playerStatInfo.Defense,
-                    Speed = PlayerInformation.playerStatInfo.Speed,
-                    Jump = PlayerInformation.playerStatInfo.Jump,
-                    CurrentExp = PlayerInformation.playerStatInfo.CurrentExp,
-                    MaxExp = PlayerInformation.playerStatInfo.MaxExp,
-                    STR = PlayerInformation.playerStatInfo.STR,
-                    DEX = PlayerInformation.playerStatInfo.DEX,
-                    INT = PlayerInformation.playerStatInfo.INT,
-                    LUK = PlayerInformation.playerStatInfo.LUK
-                }
+                StatInfo = PlayerInformation.playerStatInfo.Clone(),
+                Inventory = PlayerInformation.playerInfo.Inventory.Clone()
             }
         };
 

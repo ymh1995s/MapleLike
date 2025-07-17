@@ -226,15 +226,10 @@ public class ObjectManager : MonoBehaviour
 
                 MyPlayer = go.AddComponent<YHSMyPlayerController>();
                 MyPlayer.GetComponent<YHSMyPlayerController>().playerInformation.InitPlayerInfo(info);
-                MyPlayer.GetComponent<YHSMyPlayerController>().playerInventory.inventory = info.Inventory;
-                //foreach (var item in info.Inventory.ItemInfo)
-                //{
-                //    Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.id == item.ItemId);
-                //    UIManager.Instance.AddItem(itemToAdd, item.ItemCount);
-                //}
                 MyPlayer.Id = info.PlayerId;
 
                 // DB추가하면서 메모리에 저장해줘야 하는 인자들
+                PlayerInformation.playerInfo.Inventory = info.Inventory;
                 PlayerInformation.playerInfo.DbId = info.DbId;
                 PlayerInformation.playerInfo.MapNo = info.MapNo;
                 UIManager.Instance.Income = info.Gold; // 송경원씨가 예외적으로 UIManager로 관리함

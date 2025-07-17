@@ -229,7 +229,7 @@ public class PlayerInformation : MonoBehaviour
         playerStatInfo.CurrentHp = hp;
         UpdateHpAction.Invoke(hp, maxHp);   // HPMPEXP UI 동기화
         UpdateStatWindowAction.Invoke();    // 스탯창 UI 동기화
-        Debug.Log("HP: " + hp + " / " + maxHp);
+        //Debug.Log("HP: " + hp + " / " + maxHp);
     }
     #endregion
 
