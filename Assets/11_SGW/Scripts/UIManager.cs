@@ -393,9 +393,15 @@ public class UIManager : MonoBehaviour
 
     public void InitPreItem(Inventory inventory)
     {
+        // 기존의 인벤토리 슬롯을 밈
+        foreach( var slot in InventorySlots)
+        {
+            slot.ClearSlot();
+        }
+
         foreach (var item in inventory.ItemInfo)
         {
-            Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.id == item.ItemId);
+            Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.ItemType == item.ItemType);
             SetItem(itemToAdd, item.ItemCount);
         }
     }
@@ -469,13 +475,15 @@ public class UIManager : MonoBehaviour
                 PlaySoundUsePotion();
             }
 
-
-            existingSlot.Count--;
-            existingSlot.UpdateUI();
             if (existingSlot.Count == 0)
             {
                 existingSlot.ClearSlot();
             }
+
+            existingSlot.UpdateUI();
+            AddItem(newItem, -1);
+            DbChangeReq(newItem, existingSlot.Count);
+
             Debug.Log("소비템 사용");
         }
     }
@@ -486,14 +494,15 @@ public class UIManager : MonoBehaviour
     {
         if (newItem == null) return;
 
+        if (newItem.ItemType == ItemType.Gold)
+        {
+            HandleGold(newItem, amount: amount, isReset: true);
+            return;
+        }
+
         // 기존에 있는 아이템인지 확인
         Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
 
-        if (newItem.ItemType == ItemType.Gold)
-        {
-            HandleGold(amount, isReset: true);
-            return;
-        }
 
         if (existingSlot != null)
         {
@@ -502,14 +511,15 @@ public class UIManager : MonoBehaviour
             {
                 UpdateConsumableSlot(existingSlot, amount, isReset: true);
             }
-            else 
+            // 장비는 무조건 새로 생성이지만 3번째 인자를 넣음으로써 장비아이템이 무한 증식되지 않도록
+            else if (existingSlot.CurrentItem is Equipment equip)
             {
-                Debug.Log($"아이템 설정 : 이론상 여기 도달하면 안됨1");
+                AddToEmptySlot(newItem, amount: 1 , true);
             }
         }
         else
         {
-            AddToEmptySlot(newItem, amount);
+            AddToEmptySlot(newItem, amount, true);
         }
     }
 
@@ -522,7 +532,7 @@ public class UIManager : MonoBehaviour
         
         if (newItem.ItemType == ItemType.Gold)
         {
-            HandleGold(amount);
+            HandleGold(newItem);
             return;  // 인벤토리에 추가되지 않도록 여기서 함수 종료
         }
         
@@ -536,19 +546,21 @@ public class UIManager : MonoBehaviour
             // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
             else if (existingSlot.CurrentItem is Equipment equip)
             {
-                AddToEmptySlot(newItem, amount: 1);
+                AddToEmptySlot(newItem, amount: 1, false);
             }
         }
         else
         {
-            AddToEmptySlot(newItem, amount);
+            AddToEmptySlot(newItem, amount, false);
         }
     }
 
-    private void HandleGold(int amount, bool isReset = false)
+    private void HandleGold(Item newItem, int amount = 10, bool isReset = false)
     {
         if (isReset) Income = amount;
         else Income += amount;
+
+        DbChangeReq(newItem, Income);
 
         TxtGold.text = Income.ToString();
         Debug.Log($"💰 골드 {(isReset ? "설정" : "획득")}! 현재 보유 골드: {Income}");
@@ -564,14 +576,14 @@ public class UIManager : MonoBehaviour
         Debug.Log($"🟢 {slot.CurrentItem.itemName} 개수 {(isReset ? "재설정" : "증가")}: {slot.Count}");
     }
 
-    private void AddToEmptySlot(Item newItem, int amount)
+    private void AddToEmptySlot(Item newItem, int amount, bool isLogin)
     {
         Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
         if (emptySlot != null)
         {
             emptySlot.Count += amount;
             emptySlot.SetItem(newItem);
-            UpdateInventoryProto(newItem, amount, true);
+            UpdateInventoryProto(newItem, amount, true, isLogin);
             emptySlot.UpdateUI();
             Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
         }
@@ -581,7 +593,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    void UpdateInventoryProto(Item newItem, int amount, bool isReset = false)
+    void UpdateInventoryProto(Item newItem, int amount, bool isReset = false, bool isLogin = false)
     {
         var inventoryList = PlayerInformation.playerInfo.Inventory.ItemInfo;
 
@@ -590,21 +602,23 @@ public class UIManager : MonoBehaviour
             newItem.ItemType == ItemType.Superpotion1 || newItem.ItemType == ItemType.Superpotion2)
         {
             // 기존 동일한 아이템 있는지 확인
-            var existingProtoItem = inventoryList.FirstOrDefault(item => item.ItemId == newItem.id);
+            ItemInfo existingProtoItem = inventoryList.FirstOrDefault(item => item.ItemId == newItem.id);
 
             if (existingProtoItem != null)
             {
                 // 이미 있는 경우
                 if (isReset) existingProtoItem.ItemCount = amount;
                 else  existingProtoItem.ItemCount += amount;
+                DbChangeReq(newItem, existingProtoItem.ItemCount);
 
                 Debug.Log($"🧪 프로토 인벤토리 소비아이템 수량 증가: {newItem.itemName}, 개수: {existingProtoItem.ItemCount}");
             }
             else
             {
                 // 없으면 새로 생성
-                var newProtoItem = CreateProtoItem(newItem, amount);
+                ItemInfo newProtoItem = CreateProtoItem(newItem, amount);
                 inventoryList.Add(newProtoItem);
+                DbChangeReq(newItem, newProtoItem.ItemCount);
                 Debug.Log($"🧪 프로토 인벤토리 소비아이템 새로 생성: {newItem.itemName}, 개수: {amount}");
             }
         }
@@ -614,15 +628,28 @@ public class UIManager : MonoBehaviour
              newItem.ItemType == ItemType.Arrow1 || newItem.ItemType == ItemType.Arrow2 || newItem.ItemType == ItemType.Arrow3
             )
         {
+            // isReset 트루 조건을 걸어주지 않으면 첫 로그인 시 inventoryList.Add(newProtoItem); 코드에 의해 장비가 무한 증식
+            if (isLogin == true) return;
             // 장비는 무조건 새로 생성
             var newProtoItem = CreateProtoItem(newItem, amount);
             inventoryList.Add(newProtoItem);
+            DbChangeReq(newItem, 1);
             Debug.Log($"🗡️ 프로토 인벤토리 장비 추가: {newItem.itemName}");
         }
         else
         {
             Debug.LogWarning($"⚠️ 알 수 없는 아이템 타입: {newItem.ItemType}");
         }
+
+    }
+
+    void DbChangeReq(Item newItem, int amount)
+    {
+        C_Iteminfo itemPkt = new C_Iteminfo();
+        itemPkt.ItemInfo = new ItemInfo();
+        itemPkt.ItemInfo.ItemType = newItem.ItemType;
+        itemPkt.ItemInfo.ItemCount = amount;
+        NetworkManager.Instance.Send(itemPkt);
     }
 
     ItemInfo CreateProtoItem(Item item, int amount)

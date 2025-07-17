@@ -232,7 +232,6 @@ public class ObjectManager : MonoBehaviour
                 PlayerInformation.playerInfo.Inventory = info.Inventory;
                 PlayerInformation.playerInfo.DbId = info.DbId;
                 PlayerInformation.playerInfo.MapNo = info.MapNo;
-                UIManager.Instance.Income = info.Gold; // 송경원씨가 예외적으로 UIManager로 관리함
 
                 MyPlayer.SetDestination(info.PositionX, info.PositionY);
                 MyPlayer.SetPlayerState(info.CreatureState);

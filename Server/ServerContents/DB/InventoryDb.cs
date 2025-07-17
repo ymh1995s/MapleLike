@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf.Protocol;
 
 namespace ServerContents.DB
 {
@@ -15,7 +16,7 @@ namespace ServerContents.DB
         public int InventoryDbId { get; set; }
 
         [ForeignKey("Item")]
-        public int ItemDbId { get; set; }
+        public ItemType ItemDbId { get; set; }
 
         [ForeignKey("User")]
         public string UserDbId { get; set; }

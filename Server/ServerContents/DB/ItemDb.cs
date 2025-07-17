@@ -14,7 +14,7 @@ namespace ServerContents.DB
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)] // 키 값을 수동으로 변경할 수 있게 설정
-        public int ItemDbId { get; set; } // PK
+        public ItemType ItemDbId { get; set; } // PK
 
         public string Name { get; set; }
         public ItemType Type { get; set; }

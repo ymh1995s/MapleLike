@@ -209,8 +209,7 @@ message PlayerInfo {
 	float positionY = 6;
 	PlayerStatInfo statInfo = 7;
 	PlayerState CreatureState = 8;
-	int32 gold = 9; // TODO : 인벤토리 하위로 빼기?
-	Inventory inventory = 10;
+	Inventory inventory = 9;
 }
 
 message MonsterInfo {

@@ -83,7 +83,7 @@ namespace ServerContents.DB
             foreach (var item in items.EnumerateArray())
             {
                 string category = item.GetProperty("itemCategory").GetString();
-                int id = item.GetProperty("id").GetInt32();
+                ItemType id = (ItemType)item.GetProperty("id").GetInt32();
                 string name = item.GetProperty("itemName").GetString();
                 string desc = item.GetProperty("description").GetString();
                 int sell = item.TryGetProperty("sellprice", out var sp) && sp.TryGetInt32(out int s) ? s : 0;

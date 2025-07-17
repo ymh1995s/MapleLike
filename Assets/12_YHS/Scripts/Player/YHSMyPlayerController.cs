@@ -310,7 +310,6 @@ public class YHSMyPlayerController : PlayerController
                 DbId = PlayerInformation.playerInfo.DbId,
                 Name = PlayerInformation.playerInfo.Name,
                 MapNo = (int)nextMapName,
-                Gold = UIManager.Instance.Income, // 송경원씨가 예외적으로 UIManager로 관리함
                 StatInfo = PlayerInformation.playerStatInfo.Clone(),
                 Inventory = PlayerInformation.playerInfo.Inventory.Clone()
             }
