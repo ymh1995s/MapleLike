@@ -256,12 +256,13 @@ message ItemInfo {
 	int32 itemId = 1;  
 	ItemCategory itemCategory = 2;
 	ItemType itemType = 3;
-	ItemStatus itemStatus = 4;
+	ItemState itemstate = 4;
 	int32 itemCount = 5;
 	int32 ownerId = 6;
 	bool canRootAnyOne = 7;
 	float positionX = 8;
 	float positionY = 9;
+	bool isFromEquipped = 10;
 }
 
 enum GameObjectType {
@@ -296,7 +297,7 @@ enum BossMonsterSkillType {
 	BOSSSKILL5 = 4;
 }
 
-enum ItemStatus {
+enum ItemState {
 	IS_NONE = 0;
 	IS_UNEQUIPPED = 1;
 	IS_EQUIPPED = 2;	

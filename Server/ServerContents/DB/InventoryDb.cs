@@ -23,7 +23,7 @@ namespace ServerContents.DB
 
         public int Count { get; set; }
         public int MaxCount { get; set; }
-        public bool IsEquipped { get; set; }
+        public ItemState IsEquipped { get; set; }
 
         public ItemDb Item { get; set; }
         public UserDb User { get; set; }

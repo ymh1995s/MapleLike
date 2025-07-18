@@ -60,7 +60,7 @@ public class ItemPickup : MonoBehaviour
         // 죽인사람과 먹는 사람이 같거나 소유주가 전체인 경우
         if (lootItem.PlayerId == ObjectManager.Instance.MyPlayer.Id)
         {
-            UIManager.Instance.AddItem(ItemInfo.Property, 1);
+            UIManager.Instance.AddItem(ItemInfo.Property, 1, isfromEquipped: false);
             UIManager.Instance.PlaySoundPickupItem();
             Debug.Log("죽인사람과 먹는 사람이 같음 or 소유주가 전체 ");
         }

@@ -59,8 +59,6 @@ public class DoubleClick : MonoBehaviour
         Slot inventoyItemSlot = transform.GetComponentInChildren<Slot>();
         if (currentInventoryType == InventoryType.Inventory)
         {
-            
-            
             if (inventoyItemSlot == null)
             {
                 Debug.Log("없어요");
@@ -75,7 +73,6 @@ public class DoubleClick : MonoBehaviour
             //슬롯안에 들어있는 아이템 카테고리가 장비라면
             if (inventoyItemSlot.CurrentItem.category == Item.ItemCategory.Equipment)
             {
-                
                 //플레이어 레벨을 확인 그리고 limitjob를 확인 렙이 낮으면 장착 못하게 하기  
                 if (inventoyItemSlot.CurrentItem is Equipment eq)
                 {
@@ -88,8 +85,7 @@ public class DoubleClick : MonoBehaviour
                     }
                 }
                 //수정 구문
-                UIManager.Instance.EquipItem2(inventoyItemSlot.CurrentItem ,inventoyItemSlot);
-                
+                UIManager.Instance.EquipItem(inventoyItemSlot.CurrentItem ,inventoyItemSlot);
             }
             //슬롯안에 들어있는 아이템 카테고리가 소비라면 
             else if (inventoyItemSlot.CurrentItem.category == Item.ItemCategory.Consumable)
@@ -137,18 +133,20 @@ public class DoubleClick : MonoBehaviour
             EquipSlot currentEquipSlot = transform.GetComponentInChildren<EquipSlot>();
             if (currentEquipSlot != null)
             {
-                UIManager.Instance.AddItem(currentEquipSlot.CurrentItem, 1);
+                UIManager.Instance.AddItem(currentEquipSlot.CurrentItem, 1, isfromEquipped: true);
                 if (currentEquipSlot.CurrentItem is Equipment eq)
                 {
                     if (PlayerInformation.equipmentStat == null)
                         PlayerInformation.equipmentStat = new PlayerStatInfo(); // null일 경우 초기화
-                    
                     
                     var equipmentstat = PlayerInformation.equipmentStat; // 기존 객체 사용
 
                     equipmentstat.AttackPower -= eq.attackPower;
                     equipmentstat.MagicPower -= eq.magicPower;
                     equipmentstat.Defense -= eq.defensePower;
+
+                    // 인벤토리로 AddItem 되는 과정에서 이미 해주므로 여기는 중복
+                    //UIManager.Instance.DbChangeEquipReq(currentEquipSlot.CurrentItem, ItemState.IsUnequipped, isFromEquipped: true); // 장비를 해제한 사실을 서버에게 알림
 
                     Debug.Log("eq의 어택파워 :" + eq.attackPower);
                     Debug.Log("eq의 방어력 :" + eq.defensePower);

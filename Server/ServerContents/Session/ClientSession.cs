@@ -160,7 +160,7 @@ namespace ServerContents.Session
                     .Include(u => u.Inventory)
                     .FirstOrDefault(a => a.DbId == MyPlayer.Info.DbId);
 
-                SaveItemInfoToDb(db, findAccount, itemInfo, true);
+                SaveItemInfoToDb(db, findAccount, itemInfo, isNew : true);
 
                 db.SaveChanges();
             }
@@ -210,7 +210,7 @@ namespace ServerContents.Session
                             ItemDbId = item.ItemType,
                             Count = item.ItemCount,
                             MaxCount = 9999, // 필요하면 설정
-                            IsEquipped = false, // 기본값
+                            IsEquipped = 0, // 기본값
                             UserDbId = playerInfo.DbId
                         });
                     }
@@ -242,7 +242,7 @@ namespace ServerContents.Session
 
                     foreach (var item in playerInfo.Inventory.ItemInfo)
                     {
-                        SaveItemInfoToDb(db, findAccount, item, false);
+                        SaveItemInfoToDb(db, findAccount, item, isNew:false);
                     }
                 }
                 db.SaveChanges();
@@ -307,14 +307,23 @@ namespace ServerContents.Session
 
             if (existingItem != null)
             {
-                if (itemInfo.ItemCount <= 0)
+                if (itemInfo.Itemstate == ItemState.IsEquipped)
+                {
+                    // 장비면 장착상태 변경
+                    existingItem.IsEquipped = itemInfo.Itemstate;
+                }
+                else if (itemInfo.IsFromEquipped == true)
+                {
+                    existingItem.IsEquipped = itemInfo.Itemstate;
+                }
+                else if (itemInfo.ItemCount <= 0)
                 {
                     // 개수가 0 이하이면 해당 인벤토리 항목 삭제
                     db.Inventories.Remove(existingItem);
                 }
                 else if((int)existingItem.ItemDbId >= 1000 && isNew==true)
                 {               
-                    // TODO : 1000  넘으면 무조건 장비니까 그냥 새로운 장비 넣어야함
+                    // TODO : 1000  넘으면 무조건 장비니까 그냥 새로운 장비 넣어야함 => 1000 하드코딩 제거
                     // 없으면 새 인벤토리 행 생성
                     InventoryDb newInventoryItem = new InventoryDb
                     {
@@ -322,7 +331,7 @@ namespace ServerContents.Session
                         ItemDbId = itemInfo.ItemType,
                         Count = itemInfo.ItemCount,
                         MaxCount = 1, // 필요에 따라 설정
-                        IsEquipped = false
+                        IsEquipped = 0
                     };
                     db.Inventories.Add(newInventoryItem);
                 }
@@ -341,7 +350,7 @@ namespace ServerContents.Session
                     ItemDbId = itemInfo.ItemType,
                     Count = itemInfo.ItemCount,
                     MaxCount = 99, // 필요에 따라 설정
-                    IsEquipped = false
+                    IsEquipped = 0
                 };
                 db.Inventories.Add(newInventoryItem);
             }
@@ -394,7 +403,8 @@ namespace ServerContents.Session
                         {
                             ItemId = dbItem.InventoryDbId,   // 아이템 고유 ID
                             ItemType = dbItem.ItemDbId,  // 아이템 종류 (Item 테이블에서 불러온 값)
-                            ItemCount = dbItem.Count      // 소지 개수
+                            ItemCount = dbItem.Count,      // 소지 개수
+                            Itemstate = dbItem.IsEquipped,
                         });
                     }
                 }
@@ -402,33 +412,36 @@ namespace ServerContents.Session
                 {
                     // 새로운 사용자 => 기본 값 부여
                     retPlayer.Info.StatInfo = initStatInfo.Clone();
+
+                    if (retPlayer.Info.Inventory == null) retPlayer.Info.Inventory = new Inventory();
+
                     switch (classType)
                     {
                         case ClassType.Warrior:
                             retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 4f);
                             retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 1f);
+                            retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Sword1, ItemCount = 1, Itemstate= ItemState.IsEquipped });
                             break;
                         case ClassType.Magician:
                             retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 0.75f);
                             retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 3.5f);
+                            retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Staff1, ItemCount = 1, Itemstate = ItemState.IsEquipped });
                             break;
                         case ClassType.Archer:
                             retPlayer.Info.StatInfo.MaxHp = (int)(retPlayer.Info.StatInfo.MaxHp * 0.9f);
                             retPlayer.Info.StatInfo.MaxMp = (int)(retPlayer.Info.StatInfo.MaxMp * 2.5f);
+                            retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Arrow1, ItemCount = 1, Itemstate = ItemState.IsEquipped });
                             break;
                     }
 
                     retPlayer.Info.StatInfo.CurrentHp = retPlayer.Info.StatInfo.MaxHp;
                     retPlayer.Info.StatInfo.CurrentMp = retPlayer.Info.StatInfo.MaxMp;
-
-                    // 기타 최초 캐릭터 생성 시 초기화 하는 값들
                     retPlayer.Info.StatInfo.ClassType = classType;
-                    
-                    if (retPlayer.Info.Inventory == null) retPlayer.Info.Inventory = new Inventory();
+
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Hppotion1, ItemCount = 99 });
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Mppotion1, ItemCount = 99 });
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Gold, ItemCount = 999 });
-                    // TODO 여기에 기본 아이템과 포션 넣어줘야겠지?
+
                 }
             }
             return retPlayer;

@@ -222,7 +222,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                 {
                     UIManager.Instance.Income -= itemToAdd.buyprice;
                     // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
-                    UIManager.Instance.AddItem(itemToAdd,amount);
+                    UIManager.Instance.AddItem(itemToAdd,amount, isfromEquipped: false);
                     playerInventory.UpdateIncome();
                 }
                 else
@@ -238,7 +238,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
             {
                 UIManager.Instance.Income -= (itemToAdd.buyprice) * amount;
                 // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
-                UIManager.Instance.AddItem(itemToAdd,amount);
+                UIManager.Instance.AddItem(itemToAdd,amount, isfromEquipped: false);
                 playerInventory.UpdateIncome();
             }
         }
@@ -485,8 +485,7 @@ public class ShowUI : MonoBehaviour,IPointerEnterHandler, IPointerExitHandler
                 return;
             }
             UIManager.Instance.Income -= itemToAdd.buyprice;
-            // ClientInventroy.AddItem(itemToAdd); // ✅ 개수 체크 및 추가
-            UIManager.Instance.AddItem(itemToAdd,1);
+            UIManager.Instance.AddItem(itemToAdd,1, isfromEquipped: false);
             playerInventory.UpdateIncome();
         }
         else

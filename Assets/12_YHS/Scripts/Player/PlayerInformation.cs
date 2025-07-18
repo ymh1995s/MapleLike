@@ -335,8 +335,28 @@ public class PlayerInformation : MonoBehaviour
         // HP/MP 모두 회복
         SetPlayerHp(playerStatInfo.MaxHp);
         SetPlayerMp(playerStatInfo.MaxMp);
+
+        DbChangeReq();
     }
     #endregion
+
+    // TODO 중복 정의 제거 With YHSMyPlayerController
+    void DbChangeReq()
+    {
+        C_Playerinfo toDbPlayerInfo = new C_Playerinfo()
+        {
+            PlayerInfo = new PlayerInfo()
+            {
+                PlayerId = playerInfo.PlayerId,
+                DbId = playerInfo.DbId,
+                Name = playerInfo.Name,
+                StatInfo = playerStatInfo.Clone(),
+                Inventory = playerInfo.Inventory.Clone()
+            }
+        };
+
+        NetworkManager.Instance.Send(toDbPlayerInfo);
+    }
 
     #region 자동 회복 메서드
     public void StartAutoHeal()

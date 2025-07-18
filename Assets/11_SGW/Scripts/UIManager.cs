@@ -174,13 +174,13 @@ public class UIManager : MonoBehaviour
     public void ConnectEquipment()
     {
         EquipSlots = new List<EquipSlot>(Equipment.GetComponentsInChildren<EquipSlot>());
-        
+
         Equipment.SetActive(false);
     }
     #endregion
 
     #region 장비 장착
-    public void EquipItem2(Item newItem, Slot slot)
+    public void EquipItem(Item newItem, Slot slot)
     {
         // ✅ 장비인지 확인
         if (newItem.category != Item.ItemCategory.Equipment)
@@ -192,7 +192,7 @@ public class UIManager : MonoBehaviour
         if (newItem is Equipment equipment)
         {
             // ✅ Cnone 타입이면 모든 직업이 장착 가능
-             if (equipment.classType == ClassType.Cnone)
+            if (equipment.classType == ClassType.Cnone)
             {
                 Debug.Log($"🛡 {newItem.itemName}은(는) 모든 직업이 장착할 수 있습니다!");
             }
@@ -202,15 +202,14 @@ public class UIManager : MonoBehaviour
                 if (equipment.classType != PlayerInformation.playerStatInfo.ClassType)
                 {
                     Debug.Log($"❌ {PlayerInformation.playerStatInfo.ClassType}는 {equipment.classType} 전용 아이템을 장착할 수 없습니다!");
-                    warningText.text =
-                        $"❌ {PlayerInformation.playerStatInfo.ClassType}는 {equipment.classType} 전용 아이템을 장착할 수 없습니다!";
+                    warningText.text =  $"❌ {PlayerInformation.playerStatInfo.ClassType}는 {equipment.classType} 전용 아이템을 장착할 수 없습니다!";
                     Instance.warningGroup.SetActive(true);
                     Instance.PlaySoundDlgNotice();
                     return;
                 }
             }
         }
-        
+
         // ✅ 부위에 맞는 장비 슬롯 찾기
         if (newItem is Equipment eq1)
         {
@@ -226,6 +225,7 @@ public class UIManager : MonoBehaviour
             if (equipSlot.CurrentItem != null)
             {
                 Debug.Log($"🔄 {equipSlot.CurrentItem.itemName} → {newItem.itemName} 장비 교체!");
+                DbChangeEquipReq(equipSlot.CurrentItem, ItemState.IsUnequipped, isFromEquipped: true); // 장비를 벗은 사실을 서버에게 알림
                 SwapEquipment(slot, equipSlot);
             }
             else
@@ -236,6 +236,7 @@ public class UIManager : MonoBehaviour
 
             // ✅ 새 장비 장착
             equipSlot.SetItem(newItem);
+            DbChangeEquipReq(equipSlot.CurrentItem, ItemState.IsEquipped, isFromEquipped: false); // 장비를 장착한 사실을 서버에게 알림
         }
 
         // ✅ 장비 능력치 적용
@@ -251,6 +252,8 @@ public class UIManager : MonoBehaviour
     #region 장비창에 장착후 인벤토리에서 제거
     void UpdateItemSlot(Slot slot)
     {
+        if (slot == null) return;
+
         if (slot.Count > 1)
         {
             slot.Count--;
@@ -273,6 +276,10 @@ public class UIManager : MonoBehaviour
     #region 아이템 스왑
     void SwapEquipment(Slot inventorySlot, EquipSlot equipSlot)
     {
+        if (inventorySlot == null)
+        {
+            return;
+        }
         //수정 해야 될꺼같긴함
         Item oldItem = equipSlot.CurrentItem; // 기존 장비 저장
 
@@ -394,15 +401,22 @@ public class UIManager : MonoBehaviour
     public void InitPreItem(Inventory inventory)
     {
         // 기존의 인벤토리 슬롯을 밈
-        foreach( var slot in InventorySlots)
+        foreach(Slot slot in InventorySlots)
         {
             slot.ClearSlot();
         }
 
-        foreach (var item in inventory.ItemInfo)
+        foreach (ItemInfo item in inventory.ItemInfo)
         {
             Item itemToAdd = ItemManager.Instance.ItemList.Find(x => x.ItemType == item.ItemType);
-            SetItem(itemToAdd, item.ItemCount);
+            if(item.Itemstate == ItemState.IsEquipped)
+            {
+                EquipItem(itemToAdd, null);
+            }
+            else
+            {
+                SetItem(itemToAdd, item.ItemCount);
+            }
         }
     }
     #endregion
@@ -411,23 +425,23 @@ public class UIManager : MonoBehaviour
     //조건문의 아이템 타입과 같은 아이템 스크립트만 가져옴 
     void updateDefaultWeapon( EquipSlot weaponItem,Item VARIABLE )
     {
-        weaponItem.CurrentItem = VARIABLE;
-        weaponItem._image.sprite = VARIABLE.IconSprite;
-        Color color = weaponItem._image.color;
-        color.a = 1f;  // 
-        weaponItem._image.color = color;
+        //weaponItem.CurrentItem = VARIABLE;
+        //weaponItem._image.sprite = VARIABLE.IconSprite;
+        //Color color = weaponItem._image.color;
+        //color.a = 1f;  // 
+        //weaponItem._image.color = color;
                             
-        var equipmentstat = PlayerInformation.equipmentStat;
-        if (weaponItem.CurrentItem is Equipment eq)
-        {
-            equipmentstat.AttackPower = eq.attackPower;
-            equipmentstat.Defense = eq.defensePower;
-            equipmentstat.MagicPower = eq.magicPower;
-            Debug.Log("초기값 갱신");
-            Debug.Log(equipmentstat.AttackPower);
-            Debug.Log(equipmentstat.MagicPower);
+        //var equipmentstat = PlayerInformation.equipmentStat;
+        //if (weaponItem.CurrentItem is Equipment eq)
+        //{
+        //    equipmentstat.AttackPower = eq.attackPower;
+        //    equipmentstat.Defense = eq.defensePower;
+        //    equipmentstat.MagicPower = eq.magicPower;
+        //    Debug.Log("초기값 갱신");
+        //    Debug.Log(equipmentstat.AttackPower);
+        //    Debug.Log(equipmentstat.MagicPower);
             
-        }
+        //}
     }
     #endregion
 
@@ -475,14 +489,12 @@ public class UIManager : MonoBehaviour
                 PlaySoundUsePotion();
             }
 
+            AddItem(newItem, -1, isfromEquipped: false);
             if (existingSlot.Count == 0)
             {
                 existingSlot.ClearSlot();
             }
-
             existingSlot.UpdateUI();
-            AddItem(newItem, -1);
-            DbChangeReq(newItem, existingSlot.Count);
 
             Debug.Log("소비템 사용");
         }
@@ -490,6 +502,7 @@ public class UIManager : MonoBehaviour
     #endregion
 
     #region 아이템 추가
+    // 호출 되는 경우 : 플레이어가 이 방에 입장했을 때 최초 1번 Set
     public void SetItem(Item newItem, int amount)
     {
         if (newItem == null) return;
@@ -500,7 +513,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // 기존에 있는 아이템인지 확인
+        // 기존 슬롯에 있는 아이템인지 확인
         Slot existingSlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem != null && slot.CurrentItem.id == newItem.id);
 
 
@@ -514,16 +527,18 @@ public class UIManager : MonoBehaviour
             // 장비는 무조건 새로 생성이지만 3번째 인자를 넣음으로써 장비아이템이 무한 증식되지 않도록
             else if (existingSlot.CurrentItem is Equipment equip)
             {
-                AddToEmptySlot(newItem, amount: 1 , true);
+                AddToEmptySlot(newItem, amount: 1 , true, isFromEquipped: false);
             }
         }
+        // 기존 슬롯에 없는 아이템이면 새로운 슬롯에 할당
         else
         {
-            AddToEmptySlot(newItem, amount, true);
+            AddToEmptySlot(newItem, amount, true, isFromEquipped: false);
         }
     }
 
-    public void AddItem(Item newItem,int amount)
+    // 호출 되는 경우 : 플레이어가 아이템을 획득/소비 했을 때 Add or Sub
+    public void AddItem(Item newItem,int amount, bool isfromEquipped)
     {
         if (newItem == null) return;
 
@@ -546,15 +561,19 @@ public class UIManager : MonoBehaviour
             // 🔥 이미 존재하는 아이템이고 장비면 다른 슬롯에 넣기 
             else if (existingSlot.CurrentItem is Equipment equip)
             {
-                AddToEmptySlot(newItem, amount: 1, false);
+                AddToEmptySlot(newItem, amount: 1, false, isFromEquipped: isfromEquipped);
             }
         }
         else
         {
-            AddToEmptySlot(newItem, amount, false);
+            AddToEmptySlot(newItem, amount, false, isFromEquipped : isfromEquipped);
         }
     }
 
+
+    // 호출되는 경우
+    // 1. 플레이어가 방에 입장할 때 (아이템 리스트 리셋 후 Add)
+    // 2. 플레이어가 아이템을 먹었을 때 (기존 아이템 리스트에서 Add)
     private void HandleGold(Item newItem, int amount = 10, bool isReset = false)
     {
         if (isReset) Income = amount;
@@ -566,25 +585,33 @@ public class UIManager : MonoBehaviour
         Debug.Log($"💰 골드 {(isReset ? "설정" : "획득")}! 현재 보유 골드: {Income}");
     }
 
+
+    // 호출되는 경우
+    // 1. 플레이어가 방에 입장할 때 (아이템 리스트 리셋 후 Add)
+    // 2. 플레이어가 아이템을 먹었을 때 (기존 아이템 리스트에서 Add)
     private void UpdateConsumableSlot(Slot slot, int amount, bool isReset = false)
     {
         if (isReset) slot.Count = amount;
         else slot.Count += amount;
-        UpdateInventoryProto(slot.CurrentItem, amount, isReset);
+        UpdateInventoryProto(slot.CurrentItem, amount, isReset : isReset, isEnter : false, isFromEquipped : false);
         slot.UpdateUI();
 
         Debug.Log($"🟢 {slot.CurrentItem.itemName} 개수 {(isReset ? "재설정" : "증가")}: {slot.Count}");
     }
 
-    private void AddToEmptySlot(Item newItem, int amount, bool isLogin)
+
+    // 호출되는 경우
+    // 1. 플레이어가 방에 입장할 때 (아이템 리스트 리셋 후 Add)
+    // 2. 플레이어가 아이템을 먹었을 때 (기존 아이템 리스트에서 Add)
+    private void AddToEmptySlot(Item newItem, int amount, bool isEnter, bool isFromEquipped)
     {
         Slot emptySlot = InventorySlots.FirstOrDefault(slot => slot.CurrentItem == null);
         if (emptySlot != null)
         {
             emptySlot.Count += amount;
             emptySlot.SetItem(newItem);
-            UpdateInventoryProto(newItem, amount, true, isLogin);
             emptySlot.UpdateUI();
+            UpdateInventoryProto(newItem, amount, isReset: true, isEnter: isEnter, isFromEquipped : isFromEquipped);
             Debug.Log($"🟢 {newItem.itemName} 개수 증가: {emptySlot.Count}");
         }
         else
@@ -593,13 +620,17 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    void UpdateInventoryProto(Item newItem, int amount, bool isReset = false, bool isLogin = false)
+
+    // 호출되는 경우
+    // 1. 플레이어가 방에 입장할 때 (아이템 리스트 리셋 후 Add)
+    // 2. 플레이어가 아이템을 먹었을 때 (기존 아이템 리스트에서 Add)
+    void UpdateInventoryProto(Item newItem, int amount, bool isReset = false, bool isEnter = false, bool isFromEquipped = false)
     {
         var inventoryList = PlayerInformation.playerInfo.Inventory.ItemInfo;
 
         // 아이템 타입별 처리
-        if (newItem.ItemType == ItemType.Hppotion1 || newItem.ItemType == ItemType.Hppotion2 || newItem.ItemType == ItemType.Mppotion1 || newItem.ItemType == ItemType.Mppotion2 ||
-            newItem.ItemType == ItemType.Superpotion1 || newItem.ItemType == ItemType.Superpotion2)
+        // TODO 기준값 하드코딩 1000 제거
+        if ((int)newItem.ItemType < 1000)
         {
             // 기존 동일한 아이템 있는지 확인
             ItemInfo existingProtoItem = inventoryList.FirstOrDefault(item => item.ItemId == newItem.id);
@@ -622,18 +653,15 @@ public class UIManager : MonoBehaviour
                 Debug.Log($"🧪 프로토 인벤토리 소비아이템 새로 생성: {newItem.itemName}, 개수: {amount}");
             }
         }
-        else if (newItem.ItemType == ItemType.Helmet1 || newItem.ItemType == ItemType.Helmet2 || newItem.ItemType == ItemType.Armor1 || newItem.ItemType == ItemType.Armor2 ||
-            newItem.ItemType == ItemType.Boots1 || newItem.ItemType == ItemType.Boots2 || newItem.ItemType == ItemType.Sword1 || newItem.ItemType == ItemType.Sword2 || newItem.ItemType == ItemType.Sword3 ||
-             newItem.ItemType == ItemType.Staff1 || newItem.ItemType == ItemType.Staff2 || newItem.ItemType == ItemType.Staff3 ||
-             newItem.ItemType == ItemType.Arrow1 || newItem.ItemType == ItemType.Arrow2 || newItem.ItemType == ItemType.Arrow3
-            )
+        // TODO 기준값 하드코딩 1000 제거
+        else if ((int)newItem.ItemType > 1000)
         {
-            // isReset 트루 조건을 걸어주지 않으면 첫 로그인 시 inventoryList.Add(newProtoItem); 코드에 의해 장비가 무한 증식
-            if (isLogin == true) return;
+            // isEnter(각 맵에 입장) 시엔 서버 DB 아이템을 추가해선 안됨, 
+            if (isEnter == true) return;
             // 장비는 무조건 새로 생성
             var newProtoItem = CreateProtoItem(newItem, amount);
             inventoryList.Add(newProtoItem);
-            DbChangeReq(newItem, 1);
+            DbChangeEquipReq(newItem, ItemState.IsUnequipped, isFromEquipped : isFromEquipped);
             Debug.Log($"🗡️ 프로토 인벤토리 장비 추가: {newItem.itemName}");
         }
         else
@@ -652,6 +680,23 @@ public class UIManager : MonoBehaviour
         NetworkManager.Instance.Send(itemPkt);
     }
 
+    // 장비 장착/해제용 함수
+    public void DbChangeEquipReq(Item newItem, ItemState isEquip, bool isFromEquipped = true)
+    {
+        if (newItem.category != Item.ItemCategory.Equipment)
+        {
+            Debug.Log(" 장비가 아님 ");
+            return;
+        }
+        C_Iteminfo itemPkt = new C_Iteminfo();
+        itemPkt.ItemInfo = new ItemInfo();
+        itemPkt.ItemInfo.ItemType = newItem.ItemType;
+        itemPkt.ItemInfo.Itemstate = isEquip;
+        itemPkt.ItemInfo.ItemCount = 1; // ITEM은 무조건 1개씩 다룸
+        itemPkt.ItemInfo.IsFromEquipped = isFromEquipped;
+        NetworkManager.Instance.Send(itemPkt);
+    }
+
     ItemInfo CreateProtoItem(Item item, int amount)
     {
         return new ItemInfo
@@ -659,7 +704,7 @@ public class UIManager : MonoBehaviour
             ItemId = item.id,
             ItemCategory = 0, // TODO
             ItemType = item.ItemType,
-            ItemStatus = 0, // TODO
+            Itemstate = 0, // TODO
             ItemCount = amount,
             OwnerId = PlayerInformation.playerInfo.PlayerId, // NOT USED
             CanRootAnyOne = false, // NOT USED

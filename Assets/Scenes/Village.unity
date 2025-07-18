@@ -665,6 +665,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: QuestNpcCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 5306101168655908925, guid: adf70ea43aecb924d92309a57ffbf826, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7632934002370145030, guid: adf70ea43aecb924d92309a57ffbf826, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -9142,7 +9146,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1208448971
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9481,7 +9485,7 @@ Transform:
   m_GameObject: {fileID: 1390844463}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.7403698, y: 2.1252365, z: 0}
+  m_LocalPosition: {x: -0.0000019073486, y: 2.1252365, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9845,7 +9849,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1529744330
 MonoBehaviour:
   m_ObjectHideFlags: 0
