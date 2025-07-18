@@ -119,6 +119,7 @@ public class YHSMyPlayerController : PlayerController
 
         // 이 코루틴은 Start 최하단에 고정시켜주세요!!!
         StartCoroutine(FadeInOutManager.Instance.FadeIn());
+        StartCoroutine(CallFunctionEveryMinute()); // 1분에 1번 플레이어 전체 데이터를 저장하는 코루틴
     }
 
     protected override void Update()
@@ -316,6 +317,21 @@ public class YHSMyPlayerController : PlayerController
         };
 
         NetworkManager.Instance.Send(toDbPlayerInfo);
+    }
+
+    IEnumerator CallFunctionEveryMinute()
+    {
+        while (true)
+        {
+            DbChangeReq(); // 호출할 함수
+            yield return new WaitForSeconds(60f); // 60초 대기
+        }
+    }
+
+    // 강제종료를 포함한 대부분의 경우에 DB에 정보 저장 요청
+    private void OnApplicationQuit()
+    {
+        DbChangeReq();
     }
 
     private IEnumerator FadeOutAndSendChangeMapPacket()
