@@ -29,6 +29,17 @@ namespace ServerContents.DB
             builder.Entity<ItemDb>()
             .HasIndex(i => i.Name) // 닉네임만 유니크하도록 설정
             .IsUnique();
+
+            // InventoryDb.UserDbId에 인덱싱 추가
+            // UserDbId를 통해 인벤토리를 탐색할 때 성능 향상
+            builder.Entity<InventoryDb>()
+                .HasIndex(inv => inv.UserDbId);
+
+            // InventoryDb: ItemDbId 인덱스 (필터나 장비 장착 시)
+            // InventoryDb에서 ItemDbId로 찾을 때 성능 향상.
+            // 현재는 효과가 미미하지만 볼륨이 커지면 성능 향상 기대
+            builder.Entity<InventoryDb>()
+                .HasIndex(inv => inv.ItemDbId);
         }
     }
 }
