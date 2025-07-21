@@ -19,7 +19,7 @@ namespace ServerContents
             while (true)
             {
                 DbTransaction.Instance.Flush();
-                Thread.Sleep(0);
+                Thread.Sleep(1);
             }
         }
 
@@ -45,9 +45,8 @@ namespace ServerContents
             Console.WriteLine($"This Server IP is {endPoint.Address.ToString()}");
             Console.WriteLine("Server Listening...");
 
-
-            // DB 테스트
-            DbCommands.InitializeDB(forceReset: false);
+            // DB ITEM 테이블 초기화 (FROM JSON)
+            DbTransaction.InitializeDB(forceReset: false);
 
             // DbTask
             {

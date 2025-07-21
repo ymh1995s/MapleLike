@@ -579,6 +579,18 @@ public class UIManager : MonoBehaviour
         if (isReset) Income = amount;
         else Income += amount;
 
+        // 메모리 골드에도 적용
+        {
+            var goldItems = PlayerInformation.playerInfo.Inventory.ItemInfo
+            .Where(i => i.ItemType == ItemType.Gold);
+
+
+            foreach (var item in goldItems)
+            {
+                item.ItemCount = Income;
+            }
+        }
+
         DbChangeReq(newItem, Income);
 
         TxtGold.text = Income.ToString();

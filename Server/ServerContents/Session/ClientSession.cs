@@ -144,109 +144,15 @@ namespace ServerContents.Session
             }
 
             SavePlayerInfoToMem(playerInfo);
-            SavePlayerInfoToDb(playerInfo);
+            DbTransaction.SavePlayerInfoToDbReq(MyPlayer);
+            //SavePlayerInfoToDb(playerInfo);
         }
 
         // 1개의 아이템 저장 요청이 왔을 때
         public void SaveItemInfo(ItemInfo itemInfo)
         {
             SaveItemInfoToMem(itemInfo);
-
-            using (AppDbContext db = new AppDbContext())
-            {
-                // 1. DbId가 있는 유저 테이블을 찾고
-                // 2. 인벤토리까지 함께 로드함
-                UserDb findAccount = db.Users
-                    .Include(u => u.Inventory)
-                    .FirstOrDefault(a => a.DbId == MyPlayer.Info.DbId);
-
-                SaveItemInfoToDb(db, findAccount, itemInfo, isNew : true);
-
-                db.SaveChanges();
-            }
-        }
-
-
-        public void SavePlayerInfoToDb(PlayerInfo playerInfo)
-        {
-            using (AppDbContext db = new AppDbContext())
-            {
-                // 1. DbId가 있는 유저 테이블을 찾고
-                // 2. 인벤토리까지 함께 로드함
-                UserDb findAccount = db.Users
-                    .Include(u => u.Inventory)
-                    .FirstOrDefault(a => a.DbId == MyPlayer.Info.DbId);
-
-                if (findAccount == null)
-                {
-                    var newUser = new UserDb
-                    {
-                        DbId = playerInfo.DbId,
-                        Level = playerInfo.StatInfo.Level,
-                        ClassType = playerInfo.StatInfo.ClassType,
-                        MapNo = playerInfo.MapNo,
-                        CurrentExp = playerInfo.StatInfo.CurrentExp,
-                        MaxExp = playerInfo.StatInfo.MaxExp,
-                        CurrentHp = playerInfo.StatInfo.CurrentHp,
-                        MaxHp = playerInfo.StatInfo.MaxHp,
-                        CurrentMp = playerInfo.StatInfo.CurrentMp,
-                        MaxMp = playerInfo.StatInfo.MaxMp,
-                        AttackPower = playerInfo.StatInfo.AttackPower,
-                        MagicPower = playerInfo.StatInfo.MagicPower,
-                        Defense = playerInfo.StatInfo.Defense,
-                        Speed = playerInfo.StatInfo.Speed,
-                        Jump = playerInfo.StatInfo.Jump,
-                        STR = playerInfo.StatInfo.STR,
-                        DEX = playerInfo.StatInfo.DEX,
-                        INT = playerInfo.StatInfo.INT,
-                        LUK = playerInfo.StatInfo.LUK,
-                        Inventory = new List<InventoryDb>()
-                    };
-
-                    foreach (ItemInfo item in playerInfo.Inventory.ItemInfo)
-                    {
-                        newUser.Inventory.Add(new InventoryDb
-                        {
-                            ItemDbId = item.ItemType,
-                            Count = item.ItemCount,
-                            MaxCount = 9999, // 필요하면 설정
-                            IsEquipped = 0, // 기본값
-                            UserDbId = playerInfo.DbId
-                        });
-                    }
-
-                    db.Users.Add(newUser);
-                }
-                else
-                {
-                    // 기존 유저 정보 수정
-                    findAccount.DbId = playerInfo.DbId;
-                    findAccount.Level = playerInfo.StatInfo.Level;
-                    findAccount.ClassType = playerInfo.StatInfo.ClassType;
-                    findAccount.MapNo = playerInfo.MapNo;
-                    findAccount.CurrentExp = playerInfo.StatInfo.CurrentExp;
-                    findAccount.MaxExp = playerInfo.StatInfo.MaxExp;
-                    findAccount.CurrentHp = playerInfo.StatInfo.CurrentHp;
-                    findAccount.MaxHp = playerInfo.StatInfo.MaxHp;
-                    findAccount.CurrentMp = playerInfo.StatInfo.CurrentMp;
-                    findAccount.MaxMp = playerInfo.StatInfo.MaxMp;
-                    findAccount.AttackPower = playerInfo.StatInfo.AttackPower;
-                    findAccount.MagicPower = playerInfo.StatInfo.MagicPower;
-                    findAccount.Defense = playerInfo.StatInfo.Defense;
-                    findAccount.Speed = playerInfo.StatInfo.Speed;
-                    findAccount.Jump = playerInfo.StatInfo.Jump;
-                    findAccount.STR = playerInfo.StatInfo.STR;
-                    findAccount.DEX = playerInfo.StatInfo.DEX;
-                    findAccount.INT = playerInfo.StatInfo.INT;
-                    findAccount.LUK = playerInfo.StatInfo.LUK;
-
-                    foreach (var item in playerInfo.Inventory.ItemInfo)
-                    {
-                        SaveItemInfoToDb(db, findAccount, item, isNew:false);
-                    }
-                }
-                db.SaveChanges();
-            }
+            DbTransaction.SaveItemInfoToDbReq(MyPlayer, itemInfo);
         }
 
         public void SavePlayerInfoToMem(PlayerInfo playerInfo)
@@ -291,68 +197,6 @@ namespace ServerContents.Session
             {                                  
                 // 없으면 새로 추가
                 MyPlayer.Info.Inventory.ItemInfo.Add(itemInfo);
-            }
-        }
-
-        public void SaveItemInfoToDb(AppDbContext db, UserDb user, ItemInfo itemInfo, bool isNew = true)
-        {
-            if (user == null)
-                return;
-
-            // 동일한 아이템이 이미 있는지 검사
-            InventoryDb existingItem = user.Inventory
-            .FirstOrDefault(i =>
-                i.UserDbId == MyPlayer.Info.DbId &&
-                i.ItemDbId == itemInfo.ItemType);
-
-            if (existingItem != null)
-            {
-                if (itemInfo.Itemstate == ItemState.IsEquipped)
-                {
-                    // 장비면 장착상태 변경
-                    existingItem.IsEquipped = itemInfo.Itemstate;
-                }
-                else if (itemInfo.IsFromEquipped == true)
-                {
-                    existingItem.IsEquipped = itemInfo.Itemstate;
-                }
-                else if (itemInfo.ItemCount <= 0)
-                {
-                    // 개수가 0 이하이면 해당 인벤토리 항목 삭제
-                    db.Inventories.Remove(existingItem);
-                }
-                else if((int)existingItem.ItemDbId >= 1000 && isNew==true)
-                {               
-                    // TODO : 1000  넘으면 무조건 장비니까 그냥 새로운 장비 넣어야함 => 1000 하드코딩 제거
-                    // 없으면 새 인벤토리 행 생성
-                    InventoryDb newInventoryItem = new InventoryDb
-                    {
-                        UserDbId = user.DbId,
-                        ItemDbId = itemInfo.ItemType,
-                        Count = itemInfo.ItemCount,
-                        MaxCount = 1, // 필요에 따라 설정
-                        IsEquipped = 0
-                    };
-                    db.Inventories.Add(newInventoryItem);
-                }
-                else
-                {
-                    // 수량 갱신
-                    existingItem.Count = itemInfo.ItemCount;
-                }
-            }
-            else
-            {
-                // 없으면 새 인벤토리 행 생성
-                InventoryDb newInventoryItem = new InventoryDb
-                {
-                    UserDbId = user.DbId,
-                    ItemDbId = itemInfo.ItemType,
-                    Count = itemInfo.ItemCount,
-                    MaxCount = 99, // 필요에 따라 설정
-                    IsEquipped = 0
-                };
-                db.Inventories.Add(newInventoryItem);
             }
         }
 
@@ -441,7 +285,6 @@ namespace ServerContents.Session
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Hppotion1, ItemCount = 99 });
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Mppotion1, ItemCount = 99 });
                     retPlayer.Info.Inventory.ItemInfo.Add(new ItemInfo { ItemType = ItemType.Gold, ItemCount = 999 });
-
                 }
             }
             return retPlayer;
@@ -480,7 +323,7 @@ namespace ServerContents.Session
                 return;
             }
 
-            SavePlayerInfoToDb(MyPlayer.Info);
+            DbTransaction.SavePlayerInfoToDbReq(MyPlayer);
             room.Push(room.PlayerEnterGame, MyPlayer, 0);
         }
 

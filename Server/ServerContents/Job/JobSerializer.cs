@@ -10,7 +10,7 @@ namespace ServerContents.Job
     public class JobSerializer
     {
         JobTimer _timer = new JobTimer();
-        Queue<IJob> _jobQueue = new Queue<IJob>();
+        public Queue<IJob> _jobQueue = new Queue<IJob>(); // 테스트 위해 잠깐 public으로 뚫음
         object _lock = new object();
         bool _flush = false;
 

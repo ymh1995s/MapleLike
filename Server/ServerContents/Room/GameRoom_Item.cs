@@ -109,21 +109,21 @@ namespace ServerContents.Room
         {
             dropRates = new Dictionary<ItemType, double>()
             {
-                { ItemType.Gold, 100.0 },
+                { ItemType.Gold, 255 },
 
-                { ItemType.Hppotion1, 5.0 },
-                { ItemType.Hppotion2, 2.5 },
-                { ItemType.Mppotion1, 5.0 },
-                { ItemType.Mppotion2, 2.5 },
-                { ItemType.Superpotion1, 2.0 },
-                { ItemType.Superpotion2, 1.0 },
+                { ItemType.Hppotion1, 55 },
+                { ItemType.Hppotion2, 55 },
+                { ItemType.Mppotion1, 55 },
+                { ItemType.Mppotion2, 55 },
+                { ItemType.Superpotion1, 55 },
+                { ItemType.Superpotion2, 55 },
 
-                { ItemType.Helmet1, 0.2 },
-                { ItemType.Helmet2, 0.1 },
-                { ItemType.Armor1, 0.2 },
-                { ItemType.Armor2, 0.1 },
-                { ItemType.Boots1, 0.2 },
-                { ItemType.Boots2, 0.1 },
+                { ItemType.Helmet1, 55 },
+                { ItemType.Helmet2, 55 },
+                { ItemType.Armor1, 55 },
+                { ItemType.Armor2, 55 },
+                { ItemType.Boots1, 55 },
+                { ItemType.Boots2, 55 },
 
                 { ItemType.Sword1, 0.2 },
                 { ItemType.Sword2, 0.1 },
