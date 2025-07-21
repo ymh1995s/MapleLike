@@ -151,6 +151,7 @@ namespace ServerContents.Room
 
         public void Flush()
         {
+            base.Flush();
             if (_pendingList.Count == 0) return;
             foreach (var s in _players)
             {

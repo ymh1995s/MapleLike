@@ -19,7 +19,7 @@ namespace ServerContents
             while (true)
             {
                 DbTransaction.Instance.Flush();
-                Thread.Sleep(1);
+                Thread.Sleep(0);
             }
         }
 
@@ -62,7 +62,8 @@ namespace ServerContents
                     // 메인스레드는 전체 게임로직 담당
                     foreach (var room in rooms)
                     {
-                        room.Push(room.Flush);
+                        //room.Push(room.Flush);
+                        room.Flush();
                     }
                     Thread.Sleep(1);
                 }

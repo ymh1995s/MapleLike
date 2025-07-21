@@ -35,12 +35,15 @@ namespace ServerContents.Job
             lock (_lock)
             {
                 _jobQueue.Enqueue(job);
-                if (_flush == false)
-                    flush = _flush = true;
+
+                // 250722 스레드 분할 연습
+                //if (_flush == false)
+                //    flush = _flush = true;
             }
 
-            if (flush)
-                Flush();
+            // 250722 스레드 분할 연습
+            //if (flush)
+                //Flush();
         }
 
         public void Flush()
