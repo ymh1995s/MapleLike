@@ -310,7 +310,7 @@ public class YHSMyPlayerController : PlayerController
                 PlayerId = PlayerInformation.playerInfo.PlayerId,
                 DbId = PlayerInformation.playerInfo.DbId,
                 Name = PlayerInformation.playerInfo.Name,
-                MapNo = (int)nextMapName,
+                MapNo = PlayerInformation.playerInfo.MapNo,
                 StatInfo = PlayerInformation.playerStatInfo.Clone(),
                 Inventory = PlayerInformation.playerInfo.Inventory.Clone()
             }

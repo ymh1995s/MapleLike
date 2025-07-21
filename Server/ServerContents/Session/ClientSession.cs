@@ -180,7 +180,7 @@ namespace ServerContents.Session
 
             foreach (var item in playerInfo.Inventory.ItemInfo)
             {
-                SaveItemInfoToMem(item);
+                //SaveItemInfoToMem(item);
             }
         }
 
@@ -189,10 +189,17 @@ namespace ServerContents.Session
             var item = MyPlayer.Info.Inventory.ItemInfo
                 .FirstOrDefault(i => i.ItemType == itemInfo.ItemType);
 
-            if (item != null)
+            // 1. 장비장착 / 해제
+            if( itemInfo.IsFromEquipped == true )
+            {
+                item.Itemstate = itemInfo.Itemstate;
+            }
+            // 2. 이미 있는 포션일 때 
+            else if (item != null && (int)item.ItemType < 1000)
             {
                 item.ItemCount = itemInfo.ItemCount;
             }
+            // 3. 새로운 포션 / 장비
             else
             {                                  
                 // 없으면 새로 추가

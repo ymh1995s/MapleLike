@@ -99,6 +99,7 @@ public class PlayerInformation : MonoBehaviour
         {
             PlayerId = info.PlayerId,
             Name = info.Name,
+            MapNo = info.MapNo,
             PositionX = info.PositionX,
             PositionY = info.PositionY,
             StatInfo = playerStatInfo,              // 패킷으로 받는 값: info.StatInfo,

@@ -27,6 +27,14 @@ public class EquipSlot : MonoBehaviour
         _image.color = color;
     }
 
-
-
+    public void ClearSlot()
+    {
+        Color color = _image.color;
+        //if (Count < 1)
+        {
+            color.a = 0f; // ✅ 아이콘을 완전히 투명하게 설정
+            _image.color = color;
+            CurrentItem = null; // 아이템 제거
+        }
+    }
 }

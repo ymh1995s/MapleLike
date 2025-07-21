@@ -236,7 +236,7 @@ public class UIManager : MonoBehaviour
 
             // ✅ 새 장비 장착
             equipSlot.SetItem(newItem);
-            DbChangeEquipReq(equipSlot.CurrentItem, ItemState.IsEquipped, isFromEquipped: false); // 장비를 장착한 사실을 서버에게 알림
+            DbChangeEquipReq(equipSlot.CurrentItem, ItemState.IsEquipped, isFromEquipped: true); // 장비를 장착한 사실을 서버에게 알림
         }
 
         // ✅ 장비 능력치 적용
@@ -401,7 +401,13 @@ public class UIManager : MonoBehaviour
     public void InitPreItem(Inventory inventory)
     {
         // 기존의 인벤토리 슬롯을 밈
-        foreach(Slot slot in InventorySlots)
+        foreach (Slot slot in InventorySlots)
+        {
+            slot.ClearSlot();
+        }
+
+        // 기존의 장비 슬롯을 밈
+        foreach (EquipSlot slot in EquipSlots)
         {
             slot.ClearSlot();
         }
@@ -506,6 +512,7 @@ public class UIManager : MonoBehaviour
     public void SetItem(Item newItem, int amount)
     {
         if (newItem == null) return;
+        if (amount == 0) return;
 
         if (newItem.ItemType == ItemType.Gold)
         {
@@ -582,13 +589,9 @@ public class UIManager : MonoBehaviour
         // 메모리 골드에도 적용
         {
             var goldItems = PlayerInformation.playerInfo.Inventory.ItemInfo
-            .Where(i => i.ItemType == ItemType.Gold);
+            .FirstOrDefault(i => i.ItemType == ItemType.Gold);
 
-
-            foreach (var item in goldItems)
-            {
-                item.ItemCount = Income;
-            }
+            goldItems.ItemCount = Income;
         }
 
         DbChangeReq(newItem, Income);
@@ -700,6 +703,12 @@ public class UIManager : MonoBehaviour
             Debug.Log(" 장비가 아님 ");
             return;
         }
+
+            // 메모리 적용
+            var equippedItem = PlayerInformation.playerInfo.Inventory.ItemInfo
+            .FirstOrDefault(i => i.ItemType == newItem.ItemType);
+            equippedItem.Itemstate = isEquip;
+
         C_Iteminfo itemPkt = new C_Iteminfo();
         itemPkt.ItemInfo = new ItemInfo();
         itemPkt.ItemInfo.ItemType = newItem.ItemType;
