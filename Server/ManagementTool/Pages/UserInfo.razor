@@ -3,7 +3,7 @@
 @using ManagementTool.Data
 @inject Managament Managament
 
-<h3>UserInfo</h3>
+<h3>계정 정보</h3>
 
 @if (users == null)
 {
@@ -11,8 +11,8 @@
 }
 else
 {
-    <table>
-        <thead>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
             <tr>
                 <th>ID</th>
                 <th>PW</th>
@@ -41,6 +41,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        users = await Managament.GetGameResultsAsync();
+        var results = await Managament.GetGameResultsAsync();
+        users = results.OrderBy(u => u.ID).ToList();
     }
 }
