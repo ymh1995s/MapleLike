@@ -1,0 +1,46 @@
+@page "/userInfo"
+@using ManagementTool.DB
+@using ManagementTool.Data
+@inject Managament Managament
+
+<h3>UserInfo</h3>
+
+@if (users == null)
+{
+    <p><em>로딩 중...</em></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>PW</th>
+                <th>Salt</th>
+                <th>생성일</th>
+                <th>마지막 로그인</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.ID</td>
+                    <td>@user.PW</td>
+                    <td>@user.Salt</td>
+                    <td>@user.Created.ToString("yyyy-MM-dd")</td>
+                    <td>@(user.LastLogin?.ToString("yyyy-MM-dd") ?? "-")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<UserDb> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Managament.GetGameResultsAsync();
+    }
+}

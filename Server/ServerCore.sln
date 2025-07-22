@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketGenerator", "PacketGe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountServer", "AccountServer\AccountServer.csproj", "{3D46ED1D-C825-4564-80F6-E7174DB68B58}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementTool", "ManagementTool\ManagementTool.csproj", "{E749DFFF-B356-4F12-931A-5E552617EA68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{3D46ED1D-C825-4564-80F6-E7174DB68B58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D46ED1D-C825-4564-80F6-E7174DB68B58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D46ED1D-C825-4564-80F6-E7174DB68B58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E749DFFF-B356-4F12-931A-5E552617EA68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E749DFFF-B356-4F12-931A-5E552617EA68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E749DFFF-B356-4F12-931A-5E552617EA68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E749DFFF-B356-4F12-931A-5E552617EA68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
