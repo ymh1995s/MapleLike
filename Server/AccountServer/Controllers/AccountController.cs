@@ -1,20 +1,17 @@
 using AccountServer.DB;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Cryptography;
 
 namespace AccountServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserTableController : ControllerBase
+    public class AccountController : ControllerBase
     {
         // Dependency Injection
         AppDbContext _context;
 
-        public UserTableController(AppDbContext context)
+        public AccountController(AppDbContext context)
         {
             _context = context;
         }

@@ -1,5 +1,7 @@
 using AccountServer.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using ServerContents.DB;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,10 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
-// DB 등록
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// TODO 게임서버 DB 등록 
+// 계정 DB 등록
+builder.Services.AddDbContext<AccountServer.DB.AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AccountConnection")));
+// 게임서버 DB 등록 
+builder.Services.AddDbContext<GameDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("GameServerConnection")));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
