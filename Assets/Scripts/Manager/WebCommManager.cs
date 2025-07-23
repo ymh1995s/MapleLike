@@ -116,7 +116,7 @@ public class WebCommManager : MonoBehaviour
             LastLogin = null
         };
 
-        string Destination = "UserTable";
+        string Destination = "account";
         SendPostRequest(Destination, res, (uwr) =>
         {
             var json = uwr.downloadHandler.text;

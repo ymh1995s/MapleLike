@@ -1,0 +1,76 @@
+@page "/users"
+@using ManagementTool.Data
+@using ServerContents.DB
+@using System.Net.Http.Json
+@inject Managament Managament
+@inject NavigationManager Nav
+
+<h3>유저 목록</h3>
+
+@if (users == null)
+{
+    <p>로딩 중...</p>
+}
+else
+{
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>DbId</th>
+                <th>Level</th>
+                <th>ClassType</th>
+                <th>MapNo</th>
+                <th>CurrentExp</th>
+                <th>MaxExp</th>
+                <th>CurrentHp</th>
+                <th>MaxHp</th>
+                <th>CurrentMp</th>
+                <th>MaxMp</th>
+                <th>AttackPower</th>
+                <th>MagicPower</th>
+                <th>Defense</th>
+                <th>Speed</th>
+                <th>Jump</th>
+                <th>STR</th>
+                <th>DEX</th>
+                <th>INT</th>
+                <th>LUK</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td><NavLink href="@($"/users/{user.DbId}")">@user.DbId</NavLink></td>
+                    <td>@user.Level</td>
+                    <td>@user.ClassType</td>
+                    <td>@user.MapNo</td>
+                    <td>@user.CurrentExp</td>
+                    <td>@user.MaxExp</td>
+                    <td>@user.CurrentHp</td>
+                    <td>@user.MaxHp</td>
+                    <td>@user.CurrentMp</td>
+                    <td>@user.MaxMp</td>
+                    <td>@user.AttackPower</td>
+                    <td>@user.MagicPower</td>
+                    <td>@user.Defense</td>
+                    <td>@user.Speed</td>
+                    <td>@user.Jump</td>
+                    <td>@user.STR</td>
+                    <td>@user.DEX</td>
+                    <td>@user.INT</td>
+                    <td>@user.LUK</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<UserDb> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Managament.GetUserListAsync();
+    }
+}

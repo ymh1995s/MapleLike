@@ -7,7 +7,7 @@ namespace AccountServer.DB
     // 데이터베이스 컨텍스트 클래스, DbContext를 상속받아 데이터베이스와의 상호작용을 정의
     public class AppDbContext : DbContext
     {
-        public DbSet<UserDb> Users { get; set; }
+        public DbSet<AccountDB> Users { get; set; }
 
         // 로깅 설정을 위한 ILoggerFactory 인스턴스, 콘솔 출력
         static readonly ILoggerFactory _logger = LoggerFactory.Create(builder => { builder.AddConsole(); });

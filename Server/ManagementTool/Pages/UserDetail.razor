@@ -1,0 +1,100 @@
+@page "/users/{userId}"
+@using System.Net.Http.Json
+@using Google.Protobuf.Protocol
+@using ManagementTool.Data
+@using ServerContents.DB
+@inject Managament Managament
+
+<h3>유저 상세</h3>
+
+@if (user == null)
+{
+    <p>로딩 중...</p>
+}
+else
+{
+    <EditForm Model="user" OnValidSubmit="UpdateUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>이름: </label>
+            <InputText @bind-Value="user.DbId" />
+        </div>
+
+        <div>
+            <label>레벨: </label>
+            <InputNumber @bind-Value="user.Level" />
+        </div>
+
+        <button type="submit">유저 정보 저장</button>
+    </EditForm>
+
+    <hr />
+
+    <h4>인벤토리</h4>
+
+    <ul>
+        @foreach (var item in inventory)
+        {
+            <li>
+                <strong>@item.ItemDbId</strong> (수량:
+                <InputNumber @bind-Value="item.Count" />
+                )
+                <button @onclick="() => UpdateInventoryItem(item)">수정</button>
+            </li>
+        }
+    </ul>
+
+    <hr />
+
+    <h4>아이템 추가</h4>
+    <EditForm Model="newItem" OnValidSubmit="AddItem">
+        <div>
+            <label>아이템 종류: </label>
+            <InputSelect @bind-Value="newItem.ItemDbId">
+                @foreach (var type in Enum.GetValues<ItemType>())
+                {
+                    <option value="@type">@type</option>
+                }
+            </InputSelect>
+        </div>
+        <div>
+            <label>수량: </label>
+            <InputNumber @bind-Value="newItem.Count" />
+        </div>
+        <button type="submit">추가</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public string userId { get; set; }
+
+    private UserDb user;
+    private List<InventoryDb> inventory = new();
+    private InventoryDb newItem = new InventoryDb();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await Managament.GetUserAsync(userId);
+        inventory = await Managament.GetInventoryAsync(userId);
+    }
+
+    private async Task UpdateUser()
+    {
+        await Managament.UpdateUserAsync(user);
+    }
+
+    private async Task UpdateInventoryItem(InventoryDb item)
+    {
+        await Managament.UpdateInventoryItemAsync(item);
+    }
+
+    private async Task AddItem()
+    {
+        newItem.UserDbId = user.DbId;
+        await Managament.AddItemAsync(newItem);
+        newItem = new InventoryDb();
+        inventory = await Managament.GetInventoryAsync(userId); // 인벤토리 갱신
+    }
+}

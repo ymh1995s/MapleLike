@@ -97,6 +97,7 @@ namespace AccountServer.Controllers
         }
 
         // 인벤토리 아이템 추가
+        [HttpPost("AddItem")]
         public async Task<IActionResult> AddItemToInventory(string userDbId, ItemType itemType, int amount = 1)
         {
             // 1. 유저 + 인벤토리 목록 로딩
@@ -134,6 +135,7 @@ namespace AccountServer.Controllers
             await _context.SaveChangesAsync();
             return Ok("아이템 추가 완료");
         }
+
         private void AddNewInventoryItem(string userDbId, ItemType itemType, int amount)
         {
             var newItem = new InventoryDb

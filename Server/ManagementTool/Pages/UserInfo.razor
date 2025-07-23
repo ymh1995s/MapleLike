@@ -1,9 +1,9 @@
 @page "/userInfo"
-@using ManagementTool.DB
+@using AccountServer.DB
 @using ManagementTool.Data
 @inject Managament Managament
 
-<h3>계정 정보</h3>
+<h3>계정 목록</h3>
 
 @if (users == null)
 {
@@ -37,11 +37,11 @@ else
 }
 
 @code {
-    private List<UserDb> users;
+    private List<AccountDB> users;
 
     protected override async Task OnInitializedAsync()
     {
-        var results = await Managament.GetGameResultsAsync();
+        var results = await Managament.GetAccountListAsync();
         users = results.OrderBy(u => u.ID).ToList();
     }
 }

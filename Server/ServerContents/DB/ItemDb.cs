@@ -26,7 +26,5 @@ namespace ServerContents.DB
 
         public ItemEquipDb ItemEquip { get; set; }
         public ItemConsumableDb ItemConsumable { get; set; }
-
-        public ICollection<InventoryDb> Inventory { get; set; }
     }
 }

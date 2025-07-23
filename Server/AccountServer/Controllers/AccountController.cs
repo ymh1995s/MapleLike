@@ -29,7 +29,7 @@ namespace AccountServer.Controllers
 
         // Create
         [HttpPost]
-        public IActionResult LoginOrRegister([FromBody] UserDb input)
+        public IActionResult LoginOrRegister([FromBody] AccountDB input)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace AccountServer.Controllers
                     string salt = GenerateSalt();
                     string hashed = HashPassword(input.PW, salt);
 
-                    var newUser = new UserDb
+                    var newUser = new AccountDB
                     {
                         ID = input.ID,
                         PW = hashed,
@@ -94,9 +94,9 @@ namespace AccountServer.Controllers
 
         // Read
         [HttpGet]
-        public List<UserDb> GetUsers()
+        public List<AccountDB> GetUsers()
         {
-            List<UserDb> results = _context.Users
+            List<AccountDB> results = _context.Users
                 .OrderByDescending(user => user.ID)
                 .ToList();
 
@@ -104,9 +104,9 @@ namespace AccountServer.Controllers
         }
 
         [HttpGet("{id}")]
-        public UserDb GetUser(string id)
+        public AccountDB GetUser(string id)
         {
-            UserDb result = _context.Users
+            AccountDB result = _context.Users
                         .Where(user => user.ID == id)
                         .FirstOrDefault();
 
@@ -115,7 +115,7 @@ namespace AccountServer.Controllers
 
         // Update
         [HttpPut]
-        public bool UpdateUser([FromBody] UserDb gameResult)
+        public bool UpdateUser([FromBody] AccountDB gameResult)
         {
             var findResult = _context.Users
                 .Where(x => x.ID == gameResult.ID)
