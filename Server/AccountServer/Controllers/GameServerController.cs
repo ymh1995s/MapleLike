@@ -41,22 +41,18 @@ namespace AccountServer.Controllers
         }
 
         // 유저 정보 수정
-        [HttpPut("Users/{dbId}")]
+        [HttpPut("users/{dbId}")]
         public async Task<IActionResult> UpdateUser(string dbId, [FromBody] UserDb updatedUser)
         {
             if (dbId != updatedUser.DbId)
-                return BadRequest("ID 불일치");
+                return BadRequest("ID 불일치 === 여기 도달하면 안됨");
 
             var user = await _context.Users.FindAsync(dbId);
             if (user == null)
                 return NotFound();
 
             // 수정할 내용
-            user.Gold = updatedUser.Gold;
-            user.STR = updatedUser.STR;
-            user.DEX = updatedUser.DEX;
-            user.INT = updatedUser.INT;
-            user.LUK = updatedUser.LUK;
+            _context.Entry(user).CurrentValues.SetValues(updatedUser);
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -77,14 +73,22 @@ namespace AccountServer.Controllers
             return Ok(inventory);
         }
 
-        // 인벤토리 아이템 수정
-        [HttpPut("Inventory/{inventoryId}")]
-        public async Task<IActionResult> UpdateInventoryItem(int inventoryId, [FromBody] InventoryDb updatedItem)
+        // 인벤토리 아이템 수정 
+        // JOSN에 필요한 정보만 분리한 Data Transfer Object
+        public class InventoryUpdateDto
         {
-            if (inventoryId != updatedItem.InventoryDbId)
+            public int InventoryDbId { get; set; }
+            public int Count { get; set; }
+            public ItemState IsEquipped { get; set; }
+        }
+
+        [HttpPut("Inventory/{InventoryDbId}")]
+        public async Task<IActionResult> UpdateInventoryItem(int InventoryDbId, [FromBody] InventoryUpdateDto updatedItem)
+        {
+            if (InventoryDbId != updatedItem.InventoryDbId)
                 return BadRequest("ID 불일치");
 
-            var item = await _context.Inventories.FindAsync(inventoryId);
+            var item = await _context.Inventories.FindAsync(InventoryDbId);
             if (item == null)
                 return NotFound();
 
@@ -97,38 +101,45 @@ namespace AccountServer.Controllers
         }
 
         // 인벤토리 아이템 추가
+        public class InventoryAddDto
+        {
+            public string UserDbId { get; set; }
+            public ItemType ItemDbId { get; set; }
+            public int Amount { get; set; } = 1;
+        }
+
         [HttpPost("AddItem")]
-        public async Task<IActionResult> AddItemToInventory(string userDbId, ItemType itemType, int amount = 1)
+        public async Task<IActionResult> AddItemToInventory([FromBody] InventoryAddDto dto)
         {
             // 1. 유저 + 인벤토리 목록 로딩
             var user = await _context.Users
                 .Include(u => u.Inventory)
-                .FirstOrDefaultAsync(u => u.DbId == userDbId);
+                .FirstOrDefaultAsync(u => u.DbId == dto.UserDbId);
 
             if (user == null)
                 return NotFound("User not found");
 
             // 2. 인벤토리에서 해당 아이템 존재 여부 확인
             InventoryDb inventoryItem = await _context.Inventories
-                .FirstOrDefaultAsync(i => i.UserDbId == userDbId && i.ItemDbId == itemType);
+                .FirstOrDefaultAsync(i => i.UserDbId == dto.UserDbId && i.ItemDbId == dto.ItemDbId);
 
             if (inventoryItem != null)
             {
                 // 3. 이미 존재하는데 소비아이템이면 수량만 추가
                 if((int)inventoryItem.ItemDbId < 1000)
                 {
-                    inventoryItem.Count += amount;
+                    inventoryItem.Count += dto.Amount;
                 }
                 // 4. 이미 존재하는데 장비아이템이면 새로 추가
                 else
                 {
-                    AddNewInventoryItem(userDbId, itemType, amount);
+                    AddNewInventoryItem(dto.UserDbId, dto.ItemDbId, dto.Amount);
                 }
             }
             else
             {
                 // 5. 존재하지 않으면 새로 추가
-                AddNewInventoryItem(userDbId, itemType, amount);
+                AddNewInventoryItem(dto.UserDbId, dto.ItemDbId, dto.Amount);
             }
 
             // 3. 저장

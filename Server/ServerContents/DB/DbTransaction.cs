@@ -48,7 +48,7 @@ namespace ServerContents.DB
                             DEX = player.Info.StatInfo.DEX,
                             INT = player.Info.StatInfo.INT,
                             LUK = player.Info.StatInfo.LUK,
-                            Inventory = new List<InventoryDb>()
+                            //Inventory = new List<InventoryDb>()
                         };
 
                         foreach (ItemInfo item in player.Info.Inventory.ItemInfo)

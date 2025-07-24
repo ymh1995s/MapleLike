@@ -43,6 +43,6 @@ namespace ServerContents.DB
 
         public int Gold { get; set; }
 
-        public ICollection<InventoryDb> Inventory { get; set; }
+        public virtual ICollection<InventoryDb> Inventory { get; set; } = new List<InventoryDb>();
     }
 }

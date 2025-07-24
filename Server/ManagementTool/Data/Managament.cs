@@ -1,10 +1,12 @@
 using AccountServer.DB;
 using Newtonsoft.Json;
 using ServerContents.DB;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using static AccountServer.Controllers.GameServerController;
 
 namespace ManagementTool.Data
 {
@@ -56,7 +58,7 @@ namespace ManagementTool.Data
         }
 
         // 인벤토리 아이템 업데이트
-        public async Task UpdateInventoryItemAsync(InventoryDb item)
+        public async Task UpdateInventoryItemAsync(InventoryUpdateDto item)
         {
             var result = await _httpClient.PutAsJsonAsync($"api/gameserver/inventory/{item.InventoryDbId}", item);
             result.EnsureSuccessStatusCode();
@@ -65,7 +67,14 @@ namespace ManagementTool.Data
         // 인벤토리 아이템 추가
         public async Task AddItemAsync(InventoryDb newItem)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/gameserver/additem", newItem);
+            var addDto = new InventoryAddDto
+            {
+                UserDbId = newItem.UserDbId,
+                ItemDbId = newItem.ItemDbId,
+                Amount = newItem.Count < 1 ? 1 : newItem.Count
+            };
+
+            var result = await _httpClient.PostAsJsonAsync("api/gameserver/additem", addDto);
             result.EnsureSuccessStatusCode();
         }
 
